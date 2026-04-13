@@ -1,21 +1,18 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import type { Tag } from '@/lib/api/types'
+import Link from 'next/link'
 
 type UploadState = 'idle' | 'requesting' | 'uploading' | 'completing' | 'done' | 'error'
 
-interface VideoUploadProps {
-  tags: Tag[]
-}
-
-export function VideoUpload({ tags }: VideoUploadProps) {
+export function VideoUpload() {
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
-  const [selectedTags, setSelectedTags] = useState<number[]>([])
+  const [description, setDescription] = useState('')
   const [uploadState, setUploadState] = useState<UploadState>('idle')
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [videoId, setVideoId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -27,12 +24,6 @@ export function VideoUpload({ tags }: VideoUploadProps) {
     setUploadState('idle')
   }
 
-  function toggleTag(id: number) {
-    setSelectedTags((prev) =>
-      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
-    )
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!file) return
@@ -40,26 +31,35 @@ export function VideoUpload({ tags }: VideoUploadProps) {
     setProgress(0)
 
     try {
-      // Step 1: Get pre-signed URL from our route handler
+      // Step 1: Create video record and get presigned URL
       setUploadState('requesting')
-      const presignRes = await fetch(
-        `/api/upload/presign?filename=${encodeURIComponent(file.name)}&content_type=${encodeURIComponent(file.type)}`
-      )
-      if (!presignRes.ok) throw new Error('Failed to get upload URL')
-      const { upload_url, key, sermon_id } = await presignRes.json()
+      const presignRes = await fetch('/api/upload/presign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description: description || undefined }),
+      })
+      if (!presignRes.ok) {
+        const err = await presignRes.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to get upload URL')
+      }
+      const { presigned_upload_url, video_id } = await presignRes.json()
+      setVideoId(video_id)
 
       // Step 2: Upload directly to S3
       setUploadState('uploading')
-      await uploadToS3(upload_url, file, setProgress)
+      await uploadToS3(presigned_upload_url, file, setProgress)
 
-      // Step 3: Notify backend the upload is complete
+      // Step 3: Notify backend the upload is complete (triggers processing)
       setUploadState('completing')
       const completeRes = await fetch('/api/upload/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sermon_id, key, title, tag_ids: selectedTags }),
+        body: JSON.stringify({ video_id }),
       })
-      if (!completeRes.ok) throw new Error('Failed to finalize upload')
+      if (!completeRes.ok) {
+        const err = await completeRes.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to finalize upload')
+      }
 
       setUploadState('done')
     } catch (err) {
@@ -70,24 +70,44 @@ export function VideoUpload({ tags }: VideoUploadProps) {
 
   if (uploadState === 'done') {
     return (
-      <div className="bg-white rounded-xl border border-emerald-200 p-8 text-center">
-        <div className="text-4xl mb-3">✓</div>
-        <p className="text-base font-semibold text-stone-900">Sermon uploaded successfully</p>
-        <p className="text-sm text-stone-400 mt-1">
-          Your video is being processed and will appear in your library shortly.
-        </p>
-        <button
-          onClick={() => {
-            setFile(null)
-            setTitle('')
-            setSelectedTags([])
-            setUploadState('idle')
-            if (fileInputRef.current) fileInputRef.current.value = ''
-          }}
-          className="mt-5 text-sm text-emerald-700 underline hover:no-underline"
+      <div className="surface px-8 py-10 text-center">
+        <div className="text-4xl mb-3" style={{ color: '#5A8A6A' }}>&#10003;</div>
+        <p
+          className="text-base font-semibold"
+          style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
         >
-          Upload another
-        </button>
+          Sermon uploaded successfully
+        </p>
+        <p
+          className="text-sm mt-1"
+          style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}
+        >
+          Your video is being processed. This can take a while for longer videos.
+        </p>
+        <div className="flex items-center justify-center gap-4 mt-5">
+          {videoId && (
+            <Link
+              href={`/sermons/${videoId}`}
+              className="btn-gold inline-block px-5 py-2 text-sm"
+            >
+              View sermon
+            </Link>
+          )}
+          <button
+            onClick={() => {
+              setFile(null)
+              setTitle('')
+              setDescription('')
+              setUploadState('idle')
+              setVideoId(null)
+              if (fileInputRef.current) fileInputRef.current.value = ''
+            }}
+            className="text-sm underline hover:no-underline"
+            style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+          >
+            Upload another
+          </button>
+        </div>
       </div>
     )
   }
@@ -99,9 +119,11 @@ export function VideoUpload({ tags }: VideoUploadProps) {
       {/* File picker */}
       <div
         onClick={() => fileInputRef.current?.click()}
-        className={`bg-white rounded-xl border-2 border-dashed px-8 py-12 text-center cursor-pointer transition-colors ${
-          file ? 'border-emerald-400 bg-emerald-50' : 'border-stone-300 hover:border-stone-400'
-        }`}
+        className="surface px-8 py-12 text-center cursor-pointer transition-colors"
+        style={{
+          borderStyle: 'dashed',
+          borderColor: file ? '#B8874A' : undefined,
+        }}
       >
         <input
           ref={fileInputRef}
@@ -112,76 +134,99 @@ export function VideoUpload({ tags }: VideoUploadProps) {
         />
         {file ? (
           <div>
-            <p className="text-sm font-medium text-stone-900">{file.name}</p>
-            <p className="text-xs text-stone-400 mt-1">{formatBytes(file.size)}</p>
+            <p className="text-sm font-medium" style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}>
+              {file.name}
+            </p>
+            <p className="text-xs mt-1" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+              {formatBytes(file.size)}
+            </p>
           </div>
         ) : (
           <div>
-            <p className="text-sm text-stone-500">Click to select a video file</p>
-            <p className="text-xs text-stone-400 mt-1">MP4, MOV, MKV — up to several GB</p>
+            <p className="text-sm" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+              Click to select a video file
+            </p>
+            <p className="text-xs mt-1" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
+              MP4, MOV, MKV — up to several GB
+            </p>
           </div>
         )}
       </div>
 
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium text-stone-700 mb-1">Title</label>
+        <label
+          className="block text-sm font-medium mb-1"
+          style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
+        >
+          Title
+        </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          className="input-warm w-full"
           placeholder="Sunday Sermon — April 6"
         />
       </div>
 
-      {/* Tags */}
-      {tags.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium text-stone-700 mb-2">Tags</label>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <button
-                key={tag.id}
-                type="button"
-                onClick={() => toggleTag(tag.id)}
-                className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
-                  selectedTags.includes(tag.id)
-                    ? 'bg-emerald-700 text-white border-emerald-700'
-                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
-                }`}
-              >
-                {tag.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Description */}
+      <div>
+        <label
+          className="block text-sm font-medium mb-1"
+          style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
+        >
+          Description <span style={{ color: '#C5B49A' }}>(optional)</span>
+        </label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          className="input-warm w-full"
+          placeholder="Brief description of this sermon..."
+        />
+      </div>
 
       {/* Progress bar */}
       {uploadState === 'uploading' && (
         <div>
-          <div className="flex justify-between text-xs text-stone-500 mb-1">
+          <div
+            className="flex justify-between text-xs mb-1"
+            style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}
+          >
             <span>Uploading…</span>
             <span>{progress}%</span>
           </div>
-          <div className="h-2 rounded-full bg-stone-200 overflow-hidden">
+          <div
+            className="h-2 rounded-full overflow-hidden"
+            style={{ background: 'rgba(200,182,155,0.3)' }}
+          >
             <div
-              className="h-full bg-emerald-600 rounded-full transition-all"
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full transition-all"
+              style={{ width: `${progress}%`, background: '#B8874A' }}
             />
           </div>
         </div>
       )}
 
       {uploadState === 'completing' && (
-        <p className="text-sm text-stone-500">Finalizing upload…</p>
+        <p className="text-sm" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+          Finalizing upload…
+        </p>
       )}
 
       {/* Error */}
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <p
+          className="text-sm rounded-lg px-3 py-2"
+          style={{
+            color: '#8B3A3A',
+            background: 'rgba(139,58,58,0.08)',
+            border: '1px solid rgba(139,58,58,0.2)',
+            fontFamily: 'var(--font-mulish)',
+          }}
+        >
           {error}
         </p>
       )}
@@ -189,7 +234,7 @@ export function VideoUpload({ tags }: VideoUploadProps) {
       <button
         type="submit"
         disabled={!file || !title || isSubmitting}
-        className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="btn-gold w-full px-4 py-2.5 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? 'Uploading…' : 'Upload Sermon'}
       </button>

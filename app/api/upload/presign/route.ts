@@ -1,46 +1,35 @@
 /**
- * Route handler: GET /api/upload/presign?filename=...&content_type=...
+ * Route handler: POST /api/upload/presign
  *
- * Calls the Chosen backend to get a pre-signed S3 upload URL.
- * Keeps the auth token server-side — the browser never sees it.
- *
- * PLACEHOLDER: swap the body of requestPresignedUpload() in lib/api/sermons.ts
- * when the Chosen team provides the real endpoint.
+ * Creates a video record on the backend and returns the presigned S3 URL.
+ * Body: { title: string, description?: string }
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { requestPresignedUpload } from '@/lib/api/sermons'
+import { createVideo } from '@/lib/api/videos'
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const session = await getSession()
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { searchParams } = new URL(request.url)
-  const filename = searchParams.get('filename')
-  const content_type = searchParams.get('content_type')
+  const body = await request.json()
+  const { title, description } = body as { title: string; description?: string }
 
-  if (!filename || !content_type) {
-    return NextResponse.json(
-      { error: 'filename and content_type are required' },
-      { status: 400 }
-    )
+  if (!title) {
+    return NextResponse.json({ error: 'title is required' }, { status: 400 })
   }
 
   try {
-    const data = await requestPresignedUpload(filename, content_type)
-    return NextResponse.json(data)
-  } catch {
-    // PLACEHOLDER: return a fake presigned response in dev so the UI doesn't break
-    if (process.env.NODE_ENV === 'development') {
-      return NextResponse.json({
-        upload_url: 'https://placeholder-s3-url.example.com/upload',
-        key: `placeholder/${Date.now()}-${filename}`,
-        sermon_id: Math.floor(Math.random() * 10000),
-      })
-    }
-    return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 502 })
+    const data = await createVideo(title, description)
+    return NextResponse.json({
+      presigned_upload_url: data.presigned_upload_url,
+      video_id: data.id,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to create video'
+    return NextResponse.json({ error: message }, { status: 502 })
   }
 }

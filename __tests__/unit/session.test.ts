@@ -11,11 +11,11 @@ import type { Session } from '@/lib/session'
 const mockSession: Session = {
   apiToken: 'test-api-token',
   user: {
-    id: 1,
+    id: '1',
     name: 'Pastor Test',
     email: 'pastor@test.com',
     role: 'pastor',
-    congregation_id: 42,
+    congregation_id: '42',
     congregation_name: 'Test Church',
   },
 }

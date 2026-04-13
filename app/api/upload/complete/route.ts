@@ -1,7 +1,14 @@
+/**
+ * Route handler: POST /api/upload/complete
+ *
+ * Notifies the backend that the S3 upload is done, triggering processing.
+ * Body: { video_id: string }
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { completeSermonUpload } from '@/lib/api/sermons'
-import type { CompleteUploadRequest } from '@/lib/api/types'
+import { completeUpload } from '@/lib/api/videos'
+import { TRIGGER_UPLOAD_COMPLETE } from '@/lib/config'
 
 export async function POST(request: NextRequest) {
   const session = await getSession()
@@ -9,16 +16,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = (await request.json()) as CompleteUploadRequest
+  if (!TRIGGER_UPLOAD_COMPLETE) {
+    return NextResponse.json({ skipped: true, message: 'Manual trigger disabled' })
+  }
+
+  const { video_id } = (await request.json()) as { video_id: string }
+
+  if (!video_id) {
+    return NextResponse.json({ error: 'video_id is required' }, { status: 400 })
+  }
 
   try {
-    const sermon = await completeSermonUpload(body)
-    return NextResponse.json(sermon)
-  } catch {
-    // PLACEHOLDER: return success in dev so the UI flow works end-to-end
-    if (process.env.NODE_ENV === 'development') {
-      return NextResponse.json({ id: body.sermon_id, title: body.title, state: 1 })
-    }
-    return NextResponse.json({ error: 'Failed to complete upload' }, { status: 502 })
+    const video = await completeUpload(video_id)
+    return NextResponse.json(video)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to complete upload'
+    return NextResponse.json({ error: message }, { status: 502 })
   }
 }

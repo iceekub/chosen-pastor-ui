@@ -1,39 +1,27 @@
-import { apiGet, apiPut, apiPost } from './client'
-import type {
-  Garden,
-  Card,
-  CreateGardenRequest,
-  CreateCardRequest,
-  UpdateCardRequest,
-} from './types'
+import { apiGet, apiPost, apiPut } from './client'
+import type { Garden, UpdateGardenRequest, CreateGardenRequest } from './types'
 
-export async function getGardens(): Promise<Garden[]> {
-  return apiGet<Garden[]>('/gardens')
+export async function getGarden(id: string): Promise<Garden> {
+  return apiGet<Garden>(`/gardens/${id}`)
 }
 
-export async function getGarden(id: number): Promise<Garden> {
-  return apiGet<Garden>(`/garden/${id}`)
+/**
+ * Update a garden's topic or content.
+ * Note: backend endpoint for this may not exist yet — the frontend route
+ * handler will stub this until the backend adds PUT /gardens/{id}.
+ */
+export async function updateGarden(
+  id: string,
+  data: UpdateGardenRequest
+): Promise<Garden> {
+  return apiPut<Garden>(`/gardens/${id}`, data)
 }
 
+/**
+ * Create a garden manually (not via AI generation).
+ * Note: backend endpoint for this may not exist yet — the frontend route
+ * handler will stub this until the backend adds POST /gardens.
+ */
 export async function createGarden(data: CreateGardenRequest): Promise<Garden> {
-  return apiPut<Garden>('/garden/create', data)
-}
-
-export async function createCard(
-  gardenId: number,
-  data: CreateCardRequest
-): Promise<Card> {
-  return apiPut<Card>(`/garden/${gardenId}/card/create`, data)
-}
-
-export async function updateCard(
-  gardenId: number,
-  cardId: number,
-  data: UpdateCardRequest
-): Promise<Card> {
-  return apiPost<Card>(`/garden/${gardenId}/card/${cardId}`, data)
-}
-
-export async function approveGarden(gardenId: number): Promise<Garden> {
-  return apiPost<Garden>(`/garden/${gardenId}/approve`, {})
+  return apiPost<Garden>('/gardens', data)
 }

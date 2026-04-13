@@ -19,8 +19,8 @@ const mockRedirect = redirect as ReturnType<typeof vi.fn>
 const mockSession: Session = {
   apiToken: 'tok',
   user: {
-    id: 1, name: 'Pastor', email: 'p@test.com',
-    role: 'pastor', congregation_id: 1, congregation_name: 'Church',
+    id: '1', name: 'Pastor', email: 'p@test.com',
+    role: 'pastor', congregation_id: '1', congregation_name: 'Church',
   },
 }
 
@@ -40,7 +40,7 @@ describe('verifySession', () => {
     // Re-import to bust the React cache between tests
     const { verifySession } = await import('@/lib/dal')
     const user = await verifySession()
-    expect(user.id).toBe(1)
+    expect(user.id).toBe('1')
     expect(user.email).toBe('p@test.com')
   })
 

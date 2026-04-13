@@ -70,7 +70,7 @@ describe('loginAction — API errors', () => {
 
 describe('loginAction — success', () => {
   it('calls setSession and redirects to /dashboard on success', async () => {
-    const fakeUser = { id: 1, name: 'P', email: 'p@c.com', role: 'pastor', congregation_id: 1, congregation_name: 'C' }
+    const fakeUser = { id: '1', name: 'P', email: 'p@c.com', role: 'pastor', congregation_id: '1', congregation_name: 'C' }
     mockLogin.mockResolvedValue({ token: 'api-token', user: fakeUser })
     mockSetSession.mockResolvedValue(undefined)
 

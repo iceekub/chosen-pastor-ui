@@ -1,21 +1,34 @@
-import { getGardens } from '@/lib/api/garden'
+import { getVideos, getVideoGardens } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
 import Link from 'next/link'
-import type { Garden } from '@/lib/api/types'
+import type { GardenListItem, GardenStatus, VideoListItem } from '@/lib/api/types'
 
-const STATUS: Record<Garden['status'], { label: string; color: string; bg: string }> = {
-  draft:            { label: 'Draft',        color: '#8A7060', bg: 'rgba(138,112,96,0.1)' },
-  pending_approval: { label: 'Needs review', color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
-  approved:         { label: 'Approved',     color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
-  live:             { label: 'Live',         color: '#5A8A6A', bg: 'rgba(90,138,106,0.18)' },
+const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
+  pending:    { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
+  generating: { label: 'Generating', color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  ready:      { label: 'Ready',      color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
+  error:      { label: 'Error',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+}
+
+interface SermonGardens {
+  video: VideoListItem
+  gardens: GardenListItem[]
 }
 
 export default async function GardenPage() {
   await verifySession()
-  const gardens = await getGardens().catch(() => [] as Garden[])
+  const videos = await getVideos().catch(() => [])
 
-  const pending = gardens.filter((g) => g.status === 'pending_approval')
-  const rest    = gardens.filter((g) => g.status !== 'pending_approval')
+  // Fetch gardens for each video that might have them
+  const sermonGardens: SermonGardens[] = []
+  for (const video of videos) {
+    const gardens = await getVideoGardens(video.id).catch(() => [])
+    if (gardens.length > 0) {
+      sermonGardens.push({ video, gardens })
+    }
+  }
 
   return (
     <div className="px-8 py-9 max-w-5xl mx-auto">
@@ -28,64 +41,70 @@ export default async function GardenPage() {
           Garden.
         </h1>
         <p className="text-sm mt-1" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-          Review and approve AI-generated daily card decks before they reach your congregation.
+          Review AI-generated daily devotional gardens from your sermons.
         </p>
       </div>
 
-      {pending.length > 0 && (
-        <section className="mb-10 anim-fadeUp" style={{ animationDelay: '0.08s' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <p className="section-label">Needs review</p>
-            <span
-              className="text-xs font-bold rounded-full px-2 py-0.5"
-              style={{ background: 'rgba(184,135,74,0.15)', color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
-            >
-              {pending.length}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {pending.map((g, i) => <GardenCard key={g.id} garden={g} delay={`${0.1 + i * 0.06}s`} />)}
-          </div>
-        </section>
-      )}
-
-      {rest.length > 0 && (
-        <section className="anim-fadeUp" style={{ animationDelay: '0.14s' }}>
-          <p className="section-label mb-4">All Gardens</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {rest.map((g, i) => <GardenCard key={g.id} garden={g} delay={`${0.16 + i * 0.05}s`} />)}
-          </div>
-        </section>
-      )}
-
-      {gardens.length === 0 && (
+      {sermonGardens.length === 0 ? (
         <div
           className="surface px-8 py-16 text-center anim-fadeIn"
           style={{ borderStyle: 'dashed' }}
         >
           <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-            Gardens will appear here once the AI generates them from your sermons.
+            Gardens will appear here once generated from your sermons.
           </p>
+          <Link
+            href="/sermons"
+            className="btn-gold inline-block mt-4 px-5 py-2 text-sm"
+          >
+            Go to Sermons
+          </Link>
         </div>
+      ) : (
+        sermonGardens.map(({ video, gardens }, si) => (
+          <section
+            key={video.id}
+            className="mb-10 anim-fadeUp"
+            style={{ animationDelay: `${0.08 + si * 0.06}s` }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <p className="section-label">{video.title}</p>
+              <Link
+                href={`/sermons/${video.id}`}
+                className="text-xs underline"
+                style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+              >
+                View sermon
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {gardens
+                .sort((a, b) => a.day_number - b.day_number)
+                .map((garden, i) => (
+                  <GardenCard key={garden.id} garden={garden} delay={`${0.1 + i * 0.05}s`} />
+                ))}
+            </div>
+          </section>
+        ))
       )}
     </div>
   )
 }
 
-function GardenCard({ garden, delay }: { garden: Garden; delay: string }) {
-  const s = STATUS[garden.status]
+function GardenCard({ garden, delay }: { garden: GardenListItem; delay: string }) {
+  const s = STATUS[garden.status] ?? STATUS.pending
   return (
     <Link
       href={`/garden/${garden.id}`}
       className="surface group block p-5 hover:scale-[1.01] transition-transform duration-200 anim-fadeUp"
       style={{ animationDelay: delay }}
     >
-      <div className="flex items-start justify-between gap-2 mb-2.5">
+      <div className="flex items-start justify-between gap-2 mb-1.5">
         <p
           className="text-sm font-semibold leading-snug group-hover:text-[#B8874A] transition-colors"
           style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
         >
-          {garden.title}
+          Day {garden.day_number} — {DAY_NAMES[garden.day_number] || `Day ${garden.day_number}`}
         </p>
         <span
           className="shrink-0 text-xs font-semibold rounded-full px-2.5 py-0.5"
@@ -94,17 +113,8 @@ function GardenCard({ garden, delay }: { garden: Garden; delay: string }) {
           {s.label}
         </span>
       </div>
-      {garden.description && (
-        <p className="text-xs mb-2.5 line-clamp-2" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-          {garden.description}
-        </p>
-      )}
-      <p className="text-xs" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
-        {garden.go_live_date
-          ? new Date(garden.go_live_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : 'No date set'}
-        {' · '}
-        {garden.cards?.length ?? 0} cards
+      <p className="text-xs line-clamp-2" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
+        {garden.topic}
       </p>
     </Link>
   )

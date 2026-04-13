@@ -1,16 +1,15 @@
 /**
- * Shared types derived from the Chosen DB schema.
- * Update these as the real API contract is finalized.
+ * Types matching the Chosen backend API schemas.
  */
 
 export type UserRole = 'admin' | 'pastor' | 'church_staff' | 'congregant'
 
 export interface SessionUser {
-  id: number
+  id: string
   name: string
   email: string
   role: UserRole
-  congregation_id: number
+  congregation_id: string
   congregation_name: string
 }
 
@@ -19,102 +18,108 @@ export interface LoginResponse {
   user: SessionUser
 }
 
-// ─── Sermons / Videos ─────────────────────────────────────────────────────────
+// ─── Videos ──────────────────────────────────────────────────────────────────
 
-export type VideoState = 0 | 1 | 2 | 3 // 0=waiting, 1=uploaded, 2=processing, 3=valid
+export type VideoStatus = 'pending_upload' | 'downloading' | 'uploaded' | 'processing' | 'ready' | 'error'
 
-export interface Sermon {
-  id: number
+export interface Video {
+  id: string
+  church_id: string
   title: string
-  base_file_name: string
-  length: number | null // seconds
-  state: VideoState
+  description: string | null
+  video_type: string
+  s3_key: string | null
+  status: VideoStatus
+  ragie_document_id: string | null
+  transcript: string | null
+  error_message: string | null
   created_at: string
-  tags: Tag[]
-  thumbnail_url?: string
+  updated_at: string | null
 }
 
-export interface PresignedUploadResponse {
-  upload_url: string  // The pre-signed S3 PUT URL
-  key: string         // S3 object key — send back on completion
-  sermon_id: number   // ID created server-side, ready to track state
-}
-
-export interface CompleteUploadRequest {
-  sermon_id: number
-  key: string
+/** Subset returned by GET /videos (list endpoint) */
+export interface VideoListItem {
+  id: string
+  church_id: string
   title: string
-  tag_ids?: number[]
+  description: string | null
+  video_type: string
+  status: VideoStatus
+  created_at: string
+  updated_at: string | null
 }
 
-// ─── Tags ─────────────────────────────────────────────────────────────────────
+/** Returned by POST /videos (includes presigned upload URL) */
+export interface VideoCreateResponse extends Video {
+  presigned_upload_url: string
+}
+
+// ─── Gardens ─────────────────────────────────────────────────────────────────
+
+export type GardenStatus = 'pending' | 'generating' | 'ready' | 'error'
+
+export interface Garden {
+  id: string
+  video_id: string
+  church_id: string
+  day_number: number
+  topic: string
+  content_markdown: string | null
+  status: GardenStatus
+  error_message: string | null
+  created_at: string
+  updated_at: string | null
+}
+
+/** Subset returned by list endpoints (no content_markdown) */
+export interface GardenListItem {
+  id: string
+  video_id: string
+  church_id: string
+  day_number: number
+  topic: string
+  status: GardenStatus
+  error_message: string | null
+  created_at: string
+  updated_at: string | null
+}
+
+/** Request to update a garden's content */
+export interface UpdateGardenRequest {
+  topic?: string
+  content_markdown?: string
+}
+
+/** Request to create a garden manually (not via AI generation) */
+export interface CreateGardenRequest {
+  video_id?: string
+  day_number: number
+  topic: string
+  content_markdown?: string
+}
+
+// ─── Churches ────────────────────────────────────────────────────────────────
+
+export interface Church {
+  id: string
+  name: string
+  ragie_partition_id: string | null
+  created_at: string
+  updated_at: string | null
+}
+
+// ─── Tags (may be re-added later) ───────────────────────────────────────────
 
 export interface Tag {
   id: number
   name: string
 }
 
-// ─── Documents ────────────────────────────────────────────────────────────────
+// ─── Documents ───────────────────────────────────────────────────────────────
 
 export interface Document {
-  id: number
+  id: string
   title: string
   content?: string
   created_at: string
-}
-
-// ─── Garden ───────────────────────────────────────────────────────────────────
-
-export type CardType = 1 | 2 | 3 | 4 // 1=text, 2=image, 3=video, 4=question
-
-export interface Garden {
-  id: number
-  title: string
-  description?: string
-  go_live_date: string | null
-  image?: string
-  status: 'draft' | 'pending_approval' | 'approved' | 'live'
-  cards: Card[]
-}
-
-export interface Card {
-  id: number
-  garden_id: number
-  card_type: CardType
-  content: string
-  image?: string
-  video?: string
-  position: number
-}
-
-export interface CreateGardenRequest {
-  date?: string
-  title: string
-  subtitle?: string
-}
-
-export interface CreateCardRequest {
-  position?: number
-  title: string
-  card_type: CardType
-  text: string
-  image?: string
-  choices?: string[] // for poll cards
-}
-
-export interface UpdateCardRequest {
-  title?: string
-  text?: string
-  image?: string
-  choices?: string[]
-}
-
-// ─── Admin ────────────────────────────────────────────────────────────────────
-
-export interface Congregation {
-  id: number
-  name: string
-  city?: string
-  state?: string
-  country: string
 }

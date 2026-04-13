@@ -26,11 +26,11 @@ export async function loginAction(
     // PLACEHOLDER: remove this fallback once the real API is connected
     if (process.env.NODE_ENV === 'development') {
       await setSession('placeholder-token', {
-        id: 1,
+        id: '1',
         name: 'Pastor Demo',
         email,
         role: 'pastor',
-        congregation_id: 1,
+        congregation_id: '1',
         congregation_name: 'Demo Church',
       })
     } else {

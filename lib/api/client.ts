@@ -1,19 +1,23 @@
 /**
  * Base API client for the Chosen backend.
  *
- * PLACEHOLDER: Set API_BASE_URL in .env.local when the Chosen team provides it.
- * All fetch calls go through here so the base URL and auth header are in one place.
- *
  * Usage (server components / server actions only):
  *   import { apiGet, apiPost } from '@/lib/api/client'
- *   const sermons = await apiGet<Sermon[]>('/library/sermons')
+ *   const videos = await apiGet<VideoListItem[]>('/videos')
  */
 
 import { cookies } from 'next/headers'
 
-const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:4000'
+const API_BASE_URL = process.env.API_BASE_URL ?? 'https://api.chosenapp.com'
 
+/**
+ * Temporary: use a fixed bearer token while backend auth isn't fully built.
+ * Set CHOSEN_API_TOKEN in .env.local. Once real auth is wired up, remove this
+ * and rely solely on the cookie-based token.
+ */
 async function getAuthToken(): Promise<string | undefined> {
+  const envToken = process.env.CHOSEN_API_TOKEN
+  if (envToken) return envToken
   const cookieStore = await cookies()
   return cookieStore.get('chosen_token')?.value
 }
@@ -36,6 +40,7 @@ async function apiFetch<T>(
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers,
+    cache: 'no-store',
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 

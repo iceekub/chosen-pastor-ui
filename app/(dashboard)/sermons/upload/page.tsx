@@ -1,10 +1,8 @@
 import { verifySession } from '@/lib/dal'
-import { getTags } from '@/lib/api/documents'
 import { VideoUpload } from '@/components/video-upload'
 
 export default async function UploadPage() {
   await verifySession()
-  const tags = await getTags().catch(() => [])
 
   return (
     <div className="px-8 py-9 max-w-2xl mx-auto">
@@ -21,7 +19,7 @@ export default async function UploadPage() {
         </p>
       </div>
       <div className="surface p-6 anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-        <VideoUpload tags={tags} />
+        <VideoUpload />
       </div>
     </div>
   )

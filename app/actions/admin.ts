@@ -9,7 +9,7 @@ export async function switchChurchAction(
   formData: FormData
 ): Promise<{ error: string }> {
   await requireAdmin()
-  const church_id = Number(formData.get('church_id'))
+  const church_id = formData.get('church_id') as string
   if (!church_id) return { error: 'Enter a valid church ID.' }
 
   try {
@@ -26,13 +26,11 @@ export async function createChurchAction(
 ): Promise<{ error?: string; success?: boolean; name?: string }> {
   await requireAdmin()
   const name = formData.get('name') as string
-  const city = (formData.get('city') as string) || undefined
-  const state = (formData.get('state') as string) || undefined
 
   if (!name) return { error: 'Church name is required.' }
 
   try {
-    const church = await createChurch({ name, city, state, country: 'US' })
+    const church = await createChurch(name)
     return { success: true, name: church.name }
   } catch {
     return { error: 'Failed to create church.' }

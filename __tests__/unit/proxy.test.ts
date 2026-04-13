@@ -15,8 +15,8 @@ const mockDecrypt = decrypt as ReturnType<typeof vi.fn>
 const validSession: Session = {
   apiToken: 'tok',
   user: {
-    id: 1, name: 'Pastor', email: 'p@test.com',
-    role: 'pastor', congregation_id: 1, congregation_name: 'Church',
+    id: '1', name: 'Pastor', email: 'p@test.com',
+    role: 'pastor', congregation_id: '1', congregation_name: 'Church',
   },
 }
 

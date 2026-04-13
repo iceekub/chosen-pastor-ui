@@ -4,12 +4,11 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  define: { 'process.env.NODE_ENV': '"test"' },
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    // Force test environment so dev-mode API fallbacks never run in tests
-    define: { 'process.env.NODE_ENV': '"test"' },
   },
   resolve: {
     alias: {

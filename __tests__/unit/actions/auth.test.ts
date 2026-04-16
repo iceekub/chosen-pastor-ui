@@ -25,7 +25,7 @@ const mockLogin = loginWithCredentials as ReturnType<typeof vi.fn>
 const mockLogout = logoutApi as ReturnType<typeof vi.fn>
 const mockSetSession = setSession as ReturnType<typeof vi.fn>
 const mockDeleteSession = deleteSession as ReturnType<typeof vi.fn>
-const mockRedirect = redirect as ReturnType<typeof vi.fn>
+const mockRedirect = vi.mocked(redirect)
 
 function makeForm(data: Record<string, string>) {
   const fd = new FormData()

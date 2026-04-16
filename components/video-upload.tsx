@@ -252,7 +252,8 @@ function uploadToS3(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.open('PUT', url)
-    xhr.setRequestHeader('Content-Type', file.type)
+    // Backend always signs the presigned URL for video/mp4 — must match exactly
+    xhr.setRequestHeader('Content-Type', 'video/mp4')
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
     }

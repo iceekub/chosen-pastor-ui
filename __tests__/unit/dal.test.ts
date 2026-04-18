@@ -14,7 +14,7 @@ import { getSession } from '@/lib/session'
 import type { Session } from '@/lib/session'
 
 const mockGetSession = getSession as ReturnType<typeof vi.fn>
-const mockRedirect = redirect as ReturnType<typeof vi.fn>
+const mockRedirect = vi.mocked(redirect)
 
 const mockSession: Session = {
   apiToken: 'tok',

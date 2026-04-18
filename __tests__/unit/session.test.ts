@@ -1,4 +1,5 @@
 // @vitest-environment node
+/// <reference types="vitest/globals" />
 // Mock server-only so it doesn't throw outside Next.js server context
 vi.mock('server-only', () => ({}))
 // Mock next/headers — not needed for encrypt/decrypt tests

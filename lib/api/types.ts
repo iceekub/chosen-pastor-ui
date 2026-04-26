@@ -213,3 +213,21 @@ export interface Tag {
   name: string
   created_at: string
 }
+
+// ─── Themes ─────────────────────────────────────────────────────────────────
+
+export interface Theme {
+  id: string
+  church_id: string
+  name: string
+  image_url: string | null
+  display_order: number
+  created_at: string
+  updated_at: string | null
+}
+
+export interface VideoTheme {
+  video_id: string
+  theme_id: string
+  created_at: string
+}

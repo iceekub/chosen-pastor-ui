@@ -14,7 +14,7 @@ const mockGetSession      = vi.mocked(getSession)
 const mockGetGardens      = vi.mocked(getVideoGardens)
 const mockGenerateGardens = vi.mocked(generateGardens)
 
-const validSession = { apiToken: 'tok', user: { id: '1' } }
+const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
 
 function makeGetRequest(id: string) {
   return {
@@ -37,7 +37,7 @@ function makePostRequest(id: string, body?: object) {
 const fakeGardens = [
   { id: 'g1', video_id: 'abc', day_number: 1, topic: 'Faith', status: 'ready' as const, created_at: '2026-01-01' },
   { id: 'g2', video_id: 'abc', day_number: 2, topic: 'Hope',  status: 'ready' as const, created_at: '2026-01-01' },
-]
+] as never
 
 beforeEach(() => vi.clearAllMocks())
 

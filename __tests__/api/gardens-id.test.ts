@@ -12,7 +12,7 @@ import { PUT } from '@/app/api/gardens/[id]/route'
 const mockGetSession   = vi.mocked(getSession)
 const mockUpdateGarden = vi.mocked(updateGarden)
 
-const validSession = { apiToken: 'tok', user: { id: '1' } }
+const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
 
 function makeRequest(id: string, body: object) {
   return {
@@ -30,28 +30,29 @@ beforeEach(() => vi.clearAllMocks())
 describe('PUT /api/gardens/[id]', () => {
   it('returns 401 when there is no session', async () => {
     mockGetSession.mockResolvedValue(null)
-    const { req, ctx } = makeRequest('g1', { content_markdown: '# Hello' })
+    const { req, ctx } = makeRequest('g1', { content_json: { day_number: 1, topic: 'x', cards: [] } })
     const res = await PUT(req, ctx)
     expect(res.status).toBe(401)
   })
 
   it('returns the updated garden on success', async () => {
     mockGetSession.mockResolvedValue(validSession)
+    const updated = { day_number: 1, topic: 'x', cards: [] }
     mockUpdateGarden.mockResolvedValue({
-      id: 'g1', video_id: 'v1', content_markdown: '# Updated', status: 'ready',
-      day_number: 1, created_at: '2026-01-01',
-    })
-    const { req, ctx } = makeRequest('g1', { content_markdown: '# Updated' })
+      id: 'g1', video_id: 'v1', content_json: updated, status: 'ready',
+      day_number: 1, topic: 'x', created_at: '2026-01-01',
+    } as never)
+    const { req, ctx } = makeRequest('g1', { content_json: updated })
     const res = await PUT(req, ctx)
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.content_markdown).toBe('# Updated')
+    expect(body.content_json).toEqual(updated)
   })
 
   it('passes the full body to updateGarden', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockUpdateGarden.mockResolvedValue({ id: 'g1' } as never)
-    const payload = { content_markdown: '# New content', topic: 'Grace' }
+    const payload = { content_json: { day_number: 1, topic: 'x', cards: [] }, topic: 'Grace' }
     const { req, ctx } = makeRequest('g1', payload)
     await PUT(req, ctx)
     expect(mockUpdateGarden).toHaveBeenCalledWith('g1', payload)
@@ -60,7 +61,7 @@ describe('PUT /api/gardens/[id]', () => {
   it('returns 502 when updateGarden throws', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockUpdateGarden.mockRejectedValue(new Error('Backend down'))
-    const { req, ctx } = makeRequest('g1', { content_markdown: '# Hi' })
+    const { req, ctx } = makeRequest('g1', { content_json: { day_number: 1, topic: 'x', cards: [] } })
     const res = await PUT(req, ctx)
     expect(res.status).toBe(502)
   })

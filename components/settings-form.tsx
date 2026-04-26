@@ -9,7 +9,7 @@ export function SettingsForm({ user }: { user: SessionUser }) {
 
   const fields = [
     { section: 'Church', items: [
-      { name: 'church_name',  label: 'Church name',    defaultValue: user.congregation_name, placeholder: 'Grace Community Church' },
+      { name: 'church_name',  label: 'Church name',    defaultValue: user.church_name, placeholder: 'Grace Community Church' },
       { name: 'church_city',  label: 'City',           defaultValue: '',                     placeholder: 'Nashville' },
       { name: 'church_state', label: 'State',          defaultValue: '',                     placeholder: 'TN' },
       { name: 'church_email', label: 'Contact email',  defaultValue: '',                     placeholder: 'hello@yourchurch.com', type: 'email' },
@@ -40,7 +40,7 @@ export function SettingsForm({ user }: { user: SessionUser }) {
                   id={name}
                   name={name}
                   type={type}
-                  defaultValue={defaultValue}
+                  defaultValue={defaultValue ?? ''}
                   placeholder={placeholder}
                   className="input-warm"
                 />

@@ -18,6 +18,7 @@ const STATUS_DISPLAY: Record<VideoStatus, { label: string; color: string; bg: st
 const GARDEN_STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
   pending:    { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   generating: { label: 'Generating', color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  reviewing:  { label: 'Reviewing',  color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   ready:      { label: 'Ready',      color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
   error:      { label: 'Error',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
 }

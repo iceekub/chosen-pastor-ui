@@ -1,27 +1,22 @@
-import { apiGet, apiPost, apiPut } from './client'
-import type { Garden, UpdateGardenRequest, CreateGardenRequest } from './types'
+import { postgrest } from './client'
+import type { Garden, UpdateGardenRequest } from './types'
 
 export async function getGarden(id: string): Promise<Garden> {
-  return apiGet<Garden>(`/gardens/${id}`)
+  return postgrest<Garden>(`/gardens?id=eq.${id}&select=*`, { singleRow: true })
 }
 
 /**
- * Update a garden's topic or content.
- * Note: backend endpoint for this may not exist yet — the frontend route
- * handler will stub this until the backend adds PUT /gardens/{id}.
+ * Update a garden's topic, content, go-live date, or featured flag.
+ * RLS gates writes to staff/pastor/super_admin in the row's church.
  */
 export async function updateGarden(
   id: string,
-  data: UpdateGardenRequest
+  data: UpdateGardenRequest,
 ): Promise<Garden> {
-  return apiPut<Garden>(`/gardens/${id}`, data)
-}
-
-/**
- * Create a garden manually (not via AI generation).
- * Note: backend endpoint for this may not exist yet — the frontend route
- * handler will stub this until the backend adds POST /gardens.
- */
-export async function createGarden(data: CreateGardenRequest): Promise<Garden> {
-  return apiPost<Garden>('/gardens', data)
+  return postgrest<Garden>(`/gardens?id=eq.${id}`, {
+    method: 'PATCH',
+    body: data,
+    returnRows: true,
+    singleRow: true,
+  })
 }

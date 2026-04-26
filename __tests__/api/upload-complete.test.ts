@@ -13,7 +13,7 @@ import { POST } from '@/app/api/upload/complete/route'
 const mockGetSession    = vi.mocked(getSession)
 const mockCompleteUpload = vi.mocked(completeUpload)
 
-const validSession = { apiToken: 'tok', user: { id: '1' } }
+const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
 
 function makeRequest(body: object) {
   return new NextRequest('http://localhost/api/upload/complete', {
@@ -43,7 +43,7 @@ describe('POST /api/upload/complete', () => {
     mockCompleteUpload.mockResolvedValue({
       id: 'abc', title: 'Sermon', status: 'processing',
       created_at: '2026-01-01', video_type: 'sermon',
-    })
+    } as never)
     const res = await POST(makeRequest({ video_id: 'abc' }))
     expect(res.status).toBe(200)
     const body = await res.json()

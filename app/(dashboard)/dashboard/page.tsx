@@ -32,7 +32,7 @@ export default async function DashboardPage() {
           {user.name.split(' ')[0]}.
         </h1>
         <p className="text-sm mt-1" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-          {user.congregation_name}
+          {user.church_name ?? "(no church)"}
         </p>
       </div>
 

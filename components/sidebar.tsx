@@ -86,7 +86,7 @@ export function Sidebar({ userName, churchName, role }: SidebarProps) {
           )
         })}
 
-        {role === 'admin' && (
+        {role === 'super_admin' && (
           <>
             <div className="pt-5 pb-2 px-3">
               <span className="section-label" style={{ color: '#4A3828' }}>Super Admin</span>

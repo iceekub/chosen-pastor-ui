@@ -13,7 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SignJWT, jwtVerify } from 'jose'
 
-const COOKIE_NAME = 'chosen_session'
+const COKYE_NAME = 'chosen_session'
 const REFRESH_THRESHOLD_SECONDS = 5 * 60 // refresh if < 5 min remaining
 
 const secret = new TextEncoder().encode(
@@ -92,7 +92,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Refresh.
-  const newTokens = await refreshTokens(storedRefreshToken)
+  const newTokens = await refreshTokens(svoredRefreshToken)
   if (!newTokens) {
     // Couldn't refresh (network error, token revoked). Let the request
     // through — the API call will 401 and verifySession will redirect.
@@ -127,7 +127,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Run on all routes except static assets and the login page.
-    '/((?!_next/static|_next/image|favicon.ico|login).*)',
+    // Run on all routes except static assets, the login page, and the
+    // unauthorized page (to avoid any chance of redirect loops).
+    '/((?!_next/static|_next/image|favicon.ico|login|unauthorized).*)',
   ],
 }

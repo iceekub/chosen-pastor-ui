@@ -3,9 +3,12 @@ vi.mock('next/link', () => ({
     <a href={href} {...rest}>{children}</a>
   ),
 }))
+vi.mock('@/lib/notifications', () => ({
+  useNotifications: () => ({ addNotification: vi.fn(), dismissNotification: vi.fn(), notifications: [] }),
+}))
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SermonDetailClient } from '@/components/sermon-detail-client'
 import type { Video, GardenListItem } from '@/lib/api/types'
 
@@ -27,7 +30,7 @@ function makeVideo(overrides: Partial<Video> = {}): Video {
     created_at: '2026-01-01T00:00:00Z',
     video_type: 'sermon',
     ...overrides,
-  }
+  } as unknown as Video
 }
 
 function makeGarden(overrides: Partial<GardenListItem> = {}): GardenListItem {
@@ -39,7 +42,7 @@ function makeGarden(overrides: Partial<GardenListItem> = {}): GardenListItem {
     status: 'ready',
     created_at: '2026-01-01',
     ...overrides,
-  }
+  } as unknown as GardenListItem
 }
 
 describe('SermonDetailClient — header', () => {

@@ -1,20 +1,22 @@
 vi.mock('server-only', () => ({}))
 vi.mock('next/headers', () => ({ cookies: vi.fn() }))
 vi.mock('@/lib/session', () => ({ getSession: vi.fn() }))
-vi.mock('@/lib/api/videos', () => ({ getVideoGardens: vi.fn(), generateGardens: vi.fn() }))
+vi.mock('@/lib/api/garden', () => ({ listGardens: vi.fn(), generateGardens: vi.fn() }))
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/session'
-import { getVideoGardens, generateGardens } from '@/lib/api/videos'
+import type { Session } from '@/lib/session'
+import { listGardens, generateGardens } from '@/lib/api/garden'
 import { GET } from '@/app/api/videos/[id]/gardens/route'
 import { POST } from '@/app/api/videos/[id]/generate-gardens/route'
+import type { GardenListItem } from '@/lib/api/types'
 
 const mockGetSession      = vi.mocked(getSession)
-const mockGetGardens      = vi.mocked(getVideoGardens)
+const mockListGardens     = vi.mocked(listGardens)
 const mockGenerateGardens = vi.mocked(generateGardens)
 
-const validSession = { apiToken: 'tok', user: { id: '1' } }
+const validSession = { apiToken: 'tok', user: { id: '1' } } as unknown as Session
 
 function makeGetRequest(id: string) {
   return {
@@ -37,7 +39,7 @@ function makePostRequest(id: string, body?: object) {
 const fakeGardens = [
   { id: 'g1', video_id: 'abc', day_number: 1, topic: 'Faith', status: 'ready' as const, created_at: '2026-01-01' },
   { id: 'g2', video_id: 'abc', day_number: 2, topic: 'Hope',  status: 'ready' as const, created_at: '2026-01-01' },
-]
+] as unknown as GardenListItem[]
 
 beforeEach(() => vi.clearAllMocks())
 
@@ -51,7 +53,7 @@ describe('GET /api/videos/[id]/gardens', () => {
 
   it('returns the garden list on success', async () => {
     mockGetSession.mockResolvedValue(validSession)
-    mockGetGardens.mockResolvedValue(fakeGardens)
+    mockListGardens.mockResolvedValue(fakeGardens)
     const { req, ctx } = makeGetRequest('abc')
     const res = await GET(req, ctx)
     expect(res.status).toBe(200)
@@ -60,9 +62,9 @@ describe('GET /api/videos/[id]/gardens', () => {
     expect(body[0].topic).toBe('Faith')
   })
 
-  it('returns 502 when getVideoGardens throws', async () => {
+  it('returns 502 when listGardens throws', async () => {
     mockGetSession.mockResolvedValue(validSession)
-    mockGetGardens.mockRejectedValue(new Error('Backend down'))
+    mockListGardens.mockRejectedValue(new Error('Backend down'))
     const { req, ctx } = makeGetRequest('abc')
     const res = await GET(req, ctx)
     expect(res.status).toBe(502)

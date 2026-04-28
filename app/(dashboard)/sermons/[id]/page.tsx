@@ -1,5 +1,5 @@
 import { getVideo } from '@/lib/api/videos'
-import { getVideoGardens } from '@/lib/api/videos'
+import { listGardens } from '@/lib/api/garden'
 import { verifySession } from '@/lib/dal'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -15,7 +15,7 @@ export default async function SermonDetailPage({ params }: Props) {
   const video = await getVideo(id).catch(() => null)
   if (!video) notFound()
 
-  const gardens = await getVideoGardens(id).catch(() => [])
+  const gardens = await listGardens(id).catch(() => [])
 
   return (
     <div className="px-8 py-9 max-w-3xl mx-auto">

@@ -10,6 +10,7 @@ const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', '
 const STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
   pending:    { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   generating: { label: 'Generating', color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  reviewing:  { label: 'Reviewing',  color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
   ready:      { label: 'Ready',      color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
   error:      { label: 'Error',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
 }
@@ -53,12 +54,12 @@ export default async function GardenDetailPage({ params }: Props) {
         </span>
       </div>
 
-      {garden.status === 'generating' && (
+      {(garden.status === 'generating' || garden.status === 'reviewing') && (
         <div className="surface px-6 py-5 mb-6 anim-fadeUp" style={{ animationDelay: '0.08s' }}>
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full animate-pulse" style={{ background: '#B8874A' }} />
             <p className="text-sm" style={{ fontFamily: 'var(--font-mulish)', color: '#8A7060' }}>
-              Content is being generated…
+              {garden.status === 'reviewing' ? 'Reviewing generated content…' : 'Content is being generated…'}
             </p>
           </div>
         </div>
@@ -75,19 +76,9 @@ export default async function GardenDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Editable content — shown when garden is ready or has content */}
-      {(garden.status === 'ready' || garden.content_markdown) && (
-        <div className="anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-          <GardenContentEditor garden={garden} />
-        </div>
-      )}
-
-      {/* Empty state for pending gardens with no content yet */}
-      {garden.status === 'pending' && !garden.content_markdown && (
-        <div className="anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-          <GardenContentEditor garden={garden} />
-        </div>
-      )}
+      <div className="anim-fadeUp" style={{ animationDelay: '0.1s' }}>
+        <GardenContentEditor garden={garden} />
+      </div>
     </div>
   )
 }

@@ -10,7 +10,7 @@ vi.mock('@/lib/notifications', () => ({
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SermonDetailClient } from '@/components/sermon-detail-client'
-import { makeVideo as makeVideoBase, makeGardenListItem } from '../factories'
+import type { Video, GardenListItem } from '@/lib/api/types'
 
 // Reset fetch mock between tests
 const mockFetch = vi.fn()
@@ -22,8 +22,28 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const makeVideo = (overrides = {}) => makeVideoBase({ id: 'vid-1', title: 'Sunday Sermon', ...overrides })
-const makeGarden = (overrides = {}) => makeGardenListItem({ video_id: 'vid-1', topic: 'Faith', ...overrides })
+function makeVideo(overrides: Partial<Video> = {}): Video {
+  return {
+    id: 'vid-1',
+    title: 'Sunday Sermon',
+    status: 'ready',
+    created_at: '2026-01-01T00:00:00Z',
+    video_type: 'sermon',
+    ...overrides,
+  } as unknown as Video
+}
+
+function makeGarden(overrides: Partial<GardenListItem> = {}): GardenListItem {
+  return {
+    id: 'g1',
+    video_id: 'vid-1',
+    day_number: 1,
+    topic: 'Faith',
+    status: 'ready',
+    created_at: '2026-01-01',
+    ...overrides,
+  } as unknown as GardenListItem
+}
 
 describe('SermonDetailClient — header', () => {
   it('renders the video title', () => {

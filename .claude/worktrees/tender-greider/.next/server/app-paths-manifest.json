@@ -1,0 +1,19 @@
+{
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(dashboard)/admin/page": "app/(dashboard)/admin/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/documents/page": "app/(dashboard)/documents/page.js",
+  "/(dashboard)/garden/[id]/page": "app/(dashboard)/garden/[id]/page.js",
+  "/(dashboard)/garden/page": "app/(dashboard)/garden/page.js",
+  "/(dashboard)/page": "app/(dashboard)/page.js",
+  "/(dashboard)/sermons/page": "app/(dashboard)/sermons/page.js",
+  "/(dashboard)/sermons/upload/page": "app/(dashboard)/sermons/upload/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/garden/[id]/approve/route": "app/api/garden/[id]/approve/route.js",
+  "/api/garden/[id]/card/[cardId]/route": "app/api/garden/[id]/card/[cardId]/route.js",
+  "/api/upload/complete/route": "app/api/upload/complete/route.js",
+  "/api/upload/presign/route": "app/api/upload/presign/route.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/page": "app/page.js"
+}

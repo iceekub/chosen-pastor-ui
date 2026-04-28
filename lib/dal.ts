@@ -3,21 +3,16 @@ import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { getSession } from './session'
-import type { SessionUser, UserRole } from './api/types'
-
-/** Roles that are allowed to access the pastor UI. */
-const PASTOR_UI_ROLES: UserRole[] = ['super_admin', 'pastor', 'staff']
+import type { SessionUser } from './api/types'
 
 /**
  * Verifies the session and returns the current user.
  * Redirects to /login if there is no valid session.
- * Redirects to /unauthorized if the user's role is not allowed in the pastor UI.
  * Memoized per-request via React cache.
  */
 export const verifySession = cache(async (): Promise<SessionUser> => {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (!PASTOR_UI_ROLES.includes(session.user.role)) redirect('/unauthorized')
   return session.user
 })
 
@@ -32,6 +27,6 @@ export const getOptionalSession = cache(async () => {
 /** Guard for super-admin only routes */
 export async function requireAdmin(): Promise<SessionUser> {
   const user = await verifySession()
-  if (user.role !== 'super_admin') redirect('/dashboard')
+  if (user.role !== 'admin') redirect('/dashboard')
   return user
 }

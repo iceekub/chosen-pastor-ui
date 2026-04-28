@@ -6,6 +6,7 @@ vi.mock('@/lib/api/garden', () => ({ listGardens: vi.fn(), generateGardens: vi.f
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/session'
+import type { Session } from '@/lib/session'
 import { listGardens, generateGardens } from '@/lib/api/garden'
 import { GET } from '@/app/api/videos/[id]/gardens/route'
 import { POST } from '@/app/api/videos/[id]/generate-gardens/route'
@@ -15,7 +16,7 @@ const mockGetSession      = vi.mocked(getSession)
 const mockListGardens     = vi.mocked(listGardens)
 const mockGenerateGardens = vi.mocked(generateGardens)
 
-const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
+const validSession = { apiToken: 'tok', user: { id: '1' } } as unknown as Session
 
 function makeGetRequest(id: string) {
   return {

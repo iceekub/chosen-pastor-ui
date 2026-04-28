@@ -1,0 +1,41 @@
+{
+  "node": {
+    "000a14238a61b2d713b65953a98396cf065d5f27fc": {
+      "workers": {
+        "app/(dashboard)/admin/page": {
+          "moduleId": 19302,
+          "async": false,
+          "exportedName": "logoutAction",
+          "filename": ".claude/worktrees/tender-greider/app/actions/auth.ts"
+        }
+      },
+      "exportedName": "logoutAction",
+      "filename": ".claude/worktrees/tender-greider/app/actions/auth.ts"
+    },
+    "601fe61ad743de8dd0d8b89dbb7e7f400e54359902": {
+      "workers": {
+        "app/(dashboard)/admin/page": {
+          "moduleId": 19302,
+          "async": false,
+          "exportedName": "createChurchAction",
+          "filename": ".claude/worktrees/tender-greider/app/actions/admin.ts"
+        }
+      },
+      "exportedName": "createChurchAction",
+      "filename": ".claude/worktrees/tender-greider/app/actions/admin.ts"
+    },
+    "608fc2a46d90bd4a7318e947492ca459bb97b75c9c": {
+      "workers": {
+        "app/(dashboard)/admin/page": {
+          "moduleId": 19302,
+          "async": false,
+          "exportedName": "switchChurchAction",
+          "filename": ".claude/worktrees/tender-greider/app/actions/admin.ts"
+        }
+      },
+      "exportedName": "switchChurchAction",
+      "filename": ".claude/worktrees/tender-greider/app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

@@ -4,21 +4,15 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import type { SessionUser } from './api/types'
 
-const COOKIE_NAME = 'chosen_session'
+const COOKIE_NAME = 'chosen_token'
 const secret = new TextEncoder().encode(
-  process.env.SESSION_SECRET ?? 'dev-secret-replace-in-production',
+  process.env.SESSION_SECRET ?? 'dev-secret-replace-in-production'
 )
 
-/**
- * What we store in the session cookie. The Supabase tokens are kept
- * server-side (httpOnly cookie) and forwarded to PostgREST + ragserv
- * via the Authorization header. Refresh isn't wired yet — sessions
- * live the lifetime of the access token (1h by default).
- */
 export interface Session {
   user: SessionUser
-  accessToken: string
-  refreshToken: string
+  /** The raw bearer token to forward to the Chosen backend */
+  apiToken: string
 }
 
 export async function encrypt(payload: Session): Promise<string> {
@@ -38,10 +32,10 @@ export async function decrypt(token: string): Promise<Session | null> {
   }
 }
 
-export async function setSession(session: Session): Promise<void> {
-  const cookieToken = await encrypt(session)
+export async function setSession(apiToken: string, user: SessionUser): Promise<void> {
+  const sessionToken = await encrypt({ apiToken, user })
   const cookieStore = await cookies()
-  cookieStore.set(COOKIE_NAME, cookieToken, {
+  cookieStore.set(COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

@@ -6,6 +6,7 @@ vi.mock('@/lib/api/videos', () => ({ getVideo: vi.fn() }))
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/session'
+import type { Session } from '@/lib/session'
 import { getVideo } from '@/lib/api/videos'
 import { GET } from '@/app/api/videos/[id]/route'
 import type { Video } from '@/lib/api/types'
@@ -13,7 +14,7 @@ import type { Video } from '@/lib/api/types'
 const mockGetSession = vi.mocked(getSession)
 const mockGetVideo   = vi.mocked(getVideo)
 
-const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
+const validSession = { apiToken: 'tok', user: { id: '1' } } as unknown as Session
 
 function makeRequest(id: string) {
   return {

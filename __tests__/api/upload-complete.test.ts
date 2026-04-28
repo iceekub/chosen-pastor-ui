@@ -7,6 +7,7 @@ vi.mock('@/lib/config', () => ({ TRIGGER_UPLOAD_COMPLETE: true }))
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/session'
+import type { Session } from '@/lib/session'
 import { completeUpload } from '@/lib/api/videos'
 import { POST } from '@/app/api/upload/complete/route'
 import type { Video } from '@/lib/api/types'
@@ -14,7 +15,7 @@ import type { Video } from '@/lib/api/types'
 const mockGetSession    = vi.mocked(getSession)
 const mockCompleteUpload = vi.mocked(completeUpload)
 
-const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
+const validSession = { apiToken: 'tok', user: { id: '1' } } as unknown as Session
 
 function makeRequest(body: object) {
   return new NextRequest('http://localhost/api/upload/complete', {

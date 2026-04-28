@@ -1,0 +1,19 @@
+{
+  "/(auth)/login/page": "/login",
+  "/(dashboard)/admin/page": "/admin",
+  "/(dashboard)/dashboard/page": "/dashboard",
+  "/(dashboard)/documents/page": "/documents",
+  "/(dashboard)/garden/[id]/page": "/garden/[id]",
+  "/(dashboard)/garden/page": "/garden",
+  "/(dashboard)/page": "/",
+  "/(dashboard)/sermons/page": "/sermons",
+  "/(dashboard)/sermons/upload/page": "/sermons/upload",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/garden/[id]/approve/route": "/api/garden/[id]/approve",
+  "/api/garden/[id]/card/[cardId]/route": "/api/garden/[id]/card/[cardId]",
+  "/api/upload/complete/route": "/api/upload/complete",
+  "/api/upload/presign/route": "/api/upload/presign",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/"
+}

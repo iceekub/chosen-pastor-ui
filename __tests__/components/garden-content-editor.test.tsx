@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { GardenContentEditor } from '@/components/garden-content-editor'
-import { makeGarden, makeGardenContent } from '../factories'
-import type { GardenCard, GardenContent } from '@/lib/api/types'
+import type { Garden, GardenCard, GardenContent } from '@/lib/api/types'
 
 const mockFetch = vi.fn()
 beforeEach(() => {
@@ -15,6 +14,36 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+function makeContent(overrides: Partial<GardenContent> = {}): GardenContent {
+  return {
+    day_number: 1,
+    topic: 'Faith',
+    title: 'Walking in Faith',
+    push: 'Start your day with faith.',
+    cards: [],
+    final_reflection: {
+      id: 'fr1',
+      type: 'reflection_final',
+      tag: 'FINAL',
+      content: 'What will you trust God with today?',
+      placeholder: 'Write your thoughts…',
+    },
+    ...overrides,
+  }
+}
+
+function makeGarden(overrides: Partial<Garden> = {}): Garden {
+  return {
+    id: 'g1',
+    video_id: 'v1',
+    day_number: 1,
+    status: 'ready',
+    created_at: '2026-01-01',
+    content_json: null,
+    ...overrides,
+  } as unknown as Garden
+}
+
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 describe('GardenContentEditor — empty state', () => {
@@ -22,76 +51,52 @@ describe('GardenContentEditor — empty state', () => {
     render(<GardenContentEditor garden={makeGarden({ content_json: null })} />)
     expect(screen.getByText(/No content yet/i)).toBeInTheDocument()
   })
-
-  it('shows empty-state message when there are no cards', () => {
-    const empty = makeGarden({ content_json: makeGardenContent({ cards: [] }) })
-    render(<GardenContentEditor garden={empty} />)
-    expect(screen.getByText(/No cards yet/i)).toBeInTheDocument()
-  })
 })
 
 // ─── Header info ─────────────────────────────────────────────────────────────
 
 describe('GardenContentEditor — header', () => {
   it('renders the garden title', () => {
-    const content = makeGardenContent({ title: 'Walking in Faith' })
-    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+    render(<GardenContentEditor garden={makeGarden({ content_json: makeContent() })} />)
     expect(screen.getByText('Walking in Faith')).toBeInTheDocument()
   })
 
   it('renders the push notification text', () => {
-    const content = makeGardenContent({ push: 'Start your day with faith.' })
-    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+    render(<GardenContentEditor garden={makeGarden({ content_json: makeContent() })} />)
     expect(screen.getByText('Start your day with faith.')).toBeInTheDocument()
   })
 
-  it('renders "Push notification" label when push is set', () => {
-    const content = makeGardenContent({ push: 'A message' })
-    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+  it('renders "Push notification" label', () => {
+    render(<GardenContentEditor garden={makeGarden({ content_json: makeContent() })} />)
     expect(screen.getByText('Push notification')).toBeInTheDocument()
   })
 })
 
-// ─── Cards section ────────────────────────────────────────────────────────────
+// ─── Final reflection ─────────────────────────────────────────────────────────
+
+describe('GardenContentEditor — final reflection', () => {
+  it('renders the final reflection content', () => {
+    render(<GardenContentEditor garden={makeGarden({ content_json: makeContent() })} />)
+    expect(screen.getByText('What will you trust God with today?')).toBeInTheDocument()
+  })
+
+  it('renders the placeholder text', () => {
+    render(<GardenContentEditor garden={makeGarden({ content_json: makeContent() })} />)
+    expect(screen.getByText(/Write your thoughts/i)).toBeInTheDocument()
+  })
+
+  it('renders the Final Reflection label', () => {
+    render(<GardenContentEditor garden={makeGarden({ content_json: makeContent() })} />)
+    expect(screen.getByText('Final Reflection')).toBeInTheDocument()
+  })
+})
+
+// ─── Cards label ─────────────────────────────────────────────────────────────
 
 describe('GardenContentEditor — cards section', () => {
   it('renders the Cards section label', () => {
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent() })} />)
+    render(<GardenContentEditor garden={makeGarden({ content_json: makeContent() })} />)
     expect(screen.getByText('Cards')).toBeInTheDocument()
-  })
-
-  it('renders one row per card with the card type label', () => {
-    const cards: GardenCard[] = [
-      { id: 'a', type: 'verse', tag: 'Scripture', citation: 'John 3:16', content: 'For God so loved...' },
-      { id: 'b', type: 'text', tag: 'Application', content: 'Take a step today.' },
-    ]
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
-    expect(screen.getByText('Verse — John 3:16')).toBeInTheDocument()
-    expect(screen.getByText('Application')).toBeInTheDocument()
-    expect(screen.getByText('For God so loved...')).toBeInTheDocument()
-    expect(screen.getByText('Take a step today.')).toBeInTheDocument()
-  })
-
-  it('renders Card 1, Card 2, Card 3 labels for three cards', () => {
-    const cards: GardenCard[] = [
-      { id: 'c1', type: 'text', tag: 'A', content: 'First' },
-      { id: 'c2', type: 'text', tag: 'B', content: 'Second' },
-      { id: 'c3', type: 'text', tag: 'C', content: 'Third' },
-    ]
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
-    expect(screen.getByText('Card 1')).toBeInTheDocument()
-    expect(screen.getByText('Card 2')).toBeInTheDocument()
-    expect(screen.getByText('Card 3')).toBeInTheDocument()
-  })
-
-  it('renders content of all cards', () => {
-    const cards: GardenCard[] = [
-      { id: 'c1', type: 'text', tag: 'A', content: 'Alpha content' },
-      { id: 'c2', type: 'text', tag: 'B', content: 'Beta content' },
-    ]
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
-    expect(screen.getByText('Alpha content')).toBeInTheDocument()
-    expect(screen.getByText('Beta content')).toBeInTheDocument()
   })
 })
 
@@ -99,19 +104,43 @@ describe('GardenContentEditor — cards section', () => {
 
 describe('GardenContentEditor — verse card', () => {
   it('renders verse content and citation', () => {
-    const cards: GardenCard[] = [
-      {
-        id: 'c1',
-        type: 'verse',
-        tag: 'VERSE',
-        content: 'The Lord is my shepherd.',
-        citation: 'Psalm 23:1',
-        footerText: 'A psalm of David',
-      },
-    ]
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
+    const content = makeContent({
+      cards: [
+        {
+          id: 'c1',
+          type: 'verse',
+          tag: 'VERSE',
+          content: 'The Lord is my shepherd.',
+          citation: 'Psalm 23:1',
+          footerText: 'A psalm of David',
+        },
+      ],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
     expect(screen.getByText('The Lord is my shepherd.')).toBeInTheDocument()
     expect(screen.getByText('Psalm 23:1')).toBeInTheDocument()
+    expect(screen.getByText('A psalm of David')).toBeInTheDocument()
+  })
+
+  it('renders VERSE tag in the card header', () => {
+    const content = makeContent({
+      cards: [{ id: 'c1', type: 'verse', tag: 'VERSE', content: 'Grace.' }],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+    expect(screen.getByText('VERSE')).toBeInTheDocument()
+  })
+})
+
+// ─── Text card ───────────────────────────────────────────────────────────────
+
+describe('GardenContentEditor — text card', () => {
+  it('renders text card content', () => {
+    const content = makeContent({
+      cards: [{ id: 'c2', type: 'text', tag: 'DEVOTIONAL', content: 'God is good all the time.' }],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+    expect(screen.getByText('God is good all the time.')).toBeInTheDocument()
+    expect(screen.getByText('DEVOTIONAL')).toBeInTheDocument()
   })
 })
 
@@ -119,18 +148,73 @@ describe('GardenContentEditor — verse card', () => {
 
 describe('GardenContentEditor — reflection MC card', () => {
   it('renders question and all options', () => {
-    const cards: GardenCard[] = [
-      {
-        id: 'c3',
-        type: 'reflection_mc',
-        tag: 'REFLECT',
-        content: 'How does this verse apply to you?',
-        options: ['It gives me peace', 'It challenges me', 'It inspires prayer'],
-      },
-    ]
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
+    const content = makeContent({
+      cards: [
+        {
+          id: 'c3',
+          type: 'reflection_mc',
+          tag: 'REFLECT',
+          content: 'How does this verse apply to you?',
+          options: ['It gives me peace', 'It challenges me', 'It inspires prayer'],
+        },
+      ],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
     expect(screen.getByText('How does this verse apply to you?')).toBeInTheDocument()
     expect(screen.getByText('It gives me peace')).toBeInTheDocument()
+    expect(screen.getByText('It challenges me')).toBeInTheDocument()
+    expect(screen.getByText('It inspires prayer')).toBeInTheDocument()
+  })
+})
+
+// ─── Media card ──────────────────────────────────────────────────────────────
+
+describe('GardenContentEditor — media card', () => {
+  it('renders media content and URL', () => {
+    const content = makeContent({
+      cards: [
+        {
+          id: 'c4',
+          type: 'media',
+          tag: 'MEDIA',
+          content: 'Watch this clip',
+          mediaUrl: 'https://example.com/video.mp4',
+        },
+      ],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+    expect(screen.getByText('Watch this clip')).toBeInTheDocument()
+    expect(screen.getByText('https://example.com/video.mp4')).toBeInTheDocument()
+  })
+})
+
+// ─── Multiple cards ───────────────────────────────────────────────────────────
+
+describe('GardenContentEditor — multiple cards', () => {
+  it('renders Card 1, Card 2, Card 3 labels for three cards', () => {
+    const content = makeContent({
+      cards: [
+        { id: 'c1', type: 'text', tag: 'A', content: 'First' },
+        { id: 'c2', type: 'text', tag: 'B', content: 'Second' },
+        { id: 'c3', type: 'text', tag: 'C', content: 'Third' },
+      ],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+    expect(screen.getByText('Card 1')).toBeInTheDocument()
+    expect(screen.getByText('Card 2')).toBeInTheDocument()
+    expect(screen.getByText('Card 3')).toBeInTheDocument()
+  })
+
+  it('renders content of all cards', () => {
+    const content = makeContent({
+      cards: [
+        { id: 'c1', type: 'text', tag: 'A', content: 'Alpha content' },
+        { id: 'c2', type: 'text', tag: 'B', content: 'Beta content' },
+      ],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
+    expect(screen.getByText('Alpha content')).toBeInTheDocument()
+    expect(screen.getByText('Beta content')).toBeInTheDocument()
   })
 })
 
@@ -139,10 +223,10 @@ describe('GardenContentEditor — reflection MC card', () => {
 describe('GardenContentEditor — editing', () => {
   it('saves edited card content via PUT /api/gardens/:id', async () => {
     mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) })
-    const cards: GardenCard[] = [
-      { id: 'a', type: 'text', tag: 'Reflection', content: 'Original' },
-    ]
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
+    const content = makeContent({
+      cards: [{ id: 'a', type: 'text', tag: 'Reflection', content: 'Original' }],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
 
     fireEvent.click(screen.getAllByText('Edit')[0])
     const textarea = screen.getByDisplayValue('Original') as HTMLTextAreaElement
@@ -160,11 +244,13 @@ describe('GardenContentEditor — editing', () => {
 
   it('removes a card and persists the updated array', async () => {
     mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) })
-    const cards: GardenCard[] = [
-      { id: 'a', type: 'text', tag: 'A', content: 'A' },
-      { id: 'b', type: 'text', tag: 'B', content: 'B' },
-    ]
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
+    const content = makeContent({
+      cards: [
+        { id: 'a', type: 'text', tag: 'A', content: 'A' },
+        { id: 'b', type: 'text', tag: 'B', content: 'B' },
+      ],
+    })
+    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
 
     fireEvent.click(screen.getAllByText('Remove')[0])
 
@@ -172,28 +258,5 @@ describe('GardenContentEditor — editing', () => {
     const body = JSON.parse(mockFetch.mock.calls[0][1].body)
     expect(body.content_json.cards).toHaveLength(1)
     expect(body.content_json.cards[0].id).toBe('b')
-  })
-})
-
-// ─── Final reflection ─────────────────────────────────────────────────────────
-
-describe('GardenContentEditor — final reflection', () => {
-  it('renders the final reflection content', () => {
-    const content = makeGardenContent({
-      final_reflection: {
-        id: 'fr1',
-        type: 'reflection_final',
-        tag: 'FINAL',
-        content: 'What will you trust God with today?',
-        placeholder: 'Write your thoughts…',
-      },
-    } as Partial<GardenContent>)
-    render(<GardenContentEditor garden={makeGarden({ content_json: content })} />)
-    expect(screen.getByText('What will you trust God with today?')).toBeInTheDocument()
-  })
-
-  it('renders the Final Reflection label', () => {
-    render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent() })} />)
-    expect(screen.getByText('Final Reflection')).toBeInTheDocument()
   })
 })

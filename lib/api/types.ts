@@ -1,80 +1,62 @@
 /**
- * Types matching the Chosen schema (Supabase Postgres) + ragserv responses.
- * Mirror of `backend/supabase/migrations/20260425000001_init.sql`.
+ * Types matching the Chosen backend API schemas.
  */
 
-export type UserRole = 'super_admin' | 'pastor' | 'staff' | 'parishioner'
+export type UserRole = 'admin' | 'pastor' | 'church_staff' | 'congregant'
 
 export interface SessionUser {
   id: string
   name: string
   email: string
   role: UserRole
-  church_id: string | null
-  church_name: string | null
+  congregation_id: string
+  congregation_name: string
 }
 
-// ─── Videos (sermons) ───────────────────────────────────────────────────────
+export interface LoginResponse {
+  token: string
+  user: SessionUser
+}
 
-export type VideoStatus =
-  | 'pending_upload'
-  | 'downloading'
-  | 'uploaded'
-  | 'processing'
-  | 'ready'
-  | 'error'
+// ─── Videos ──────────────────────────────────────────────────────────────────
+
+export type VideoStatus = 'pending_upload' | 'downloading' | 'uploaded' | 'processing' | 'ready' | 'error'
 
 export interface Video {
   id: string
   church_id: string
-  created_by: string | null
   title: string
   description: string | null
   video_type: string
-  youtube_url: string | null
   s3_key: string | null
-  thumbnail_url: string | null
-  preached_at: string | null
-  duration_seconds: number | null
   status: VideoStatus
   ragie_document_id: string | null
   transcript: string | null
-  transcript_tokens: number | null
-  summary: string | null
   error_message: string | null
-  is_featured: boolean
   created_at: string
   updated_at: string | null
 }
 
-/** Subset used in list views — same shape, just a documented contract. */
-export type VideoListItem = Pick<
-  Video,
-  | 'id'
-  | 'church_id'
-  | 'title'
-  | 'description'
-  | 'video_type'
-  | 'status'
-  | 'preached_at'
-  | 'created_at'
-  | 'updated_at'
-  | 'is_featured'
->
+/** Subset returned by GET /videos (list endpoint) */
+export interface VideoListItem {
+  id: string
+  church_id: string
+  title: string
+  description: string | null
+  video_type: string
+  status: VideoStatus
+  created_at: string
+  updated_at: string | null
+}
 
-/** Response from ragserv POST /videos — Video + presigned URL. */
+/** Returned by POST /videos (includes presigned upload URL) */
 export interface VideoCreateResponse extends Video {
   presigned_upload_url: string
 }
 
-// ─── Gardens ────────────────────────────────────────────────────────────────
+// ─── Gardens ─────────────────────────────────────────────────────────────────
 
-export type GardenStatus =
-  | 'pending'
-  | 'generating'
-  | 'reviewing'
-  | 'ready'
-  | 'error'
+export type GardenStatus = 'pending' | 'generating' | 'reviewing' | 'ready' | 'error'
 
 // ── Garden card types (content_json structure) ───────────────────────────────
 
@@ -111,13 +93,6 @@ export interface ReflectionFinalCard extends BaseCard {
 
 export type GardenCard = VerseCard | TextCard | ReflectionMCCard | MediaCard
 
-// Keep legacy aliases for components that use the old names
-export type VerseGardenCard = VerseCard
-export type TextGardenCard = TextCard
-export type QuestionGardenCard = ReflectionMCCard
-export type MediaGardenCard = MediaCard
-export type ReflectionFinalGardenCard = ReflectionFinalCard
-
 /** Structured content stored in gardens.content_json */
 export interface GardenContent {
   day_number: number
@@ -138,8 +113,6 @@ export interface Garden {
   content_json: GardenContent | null
   status: GardenStatus
   error_message: string | null
-  go_live_date: string | null
-  is_featured: boolean
   created_at: string
   updated_at: string | null
 }
@@ -186,60 +159,18 @@ export interface Church {
   updated_at: string | null
 }
 
-export interface Pastor {
-  id: string
-  church_id: string
-  profile_id: string | null
+// ─── Tags (may be re-added later) ───────────────────────────────────────────
+
+export interface Tag {
+  id: number
   name: string
-  short_name: string | null
-  title: string | null
-  bio: string | null
-  email: string | null
-  avatar_url: string | null
-  display_order: number
 }
 
-// ─── Documents & tags ───────────────────────────────────────────────────────
-
-export type DocumentStatus = 'pending' | 'processing' | 'ready' | 'error'
-export type DocumentType = 'pdf' | 'text' | 'other'
+// ─── Documents ───────────────────────────────────────────────────────────────
 
 export interface Document {
   id: string
-  church_id: string
-  created_by: string | null
   title: string
-  content: string | null
-  s3_key: string | null
-  document_type: DocumentType
-  ragie_document_id: string | null
-  status: DocumentStatus
-  error_message: string | null
-  created_at: string
-  updated_at: string | null
-}
-
-export interface Tag {
-  id: string
-  church_id: string
-  name: string
-  created_at: string
-}
-
-// ─── Themes ─────────────────────────────────────────────────────────────────
-
-export interface Theme {
-  id: string
-  church_id: string
-  name: string
-  image_url: string | null
-  display_order: number
-  created_at: string
-  updated_at: string | null
-}
-
-export interface VideoTheme {
-  video_id: string
-  theme_id: string
+  content?: string
   created_at: string
 }

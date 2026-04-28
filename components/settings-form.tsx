@@ -32,7 +32,7 @@ export function SettingsForm({ user }: { user: SessionUser }) {
           <div>
             <Label htmlFor="church_name">Church name</Label>
             <input id="church_name" name="church_name" type="text"
-              defaultValue={user.church_name ?? ''}
+              defaultValue={user.congregation_name}
               placeholder="Grace Community Church" className="input-warm" />
           </div>
           <div>

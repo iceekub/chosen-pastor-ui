@@ -12,7 +12,7 @@ import { POST } from '@/app/api/upload/presign/route'
 const mockGetSession = getSession as ReturnType<typeof vi.fn>
 const mockCreateVideo = createVideo as ReturnType<typeof vi.fn>
 
-const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
+const validSession = { apiToken: 'tok', user: { id: '1' } }
 
 function makeRequest(body: Record<string, unknown>) {
   return new NextRequest('http://localhost/api/upload/presign', {
@@ -44,7 +44,7 @@ describe('POST /api/upload/presign', () => {
       presigned_upload_url: 'https://s3.example.com/upload',
       title: 'Test Sermon',
       status: 'pending_upload',
-    } as never)
+    })
 
     const res = await POST(makeRequest({ title: 'Test Sermon' }))
     expect(res.status).toBe(200)

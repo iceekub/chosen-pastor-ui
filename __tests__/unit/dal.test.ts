@@ -17,16 +17,16 @@ const mockGetSession = getSession as ReturnType<typeof vi.fn>
 const mockRedirect = vi.mocked(redirect)
 
 const mockSession: Session = {
-  accessToken: 'access-token-test', refreshToken: 'refresh-token-test',
+  apiToken: 'tok',
   user: {
     id: '1', name: 'Pastor', email: 'p@test.com',
-    role: 'pastor', church_id: '1', church_name: 'Demo Church',
+    role: 'pastor', congregation_id: '1', congregation_name: 'Church',
   },
 }
 
 const adminSession: Session = {
   ...mockSession,
-  user: { ...mockSession.user, role: 'super_admin' },
+  user: { ...mockSession.user, role: 'admin' },
 }
 
 beforeEach(() => {
@@ -52,11 +52,11 @@ describe('verifySession', () => {
 })
 
 describe('requireAdmin', () => {
-  it('returns the user when role is super_admin', async () => {
+  it('returns the user when role is admin', async () => {
     mockGetSession.mockResolvedValue(adminSession)
     const { requireAdmin } = await import('@/lib/dal')
     const user = await requireAdmin()
-    expect(user.role).toBe('super_admin')
+    expect(user.role).toBe('admin')
   })
 
   it('calls redirect("/dashboard") when role is pastor', async () => {

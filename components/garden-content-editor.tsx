@@ -196,109 +196,70 @@ export function GardenContentEditor({ garden }: Props) {
         </div>
 
         {content.cards.length === 0 && (
-          <div className="surface px-8 py-12 text-center" style={{ borderStyle: 'dashed' }}>
-            <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-              No cards yet. Add one to get started.
-            </p>
-          </div>
+          <p className="text-sm text-center py-6" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
+            No cards yet — click &ldquo;+ Add card&rdquo; to begin.
+          </p>
         )}
 
         {content.cards.map((card, index) => (
-          <div
-            key={card.id ?? index}
-            className="surface overflow-hidden anim-fadeUp"
-            style={{ animationDelay: `${index * 0.06}s` }}
-          >
-            <div
-              className="flex items-center justify-between px-5 py-2.5"
-              style={{ background: 'rgba(230,218,200,0.3)', borderBottom: '1px solid #EAD9C4' }}
-            >
-              <span className="section-label" style={{ color: '#C5B49A' }}>
-                {cardLabel(card)}
-              </span>
-              <div className="flex gap-3">
-                {editingIndex !== index && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setEditingIndex(index)
-                        setEditText(
-                          'content' in card && typeof card.content === 'string'
-                            ? card.content
-                            : '',
-                        )
-                      }}
-                      className="text-xs font-semibold transition-colors"
-                      style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => removeCard(index)}
-                      className="text-xs font-semibold transition-colors"
-                      style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
-                    >
-                      Remove
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="px-5 py-4">
-              {editingIndex === index ? (
-                <div className="space-y-3">
-                  <textarea
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    rows={4}
-                    className="input-warm resize-y w-full"
-                    style={{ fontFamily: 'var(--font-mulish)' }}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => saveCard(index)}
-                      disabled={saving}
-                      className="btn-gold text-xs px-4 py-2"
-                    >
-                      {saving ? 'Saving…' : 'Save'}
-                    </button>
-                    <button
-                      onClick={() => setEditingIndex(null)}
-                      className="text-xs font-medium px-4 py-2 rounded-full transition-colors"
-                      style={{
-                        color: '#8A7060',
-                        background: 'rgba(138,112,96,0.08)',
-                        fontFamily: 'var(--font-mulish)',
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
+          <CardShell key={card.id} index={index} tag={cardLabel(card)}>
+            {editingIndex === index ? (
+              <div className="space-y-2">
+                <textarea
+                  className="w-full rounded-lg px-3 py-2 text-sm"
+                  style={{ border: '1px solid #D5C9B8', fontFamily: 'var(--font-mulish)', minHeight: 80 }}
+                  value={editText}
+                  onChange={e => setEditText(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => saveCard(index)}
+                    disabled={saving}
+                    className="text-xs font-semibold"
+                    style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)' }}
+                  >
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => setEditingIndex(null)}
+                    className="text-xs"
+                    style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}
+                  >
+                    Cancel
+                  </button>
                 </div>
-              ) : (
-                <p
-                  className="text-sm leading-relaxed whitespace-pre-wrap"
-                  style={{
-                    fontFamily: 'var(--font-mulish)',
-                    color:
-                      'content' in card && card.content ? '#2C1E0F' : '#C5B49A',
-                    fontStyle:
-                      'content' in card && card.content ? 'normal' : 'italic',
-                  }}
-                >
-                  {('content' in card && card.content) || 'No content'}
+              </div>
+            ) : (
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm leading-relaxed flex-1" style={{ color: '#2C1E0F', fontFamily: 'var(--font-mulish)' }}>
+                  {card.content}
                 </p>
-              )}
-            </div>
-          </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => { setEditingIndex(index); setEditText(card.content) }}
+                    className="text-xs font-semibold"
+                    style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => removeCard(index)}
+                    className="text-xs"
+                    style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            )}
+          </CardShell>
         ))}
-      </div>
 
-      {/* Final reflection (read-only display) */}
-      {content.final_reflection && (
-        <FinalReflectionView card={content.final_reflection} />
-      )}
+        {/* Final reflection (read-only display) */}
+        {content.final_reflection && (
+          <FinalReflectionView card={content.final_reflection} />
+        )}
+      </div>
 
       {/* Status feedback */}
       {error && (

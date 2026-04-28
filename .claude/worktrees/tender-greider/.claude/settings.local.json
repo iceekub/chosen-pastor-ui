@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/akubiak/Desktop/chosen-pastor-ui/**)",
+      "Bash(npm install:*)",
+      "Bash(/usr/local/bin/npm install:*)",
+      "Bash(/opt/homebrew/lib/node_modules/npm/bin/npm install:*)",
+      "Bash(export PATH=\"/Users/akubiak/.local/share/fnm/node-versions/v24.13.0/installation/bin:$PATH\")",
+      "Bash(mkdir -p /Users/akubiak/Desktop/chosen-pastor-ui/.claude/worktrees/tender-greider/app/api/garden/[id]/card/[cardId])",
+      "Bash(mkdir -p /Users/akubiak/Desktop/chosen-pastor-ui/.claude/worktrees/tender-greider/app/api/garden/[id]/approve)",
+      "Bash(npm run:*)",
+      "Bash(export PATH=/Users/akubiak/.local/share/fnm/node-versions/v24.13.0/installation/bin:$PATH)",
+      "Bash(ln -sf ../../../node_modules node_modules)",
+      "Bash(head -1 /Users/akubiak/Desktop/chosen-pastor-ui/app/\\\\\\(auth\\\\\\)/login/page.tsx)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git fsmonitor--daemon stop)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

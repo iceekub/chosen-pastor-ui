@@ -15,7 +15,7 @@ export default async function DashboardLayout({
       <div className="flex min-h-screen">
         <Sidebar
           userName={user.name}
-          churchName={user.church_name ?? "(no church)"}
+          churchName={user.congregation_name}
           role={user.role}
         />
         <main className="flex-1 overflow-y-auto" style={{ background: 'transparent' }}>

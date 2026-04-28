@@ -23,6 +23,9 @@
 # production
 /build
 
+# Claude Code
+.claude/
+
 # misc
 .DS_Store
 *.pem

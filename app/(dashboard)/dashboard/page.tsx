@@ -1,5 +1,6 @@
 import { verifySession } from '@/lib/dal'
-import { getVideos, getVideoGardens } from '@/lib/api/videos'
+import { getVideos } from '@/lib/api/videos'
+import { listGardens } from '@/lib/api/garden'
 import Link from 'next/link'
 import type { GardenListItem, GardenStatus } from '@/lib/api/types'
 
@@ -13,7 +14,7 @@ export default async function DashboardPage() {
   // Gather all gardens across videos
   const allGardens: GardenListItem[] = []
   for (const video of videos) {
-    const gardens = await getVideoGardens(video.id).catch(() => [])
+    const gardens = await listGardens(video.id).catch(() => [])
     allGardens.push(...gardens)
   }
 

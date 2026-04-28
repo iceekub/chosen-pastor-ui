@@ -3,7 +3,6 @@ import type {
   Video,
   VideoListItem,
   VideoCreateResponse,
-  GardenListItem,
 } from './types'
 
 export async function getVideos(): Promise<VideoListItem[]> {
@@ -28,18 +27,4 @@ export async function createVideo(
 
 export async function completeUpload(videoId: string): Promise<Video> {
   return apiPost<Video>(`/videos/${videoId}/upload-complete`, {})
-}
-
-export async function generateGardens(
-  videoId: string,
-  instructions?: string
-): Promise<GardenListItem[]> {
-  return apiPost<GardenListItem[]>(
-    `/videos/${videoId}/generate-gardens`,
-    instructions ? { instructions } : {}
-  )
-}
-
-export async function getVideoGardens(videoId: string): Promise<GardenListItem[]> {
-  return apiGet<GardenListItem[]>(`/videos/${videoId}/gardens`)
 }

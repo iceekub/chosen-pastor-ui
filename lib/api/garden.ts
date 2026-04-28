@@ -1,27 +1,28 @@
-import { apiGet, apiPost, apiPut } from './client'
-import type { Garden, UpdateGardenRequest, CreateGardenRequest } from './types'
+import { apiGet, apiPost } from './client'
+import type { Garden, GardenListItem } from './types'
 
 export async function getGarden(id: string): Promise<Garden> {
   return apiGet<Garden>(`/gardens/${id}`)
 }
 
 /**
- * Update a garden's topic or content.
- * Note: backend endpoint for this may not exist yet — the frontend route
- * handler will stub this until the backend adds PUT /gardens/{id}.
+ * List gardens for a video.
+ * Backend: GET /gardens?video_id={videoId}
  */
-export async function updateGarden(
-  id: string,
-  data: UpdateGardenRequest
-): Promise<Garden> {
-  return apiPut<Garden>(`/gardens/${id}`, data)
+export async function listGardens(videoId: string): Promise<GardenListItem[]> {
+  return apiGet<GardenListItem[]>(`/gardens?video_id=${videoId}`)
 }
 
 /**
- * Create a garden manually (not via AI generation).
- * Note: backend endpoint for this may not exist yet — the frontend route
- * handler will stub this until the backend adds POST /gardens.
+ * Trigger garden generation for a video.
+ * Backend: POST /gardens/generate  { video_id, instructions? }
  */
-export async function createGarden(data: CreateGardenRequest): Promise<Garden> {
-  return apiPost<Garden>('/gardens', data)
+export async function generateGardens(
+  videoId: string,
+  instructions?: string
+): Promise<GardenListItem[]> {
+  return apiPost<GardenListItem[]>('/gardens/generate', {
+    video_id: videoId,
+    ...(instructions ? { instructions } : {}),
+  })
 }

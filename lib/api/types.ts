@@ -56,7 +56,53 @@ export interface VideoCreateResponse extends Video {
 
 // ─── Gardens ─────────────────────────────────────────────────────────────────
 
-export type GardenStatus = 'pending' | 'generating' | 'ready' | 'error'
+export type GardenStatus = 'pending' | 'generating' | 'reviewing' | 'ready' | 'error'
+
+// ── Garden card types (content_json structure) ───────────────────────────────
+
+interface BaseCard {
+  id: string
+  tag: string
+  content: string
+}
+
+export interface VerseCard extends BaseCard {
+  type: 'verse'
+  citation?: string | null
+  footerText?: string | null
+}
+
+export interface TextCard extends BaseCard {
+  type: 'text'
+}
+
+export interface ReflectionMCCard extends BaseCard {
+  type: 'reflection_mc'
+  options: string[]
+}
+
+export interface MediaCard extends BaseCard {
+  type: 'media'
+  mediaUrl: string
+}
+
+export interface ReflectionFinalCard extends BaseCard {
+  type: 'reflection_final'
+  placeholder?: string | null
+}
+
+export type GardenCard = VerseCard | TextCard | ReflectionMCCard | MediaCard
+
+/** Structured content stored in gardens.content_json */
+export interface GardenContent {
+  day_number: number
+  topic: string
+  title: string
+  push: string
+  cards: GardenCard[]
+  final_reflection: ReflectionFinalCard
+  repeat_source?: boolean | null
+}
 
 export interface Garden {
   id: string
@@ -64,14 +110,14 @@ export interface Garden {
   church_id: string
   day_number: number
   topic: string
-  content_markdown: string | null
+  content_json: GardenContent | null
   status: GardenStatus
   error_message: string | null
   created_at: string
   updated_at: string | null
 }
 
-/** Subset returned by list endpoints (no content_markdown) */
+/** Subset returned by list endpoints (no content_json) */
 export interface GardenListItem {
   id: string
   video_id: string
@@ -82,20 +128,6 @@ export interface GardenListItem {
   error_message: string | null
   created_at: string
   updated_at: string | null
-}
-
-/** Request to update a garden's content */
-export interface UpdateGardenRequest {
-  topic?: string
-  content_markdown?: string
-}
-
-/** Request to create a garden manually (not via AI generation) */
-export interface CreateGardenRequest {
-  video_id?: string
-  day_number: number
-  topic: string
-  content_markdown?: string
 }
 
 // ─── Churches ────────────────────────────────────────────────────────────────

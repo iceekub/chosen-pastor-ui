@@ -1,11 +1,11 @@
 /**
  * Route handler: POST /api/videos/[id]/generate-gardens
- * Proxies to backend POST /videos/{id}/generate-gardens.
+ * Proxies to backend POST /gardens/generate { video_id, instructions? }
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { generateGardens } from '@/lib/api/videos'
+import { generateGardens } from '@/lib/api/garden'
 
 export async function POST(
   request: NextRequest,

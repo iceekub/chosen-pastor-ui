@@ -1,11 +1,11 @@
 /**
  * Route handler: GET /api/videos/[id]/gardens
- * Proxies to backend GET /videos/{id}/gardens — used for polling garden generation.
+ * Proxies to backend GET /gardens?video_id={id}
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { getVideoGardens } from '@/lib/api/videos'
+import { listGardens } from '@/lib/api/garden'
 
 export async function GET(
   _request: NextRequest,
@@ -19,7 +19,7 @@ export async function GET(
   const { id } = await params
 
   try {
-    const gardens = await getVideoGardens(id)
+    const gardens = await listGardens(id)
     return NextResponse.json(gardens)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to fetch gardens'

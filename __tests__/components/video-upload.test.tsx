@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VideoUpload } from '@/components/video-upload'
 
@@ -11,7 +11,7 @@ vi.mock('next/link', () => ({
 }))
 
 // Helper to create a fake video File
-function makeVideoFile(name = 'sermon.mp4', size = 1024 * 1024) {
+function makeVideoFile(name = 'sermon.mp4', size = 1024) {
   return new File(['x'.repeat(size)], name, { type: 'video/mp4' })
 }
 
@@ -34,15 +34,24 @@ function mockXHR(succeed = true) {
     this.status = succeed ? 200 : 500
     this.send = vi.fn().mockImplementation(() => {
       setTimeout(() => {
-        if (succeed) {
-          this.onload?.()
-        } else {
-          this.onerror?.()
-        }
+        if (succeed) this.onload?.()
+        else this.onerror?.()
       }, 0)
     })
   }
   vi.stubGlobal('XMLHttpRequest', MockXHR)
+}
+
+// Pick a file via the hidden file input
+async function pickFile(file: File) {
+  const input = document.querySelector('input[type="file"]') as HTMLInputElement
+  await userEvent.upload(input, file)
+}
+
+// Fill the mandatory service date field for the first item card
+function fillServiceDate(date = '2026-04-06') {
+  const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement
+  fireEvent.change(dateInput, { target: { value: date } })
 }
 
 beforeEach(() => {
@@ -50,74 +59,84 @@ beforeEach(() => {
   vi.unstubAllGlobals()
 })
 
+// ─── Idle state ──────────────────────────────────────────────────────────────
+
 describe('VideoUpload — idle state', () => {
-  it('renders file picker and title field', () => {
+  it('shows the drop zone prompt when no files selected', () => {
     render(<VideoUpload />)
-    expect(screen.getByText(/click to select a video file/i)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/sunday sermon/i)).toBeInTheDocument()
+    expect(screen.getByText(/drag.*drop.*click to select/i)).toBeInTheDocument()
   })
 
-  it('submit button is disabled when no file is selected', () => {
+  it('upload button is not visible before any file is picked', () => {
     render(<VideoUpload />)
-    expect(screen.getByRole('button', { name: /upload sermon/i })).toBeDisabled()
-  })
-
-  it('submit button is disabled when title is empty even with a file', async () => {
-    render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    const file = makeVideoFile('video.mp4')
-    await userEvent.upload(input, file)
-
-    // Clear the auto-filled title
-    await userEvent.clear(screen.getByPlaceholderText(/sunday sermon/i))
-
-    expect(screen.getByRole('button', { name: /upload sermon/i })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: /upload/i })).not.toBeInTheDocument()
   })
 })
 
-describe('VideoUpload — file selection', () => {
-  it('auto-fills title from filename (without extension)', async () => {
-    render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile('easter-sunday.mp4'))
-    expect(screen.getByDisplayValue('easter-sunday')).toBeInTheDocument()
-  })
+// ─── File selection ───────────────────────────────────────────────────────────
 
-  it('shows filename and size after file is picked', async () => {
+describe('VideoUpload — file selection', () => {
+  it('shows an item card after a file is picked', async () => {
     render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile('sermon.mp4'))
+    await pickFile(makeVideoFile('sermon.mp4'))
     expect(screen.getByText('sermon.mp4')).toBeInTheDocument()
   })
 
-  it('clears any previous error when a new file is selected', async () => {
-    mockXHR(false)
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({ error: 'Upload rejected' }),
-    })
-
+  it('auto-fills the title from the filename (without extension)', async () => {
     render(<VideoUpload />)
+    await pickFile(makeVideoFile('easter-sunday.mp4'))
+    expect(screen.getByDisplayValue('easter-sunday')).toBeInTheDocument()
+  })
+
+  it('shows Title, Service date, and Pastor fields per card', async () => {
+    render(<VideoUpload />)
+    await pickFile(makeVideoFile())
+    expect(screen.getByText(/^title$/i, { selector: 'label' })).toBeInTheDocument()
+    expect(screen.getByText(/service date/i)).toBeInTheDocument()
+    expect(screen.getByText(/pastor/i)).toBeInTheDocument()
+  })
+
+  it('upload button is disabled when service date is missing', async () => {
+    render(<VideoUpload />)
+    await pickFile(makeVideoFile())
+    // Title is auto-filled but service date is empty
+    expect(screen.getByRole('button', { name: /upload/i })).toBeDisabled()
+  })
+
+  it('upload button is enabled when title and service date are filled', async () => {
+    render(<VideoUpload />)
+    await pickFile(makeVideoFile())
+    await fillServiceDate()
+    expect(screen.getByRole('button', { name: /upload/i })).not.toBeDisabled()
+  })
+
+  it('allows picking up to 10 files', async () => {
+    render(<VideoUpload />)
+    const files = Array.from({ length: 10 }, (_, i) => makeVideoFile(`video${i}.mp4`))
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile())
-    await userEvent.click(screen.getByRole('button', { name: /upload sermon/i }))
+    await userEvent.upload(input, files)
+    expect(screen.getByText(/maximum of 10 videos reached/i)).toBeInTheDocument()
+  })
 
-    await waitFor(() => expect(screen.getByText(/upload rejected/i)).toBeInTheDocument())
-
-    // Pick a new file — error should clear
-    await userEvent.upload(input, makeVideoFile('new.mp4'))
-    expect(screen.queryByText(/upload rejected/i)).not.toBeInTheDocument()
+  it('removes a card when × is clicked', async () => {
+    render(<VideoUpload />)
+    await pickFile(makeVideoFile('sermon.mp4'))
+    expect(screen.getByText('sermon.mp4')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /remove/i }))
+    expect(screen.queryByText('sermon.mp4')).not.toBeInTheDocument()
   })
 })
+
+// ─── Upload errors ────────────────────────────────────────────────────────────
 
 describe('VideoUpload — upload errors', () => {
   it('shows error when presign fetch fails', async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) })
 
     render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile())
-    await userEvent.click(screen.getByRole('button', { name: /upload sermon/i }))
+    await pickFile(makeVideoFile())
+    await fillServiceDate()
+    await userEvent.click(screen.getByRole('button', { name: /upload/i }))
 
     await waitFor(() =>
       expect(screen.getByText(/failed to get upload url/i)).toBeInTheDocument()
@@ -132,9 +151,9 @@ describe('VideoUpload — upload errors', () => {
     mockXHR(false)
 
     render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile())
-    await userEvent.click(screen.getByRole('button', { name: /upload sermon/i }))
+    await pickFile(makeVideoFile())
+    await fillServiceDate()
+    await userEvent.click(screen.getByRole('button', { name: /upload/i }))
 
     await waitFor(() =>
       expect(screen.getByText(/network error during upload/i)).toBeInTheDocument()
@@ -156,9 +175,9 @@ describe('VideoUpload — upload errors', () => {
     mockXHR(true)
 
     render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile())
-    await userEvent.click(screen.getByRole('button', { name: /upload sermon/i }))
+    await pickFile(makeVideoFile())
+    await fillServiceDate()
+    await userEvent.click(screen.getByRole('button', { name: /upload/i }))
 
     await waitFor(() =>
       expect(screen.getByText(/failed to finalize upload/i)).toBeInTheDocument()
@@ -166,8 +185,10 @@ describe('VideoUpload — upload errors', () => {
   })
 })
 
+// ─── Success state ────────────────────────────────────────────────────────────
+
 describe('VideoUpload — success state', () => {
-  it('shows success message after full upload', async () => {
+  it('shows per-card success state and summary after upload', async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
@@ -177,16 +198,17 @@ describe('VideoUpload — success state', () => {
     mockXHR(true)
 
     render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile())
-    await userEvent.click(screen.getByRole('button', { name: /upload sermon/i }))
+    await pickFile(makeVideoFile())
+    await fillServiceDate()
+    await userEvent.click(screen.getByRole('button', { name: /upload/i }))
 
     await waitFor(() =>
-      expect(screen.getByText(/sermon uploaded successfully/i)).toBeInTheDocument()
+      expect(screen.getAllByText(/uploaded — processing in the background/i).length).toBeGreaterThan(0)
     )
+    expect(screen.getByText(/1 sermon uploaded/i)).toBeInTheDocument()
   })
 
-  it('"Upload another" button resets form to idle', async () => {
+  it('"Upload more" button resets back to the drop zone', async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
@@ -196,13 +218,37 @@ describe('VideoUpload — success state', () => {
     mockXHR(true)
 
     render(<VideoUpload />)
+    await pickFile(makeVideoFile())
+    await fillServiceDate()
+    await userEvent.click(screen.getByRole('button', { name: /upload/i }))
+
+    await waitFor(() => screen.getByRole('button', { name: /upload more/i }))
+    await userEvent.click(screen.getByRole('button', { name: /upload more/i }))
+
+    expect(screen.getByText(/drag.*drop.*click to select/i)).toBeInTheDocument()
+  })
+
+  it('uploads multiple files in parallel and shows combined summary', async () => {
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ presigned_upload_url: 'https://s3.example.com', video_id: 'a1' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ presigned_upload_url: 'https://s3.example.com', video_id: 'a2' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+    mockXHR(true)
+
+    render(<VideoUpload />)
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile())
-    await userEvent.click(screen.getByRole('button', { name: /upload sermon/i }))
+    await userEvent.upload(input, [makeVideoFile('a.mp4'), makeVideoFile('b.mp4')])
 
-    await waitFor(() => screen.getByText(/upload another/i))
-    await userEvent.click(screen.getByText(/upload another/i))
+    // Fill both service dates
+    const dateInputs = document.querySelectorAll('input[type="date"]')
+    fireEvent.change(dateInputs[0], { target: { value: '2026-04-06' } })
+    fireEvent.change(dateInputs[1], { target: { value: '2026-04-13' } })
 
-    expect(screen.getByText(/click to select a video file/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /upload all 2/i }))
+
+    await waitFor(() =>
+      expect(screen.getByText(/2 sermons uploaded/i)).toBeInTheDocument()
+    )
   })
 })

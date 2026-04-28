@@ -4,60 +4,97 @@ import { useActionState } from 'react'
 import { saveSettingsAction } from '@/app/actions/settings'
 import type { SessionUser } from '@/lib/api/types'
 
+const labelStyle = {
+  color: '#8A7060',
+  fontFamily: 'var(--font-mulish)',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase' as const,
+}
+
+function Label({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) {
+  return (
+    <label htmlFor={htmlFor} className="block text-xs font-semibold mb-1.5" style={labelStyle}>
+      {children}
+    </label>
+  )
+}
+
 export function SettingsForm({ user }: { user: SessionUser }) {
   const [state, action, pending] = useActionState(saveSettingsAction, null)
 
-  const fields = [
-    { section: 'Church', items: [
-      { name: 'church_name',  label: 'Church name',    defaultValue: user.church_name, placeholder: 'Grace Community Church' },
-      { name: 'church_city',  label: 'City',           defaultValue: '',                     placeholder: 'Nashville' },
-      { name: 'church_state', label: 'State',          defaultValue: '',                     placeholder: 'TN' },
-      { name: 'church_email', label: 'Contact email',  defaultValue: '',                     placeholder: 'hello@yourchurch.com', type: 'email' },
-      { name: 'church_phone', label: 'Contact phone',  defaultValue: '',                     placeholder: '+1 (615) 000-0000', type: 'tel' },
-    ]},
-    { section: 'Pastor', items: [
-      { name: 'pastor_name',  label: 'Pastor name',    defaultValue: user.name,              placeholder: 'Pastor John Smith' },
-      { name: 'pastor_email', label: 'Pastor email',   defaultValue: user.email,             placeholder: 'pastor@yourchurch.com', type: 'email' },
-    ]},
-  ]
-
   return (
     <form action={action} className="space-y-8">
-      {fields.map(({ section, items }, si) => (
-        <div key={section} className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: `${si * 0.08}s` }}>
-          <p className="section-label mb-5">{section}</p>
-          <div className="space-y-4">
-            {items.map(({ name, label, defaultValue, placeholder, type = 'text' }) => (
-              <div key={name}>
-                <label
-                  htmlFor={name}
-                  className="block text-xs font-semibold mb-1.5"
-                  style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}
-                >
-                  {label}
-                </label>
-                <input
-                  id={name}
-                  name={name}
-                  type={type}
-                  defaultValue={defaultValue ?? ''}
-                  placeholder={placeholder}
-                  className="input-warm"
-                />
-              </div>
-            ))}
+
+      {/* Church */}
+      <div className="surface px-6 py-6 anim-fadeUp">
+        <p className="section-label mb-5">Church</p>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="church_name">Church name</Label>
+            <input id="church_name" name="church_name" type="text"
+              defaultValue={user.church_name ?? ''}
+              placeholder="Grace Community Church" className="input-warm" />
+          </div>
+          <div>
+            <Label htmlFor="church_alias">
+              Church alias{' '}
+              <span style={{ color: '#C5B49A', textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+            </Label>
+            <input id="church_alias" name="church_alias" type="text"
+              defaultValue="" placeholder="GCC" className="input-warm" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="church_city">City</Label>
+              <input id="church_city" name="church_city" type="text"
+                defaultValue="" placeholder="Nashville" className="input-warm" />
+            </div>
+            <div>
+              <Label htmlFor="church_state">State</Label>
+              <input id="church_state" name="church_state" type="text"
+                defaultValue="" placeholder="TN" className="input-warm" />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="church_email">Contact email</Label>
+            <input id="church_email" name="church_email" type="email"
+              defaultValue="" placeholder="hello@yourchurch.com" className="input-warm" />
+          </div>
+          <div>
+            <Label htmlFor="church_phone">Contact phone</Label>
+            <input id="church_phone" name="church_phone" type="tel"
+              defaultValue="" placeholder="+1 (615) 000-0000" className="input-warm" />
           </div>
         </div>
-      ))}
+      </div>
 
-      {/* Logo upload (placeholder) */}
+      {/* Pastor */}
+      <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.08s' }}>
+        <p className="section-label mb-4">Pastor</p>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="pastor_name">Pastor name</Label>
+            <input id="pastor_name" name="pastor_name" type="text"
+              defaultValue={user.name ?? ''}
+              placeholder="Pastor John Smith" className="input-warm" />
+          </div>
+          <div>
+            <Label htmlFor="pastor_email">Pastor email</Label>
+            <input id="pastor_email" name="pastor_email" type="email"
+              defaultValue={user.email ?? ''}
+              placeholder="pastor@yourchurch.com" className="input-warm" />
+          </div>
+        </div>
+      </div>
+
+      {/* Church logo */}
       <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.16s' }}>
         <p className="section-label mb-2">Church logo</p>
         <p className="text-xs mb-4" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
           Displayed in the sidebar and pastor portal header.
         </p>
         <div
-          className="rounded-xl border-dashed border-2 px-6 py-8 text-center cursor-pointer"
+          className="rounded-xl border-dashed border-2 px-6 py-8 text-center"
           style={{ borderColor: '#D5C9B8' }}
         >
           <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
@@ -85,6 +122,7 @@ export function SettingsForm({ user }: { user: SessionUser }) {
           {pending ? 'Saving…' : 'Save changes'}
         </button>
       </div>
+
     </form>
   )
 }

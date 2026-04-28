@@ -3,9 +3,12 @@ vi.mock('next/link', () => ({
     <a href={href} {...rest}>{children}</a>
   ),
 }))
+vi.mock('@/lib/notifications', () => ({
+  useNotifications: () => ({ addNotification: vi.fn(), dismissNotification: vi.fn(), notifications: [] }),
+}))
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SermonDetailClient } from '@/components/sermon-detail-client'
 import { makeVideo as makeVideoBase, makeGardenListItem } from '../factories'
 

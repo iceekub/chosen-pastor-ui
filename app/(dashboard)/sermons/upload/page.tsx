@@ -5,7 +5,7 @@ export default async function UploadPage() {
   await verifySession()
 
   return (
-    <div className="px-8 py-9 max-w-2xl mx-auto">
+    <div className="px-8 py-9 max-w-3xl mx-auto">
       <div className="mb-8 anim-fadeUp">
         <p className="section-label mb-2">Sermons</p>
         <h1

@@ -8,6 +8,7 @@ import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/session'
 import { getVideo } from '@/lib/api/videos'
 import { GET } from '@/app/api/videos/[id]/route'
+import type { Video } from '@/lib/api/types'
 
 const mockGetSession = vi.mocked(getSession)
 const mockGetVideo   = vi.mocked(getVideo)
@@ -36,7 +37,7 @@ describe('GET /api/videos/[id]', () => {
     mockGetVideo.mockResolvedValue({
       id: 'abc-123', title: 'Sunday Sermon', status: 'ready',
       created_at: '2026-01-01T00:00:00Z', video_type: 'sermon',
-    } as never)
+    } as unknown as Video)
     const { req, ctx } = makeRequest('abc-123')
     const res = await GET(req, ctx)
     expect(res.status).toBe(200)

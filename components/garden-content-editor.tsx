@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { Garden, GardenCard, GardenContent } from '@/lib/api/types'
+import type { Garden, GardenCard, GardenContent, ReflectionFinalCard } from '@/lib/api/types'
 
 interface Props {
   garden: Garden
@@ -11,7 +11,15 @@ function emptyContent(garden: Garden): GardenContent {
   return {
     day_number: garden.day_number,
     topic: garden.topic,
+    title: garden.topic,
+    push: '',
     cards: [],
+    final_reflection: {
+      id: 'fr0',
+      type: 'reflection_final',
+      tag: 'FINAL',
+      content: '',
+    },
   }
 }
 
@@ -32,12 +40,57 @@ function cardLabel(card: GardenCard): string {
       return card.tag ?? 'Text'
     case 'reflection_mc':
       return 'Multiple choice'
-    case 'reflection_final':
-      return 'Final reflection'
     case 'media':
       return 'Media'
   }
 }
+
+// ─── Card renderers ───────────────────────────────────────────────────────────
+
+function CardShell({ index, tag, children }: { index: number; tag: string; children: React.ReactNode }) {
+  return (
+    <div className="surface overflow-hidden anim-fadeUp" style={{ animationDelay: `${index * 0.05}s` }}>
+      <div
+        className="flex items-center justify-between px-5 py-2.5"
+        style={{ background: 'rgba(230,218,200,0.3)', borderBottom: '1px solid #EAD9C4' }}
+      >
+        <span className="section-label" style={{ color: '#C5B49A' }}>Card {index + 1}</span>
+        <span className="text-xs font-semibold" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.04em' }}>
+          {tag}
+        </span>
+      </div>
+      <div className="px-5 py-4">{children}</div>
+    </div>
+  )
+}
+
+function FinalReflectionView({ card }: { card: ReflectionFinalCard }) {
+  return (
+    <div className="surface overflow-hidden anim-fadeUp">
+      <div
+        className="flex items-center justify-between px-5 py-2.5"
+        style={{ background: 'rgba(90,138,106,0.08)', borderBottom: '1px solid rgba(90,138,106,0.15)' }}
+      >
+        <span className="section-label" style={{ color: '#5A8A6A' }}>Final Reflection</span>
+        <span className="text-xs font-semibold" style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.04em' }}>
+          {card.tag}
+        </span>
+      </div>
+      <div className="px-5 py-4">
+        <p className="text-sm font-semibold mb-1" style={{ color: '#2C1E0F', fontFamily: 'var(--font-mulish)' }}>
+          {card.content}
+        </p>
+        {card.placeholder && (
+          <p className="text-xs" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)', fontStyle: 'italic' }}>
+            Placeholder: {card.placeholder}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function GardenContentEditor({ garden }: Props) {
   const [content, setContent] = useState<GardenContent>(
@@ -48,6 +101,16 @@ export function GardenContentEditor({ garden }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+
+  if (!garden.content_json) {
+    return (
+      <div className="surface px-8 py-12 text-center" style={{ borderStyle: 'dashed' }}>
+        <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
+          No content yet — gardens are still being generated.
+        </p>
+      </div>
+    )
+  }
 
   async function persist(next: GardenContent) {
     setSaving(true)
@@ -103,34 +166,23 @@ export function GardenContentEditor({ garden }: Props) {
 
   return (
     <div>
-      {error && (
-        <div
-          className="rounded-xl px-4 py-3 text-sm mb-5"
-          style={{
-            background: 'rgba(139,58,58,0.08)',
-            border: '1px solid rgba(139,58,58,0.2)',
-            color: '#8B3A3A',
-            fontFamily: 'var(--font-mulish)',
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {/* Garden header info */}
+      <div className="surface px-6 py-5 mb-4 anim-fadeUp">
+        <p className="section-label mb-1">Title</p>
+        <p className="text-base font-semibold" style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}>
+          {content.title}
+        </p>
+        {content.push && (
+          <>
+            <p className="section-label mt-4 mb-1">Push notification</p>
+            <p className="text-sm" style={{ fontFamily: 'var(--font-mulish)', color: '#8A7060' }}>
+              {content.push}
+            </p>
+          </>
+        )}
+      </div>
 
-      {saved && (
-        <div
-          className="rounded-xl px-4 py-3 text-sm mb-5"
-          style={{
-            background: 'rgba(90,138,106,0.08)',
-            border: '1px solid rgba(90,138,106,0.2)',
-            color: '#5A8A6A',
-            fontFamily: 'var(--font-mulish)',
-          }}
-        >
-          Saved successfully
-        </div>
-      )}
-
+      {/* Editable cards */}
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">
           <p className="section-label">Cards</p>
@@ -242,6 +294,23 @@ export function GardenContentEditor({ garden }: Props) {
           </div>
         ))}
       </div>
+
+      {/* Final reflection (read-only display) */}
+      {content.final_reflection && (
+        <FinalReflectionView card={content.final_reflection} />
+      )}
+
+      {/* Status feedback */}
+      {error && (
+        <p className="text-sm mt-3" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>
+          {error}
+        </p>
+      )}
+      {saved && (
+        <p className="text-sm mt-3" style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)' }}>
+          Saved successfully
+        </p>
+      )}
     </div>
   )
 }

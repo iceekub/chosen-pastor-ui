@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/session'
 import { completeUpload } from '@/lib/api/videos'
 import { POST } from '@/app/api/upload/complete/route'
+import type { Video } from '@/lib/api/types'
 
 const mockGetSession    = vi.mocked(getSession)
 const mockCompleteUpload = vi.mocked(completeUpload)
@@ -43,7 +44,7 @@ describe('POST /api/upload/complete', () => {
     mockCompleteUpload.mockResolvedValue({
       id: 'abc', title: 'Sermon', status: 'processing',
       created_at: '2026-01-01', video_type: 'sermon',
-    } as never)
+    } as unknown as Video)
     const res = await POST(makeRequest({ video_id: 'abc' }))
     expect(res.status).toBe(200)
     const body = await res.json()

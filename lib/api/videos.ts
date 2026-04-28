@@ -54,13 +54,3 @@ export async function completeUpload(videoId: string): Promise<Video> {
     body: {},
   })
 }
-
-export async function generateGardens(
-  videoId: string,
-  instructions?: string,
-): Promise<GardenListItem[]> {
-  return ragserv<GardenListItem[]>('/gardens/generate', {
-    method: 'POST',
-    body: { video_id: videoId, ...(instructions ? { instructions } : {}) },
-  })
-}

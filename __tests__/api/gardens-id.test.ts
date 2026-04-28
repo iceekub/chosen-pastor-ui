@@ -9,7 +9,7 @@ import { getSession } from '@/lib/session'
 import { updateGarden } from '@/lib/api/garden'
 import { PUT } from '@/app/api/gardens/[id]/route'
 
-const mockGetSession   = vi.mocked(getSession)
+const mockGetSession = vi.mocked(getSession)
 const mockUpdateGarden = vi.mocked(updateGarden)
 
 const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
@@ -35,7 +35,7 @@ describe('PUT /api/gardens/[id]', () => {
     expect(res.status).toBe(401)
   })
 
-  it('returns the updated garden on success', async () => {
+  it('returns 200 with updated garden when authenticated', async () => {
     mockGetSession.mockResolvedValue(validSession)
     const updated = { day_number: 1, topic: 'x', cards: [] }
     mockUpdateGarden.mockResolvedValue({

@@ -76,57 +76,57 @@ export type GardenStatus =
   | 'ready'
   | 'error'
 
-/** A single card inside a garden. Matches ragserv's GardenConfig + the
- *  parishioner UI's GardenCard union. */
-export type GardenCard =
-  | VerseGardenCard
-  | TextGardenCard
-  | QuestionGardenCard
-  | MediaGardenCard
-  | ReflectionFinalGardenCard
+// ── Garden card types (content_json structure) ───────────────────────────────
 
-export interface BaseCard {
+interface BaseCard {
   id: string
-  tag?: string
+  tag: string
+  content: string
 }
 
-export interface VerseGardenCard extends BaseCard {
+export interface VerseCard extends BaseCard {
   type: 'verse'
-  citation?: string
-  content: string
-  footerText?: string
+  citation?: string | null
+  footerText?: string | null
 }
 
-export interface TextGardenCard extends BaseCard {
+export interface TextCard extends BaseCard {
   type: 'text'
-  content: string
 }
 
-export interface QuestionGardenCard extends BaseCard {
+export interface ReflectionMCCard extends BaseCard {
   type: 'reflection_mc'
-  content: string
   options: string[]
 }
 
-export interface ReflectionFinalGardenCard extends BaseCard {
-  type: 'reflection_final'
-  content: string
-  placeholder?: string
-}
-
-export interface MediaGardenCard extends BaseCard {
+export interface MediaCard extends BaseCard {
   type: 'media'
-  url: string
-  caption?: string
+  mediaUrl: string
 }
 
+export interface ReflectionFinalCard extends BaseCard {
+  type: 'reflection_final'
+  placeholder?: string | null
+}
+
+export type GardenCard = VerseCard | TextCard | ReflectionMCCard | MediaCard
+
+// Keep legacy aliases for components that use the old names
+export type VerseGardenCard = VerseCard
+export type TextGardenCard = TextCard
+export type QuestionGardenCard = ReflectionMCCard
+export type MediaGardenCard = MediaCard
+export type ReflectionFinalGardenCard = ReflectionFinalCard
+
+/** Structured content stored in gardens.content_json */
 export interface GardenContent {
   day_number: number
   topic: string
-  title?: string
-  push?: string
+  title: string
+  push: string
   cards: GardenCard[]
-  final_reflection?: ReflectionFinalGardenCard
+  final_reflection: ReflectionFinalCard
+  repeat_source?: boolean | null
 }
 
 export interface Garden {
@@ -144,8 +144,20 @@ export interface Garden {
   updated_at: string | null
 }
 
-export type GardenListItem = Omit<Garden, 'content_json'>
+/** Subset returned by list endpoints (no content_json) */
+export interface GardenListItem {
+  id: string
+  video_id: string
+  church_id: string
+  day_number: number
+  topic: string
+  status: GardenStatus
+  error_message: string | null
+  created_at: string
+  updated_at: string | null
+}
 
+/** Request to update a garden's content */
 export interface UpdateGardenRequest {
   topic?: string
   content_json?: GardenContent

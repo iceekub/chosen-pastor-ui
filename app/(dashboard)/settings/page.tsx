@@ -1,8 +1,15 @@
 import { verifySession } from '@/lib/dal'
+import { getChurch, getBibleVersions } from '@/lib/api/churches'
 import { SettingsForm } from '@/components/settings-form'
 
 export default async function SettingsPage() {
   const user = await verifySession()
+
+  const [church, bibleVersions] = await Promise.all([
+    user.church_id ? getChurch(user.church_id).catch(() => null) : null,
+    getBibleVersions().catch(() => []),
+  ])
+
   return (
     <div className="px-8 py-9 max-w-2xl mx-auto">
       <div className="mb-8 anim-fadeUp">
@@ -17,7 +24,7 @@ export default async function SettingsPage() {
           Manage your church profile and contact information.
         </p>
       </div>
-      <SettingsForm user={user} />
+      <SettingsForm user={user} church={church} bibleVersions={bibleVersions} />
     </div>
   )
 }

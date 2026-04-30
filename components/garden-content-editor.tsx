@@ -45,14 +45,20 @@ function newCard(type: AddableCardType): GardenCard {
   }
 }
 
+// Canonical display tag per card type — matches ragserv's CANONICAL_TAGS.
+// Overrides whatever free-form string the LLM may have stored in card.tag.
+const CANONICAL_TAG: Record<GardenCard['type'], string> = {
+  verse:            'Verse',
+  text:             'Thought for Today',
+  reflection_mc:    'Multiple Choice',
+  reflection_final: 'Reflection',
+  media:            'Media',
+}
+
 function cardLabel(card: GardenCard): string {
-  switch (card.type) {
-    case 'verse':      return card.citation ? `Verse — ${card.citation}` : 'Verse'
-    case 'text':       return card.tag ?? 'Text'
-    case 'reflection_mc':    return 'Multiple choice'
-    case 'reflection_final': return 'Final reflection'
-    case 'media':      return 'Media'
-  }
+  const tag = CANONICAL_TAG[card.type]
+  if (card.type === 'verse') return card.citation ? `${tag} — ${card.citation}` : tag
+  return tag
 }
 
 /* ─── shared input styles ─────────────────────────────────── */

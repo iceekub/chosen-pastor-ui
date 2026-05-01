@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useEffect } from 'react'
 import { saveChurchAction, saveBibleTranslationAction } from '@/app/actions/settings'
 import { InviteStaffForm } from '@/components/invite-staff-form'
 import type { SessionUser } from '@/lib/api/types'
@@ -29,15 +29,25 @@ const fieldLabel = (text: string) => (
 )
 
 function Feedback({ state }: { state: { error?: string; success?: boolean } | null }) {
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    if (state?.success) {
+      setVisible(true)
+      const t = setTimeout(() => setVisible(false), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [state])
+
   if (!state) return null
   if (state.error) return (
     <p className="text-sm rounded-lg px-3 py-2" style={{ color: '#8B3A3A', background: 'rgba(139,58,58,0.08)', border: '1px solid rgba(139,58,58,0.2)', fontFamily: 'var(--font-mulish)' }}>
       {state.error}
     </p>
   )
-  if (state.success) return (
+  if (state.success && visible) return (
     <p className="text-sm rounded-lg px-3 py-2" style={{ color: '#3A7A5A', background: 'rgba(90,138,106,0.1)', border: '1px solid rgba(90,138,106,0.25)', fontFamily: 'var(--font-mulish)' }}>
-      Saved.
+      Saved
     </p>
   )
   return null

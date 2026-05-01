@@ -29,13 +29,16 @@ const fieldLabel = (text: string) => (
 )
 
 function Feedback({ state }: { state: { error?: string; success?: boolean } | null }) {
-  const [visible, setVisible] = useState(true)
+  const [opacity, setOpacity] = useState(1)
+  const [hidden, setHidden] = useState(false)
 
   useEffect(() => {
     if (state?.success) {
-      setVisible(true)
-      const t = setTimeout(() => setVisible(false), 3000)
-      return () => clearTimeout(t)
+      setOpacity(1)
+      setHidden(false)
+      const fadeStart = setTimeout(() => setOpacity(0), 2500)
+      const remove    = setTimeout(() => setHidden(true), 3200)
+      return () => { clearTimeout(fadeStart); clearTimeout(remove) }
     }
   }, [state])
 
@@ -45,8 +48,14 @@ function Feedback({ state }: { state: { error?: string; success?: boolean } | nu
       {state.error}
     </p>
   )
-  if (state.success && visible) return (
-    <p className="text-sm rounded-lg px-3 py-2" style={{ color: '#3A7A5A', background: 'rgba(90,138,106,0.1)', border: '1px solid rgba(90,138,106,0.25)', fontFamily: 'var(--font-mulish)' }}>
+  if (state.success && !hidden) return (
+    <p
+      className="text-sm rounded-lg px-3 py-2"
+      style={{
+        color: '#3A7A5A', background: 'rgba(90,138,106,0.1)', border: '1px solid rgba(90,138,106,0.25)',
+        fontFamily: 'var(--font-mulish)', opacity, transition: 'opacity 0.7s ease',
+      }}
+    >
       Saved
     </p>
   )

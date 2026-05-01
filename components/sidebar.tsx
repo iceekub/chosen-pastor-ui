@@ -8,7 +8,6 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: HomeIcon },
   { href: '/sermons',   label: 'Sermons',   icon: VideoIcon },
   { href: '/garden',    label: 'Garden',    icon: GardenIcon },
-  { href: '/themes',    label: 'Themes',    icon: TagIcon },
   { href: '/staff',     label: 'Staff',     icon: PeopleIcon },
   { href: '/settings',  label: 'Settings',  icon: SettingsIcon },
 ]

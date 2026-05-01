@@ -1,9 +1,8 @@
 import { verifySession } from '@/lib/dal'
 import { getVideos, getVideoGardens } from '@/lib/api/videos'
+import { formatGardenDateLong } from '@/lib/dates'
 import Link from 'next/link'
 import type { GardenListItem, GardenStatus } from '@/lib/api/types'
-
-const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export default async function DashboardPage() {
   const user = await verifySession()
@@ -114,7 +113,7 @@ function GardenRow({ garden, delay }: { garden: GardenListItem; delay: string })
           className="text-sm font-semibold group-hover:text-[#B8874A] transition-colors"
           style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
         >
-          Day {garden.day_number} — {DAY_NAMES[garden.day_number] || `Day ${garden.day_number}`}
+          {formatGardenDateLong(garden.garden_date)}
         </p>
         <p className="text-xs mt-0.5" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
           {garden.topic}

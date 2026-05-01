@@ -9,7 +9,6 @@ interface Props {
 
 function emptyContent(garden: Garden): GardenContent {
   return {
-    day_number: garden.day_number,
     topic: garden.topic,
     cards: [],
   }

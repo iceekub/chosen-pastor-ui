@@ -18,10 +18,20 @@ export async function POST(
 
   const { id } = await params
   const body = await request.json().catch(() => ({}))
-  const { instructions } = body as { instructions?: string }
+  const { week_starts_at, instructions } = body as {
+    week_starts_at?: string
+    instructions?: string
+  }
+
+  if (!week_starts_at) {
+    return NextResponse.json(
+      { error: 'week_starts_at is required (ISO date for the Monday of the week)' },
+      { status: 400 },
+    )
+  }
 
   try {
-    const gardens = await generateGardens(id, instructions)
+    const gardens = await generateGardens(id, week_starts_at, instructions)
     return NextResponse.json(gardens, { status: 202 })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to generate gardens'

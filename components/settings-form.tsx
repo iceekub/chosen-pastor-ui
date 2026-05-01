@@ -90,10 +90,15 @@ function ChurchForm({ church }: { church: ChurchRead | null }) {
 
       <div>
         {fieldLabel('Timezone')}
-        <input name="timezone" type="text" defaultValue={church?.timezone ?? 'America/New_York'} placeholder="America/New_York" className="input-warm w-full" />
-        <p className="text-xs mt-1" style={{ color: '#B0A090', fontFamily: 'var(--font-mulish)' }}>
-          IANA timezone, e.g. America/Chicago, America/Los_Angeles
-        </p>
+        <select name="timezone" defaultValue={church?.timezone ?? 'America/New_York'} className="input-warm w-full">
+          <option value="America/New_York">Eastern Time</option>
+          <option value="America/Chicago">Central Time</option>
+          <option value="America/Denver">Mountain Time</option>
+          <option value="America/Phoenix">Mountain Time — Phoenix</option>
+          <option value="America/Los_Angeles">Pacific Time</option>
+          <option value="America/Anchorage">Alaska Time</option>
+          <option value="Pacific/Honolulu">Hawaii Time</option>
+        </select>
       </div>
 
       <Feedback state={state} />

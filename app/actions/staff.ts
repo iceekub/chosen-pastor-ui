@@ -19,7 +19,7 @@ export async function inviteStaffAction(
   }
 
   try {
-    await inviteStaff({ email, name, role: 'pastor' })
+    await inviteStaff({ email, name, role: 'staff' })
   } catch (err) {
     if (err instanceof ApiError && err.status === 422) {
       return { error: 'That email already has an account.' }

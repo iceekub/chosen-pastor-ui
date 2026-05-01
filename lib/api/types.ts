@@ -3,7 +3,7 @@
  * Mirror of `backend/supabase/migrations/20260425000001_init.sql`.
  */
 
-export type UserRole = 'super_admin' | 'pastor' | 'staff' | 'parishioner'
+export type UserRole = 'super_admin' | 'pastor' | 'staff' | 'parishioner' // 'pastor' kept for backward compat until DB migration
 
 export interface SessionUser {
   id: string

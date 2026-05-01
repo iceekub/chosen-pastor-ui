@@ -2,8 +2,8 @@ import { edgeFunction, postgrest } from './client'
 import type { SessionUser } from './types'
 
 /**
- * Staff/pastor list for the caller's church (RLS-scoped). Includes
- * the inviter themselves plus everyone they've onboarded.
+ * Team list for the caller's church (RLS-scoped).
+ * Includes super_admin, pastor (legacy), and staff roles.
  */
 export async function listStaff(): Promise<SessionUser[]> {
   const rows = await postgrest<
@@ -16,8 +16,6 @@ export async function listStaff(): Promise<SessionUser[]> {
   >(
     "/profiles?role=in.(super_admin,pastor,staff)&select=id,name,role,church_id&order=name.asc",
   )
-  // Email isn't on profiles — it lives on auth.users which we can't read
-  // from the frontend. The list page displays name + role only.
   return rows.map((r) => ({
     ...r,
     email: '',
@@ -27,14 +25,14 @@ export async function listStaff(): Promise<SessionUser[]> {
 }
 
 /**
- * Send a magic-link invite to a new pastor or staff member.
+ * Send a magic-link invite to a new team member.
  * Calls the pastor-invite Edge Function which uses Supabase Auth's
  * Admin API to send the email.
  */
 export async function inviteStaff(payload: {
   email: string
   name: string
-  role: 'pastor' | 'staff'
+  role: 'staff'
 }): Promise<void> {
   await edgeFunction<{ user: unknown }>('pastor-invite', {
     method: 'POST',

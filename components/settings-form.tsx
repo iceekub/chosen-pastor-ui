@@ -148,36 +148,36 @@ export function SettingsForm({ user, church, bibleVersions }: Props) {
         )}
       </div>
 
-      {/* ── Pastor ── */}
+      {/* ── Your account ── */}
       <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.16s' }}>
-        <p className="section-label mb-5">Pastor</p>
+        <p className="section-label mb-5">Your account</p>
         <div className="space-y-4">
           <div>
             {label('Name')}
             <input
-              name="pastor_name"
+              name="account_name"
               type="text"
               defaultValue={user.name ?? ''}
-              placeholder="Pastor John Smith"
+              placeholder="John Smith"
               className="input-warm w-full"
               disabled
             />
             <p className="text-xs mt-1" style={{ color: '#B0A090', fontFamily: 'var(--font-mulish)' }}>
-              Contact Chosen support to update pastor name.
+              Contact Chosen support to update your name.
             </p>
           </div>
           <div>
             {label('Email')}
             <input
-              name="pastor_email"
+              name="account_email"
               type="email"
               defaultValue={user.email ?? ''}
-              placeholder="pastor@yourchurch.com"
+              placeholder="you@yourchurch.com"
               className="input-warm w-full"
               disabled
             />
             <p className="text-xs mt-1" style={{ color: '#B0A090', fontFamily: 'var(--font-mulish)' }}>
-              Contact Chosen support to update login email.
+              Contact Chosen support to update your login email.
             </p>
           </div>
         </div>

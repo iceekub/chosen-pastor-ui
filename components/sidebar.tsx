@@ -51,7 +51,7 @@ export function Sidebar({ userName, churchName, role }: SidebarProps) {
               {churchName}
             </p>
             <p className="text-xs truncate mt-0.5" style={{ color: '#9A8878' }}>
-              Pastor Portal
+              Church Portal
             </p>
           </div>
         </div>

@@ -185,21 +185,28 @@ export function SettingsForm({ user, church, bibleVersions, team }: Props) {
         {sectionLabel('Team')}
         <InviteStaffForm />
 
-        {team.length > 0 && (
-          <ul className="mt-6 divide-y" style={{ borderColor: 'rgba(200,182,155,0.3)' }}>
+        <div className="mt-6">
+          <p className="text-xs font-semibold mb-3" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Members
+          </p>
+          <ul className="divide-y" style={{ borderColor: 'rgba(200,182,155,0.3)' }}>
             {team.map((person) => (
-              <li key={person.id} className="py-3">
+              <li key={person.id} className="py-3 flex items-center justify-between">
                 <p className="text-sm font-medium" style={{ color: '#2C1E0F', fontFamily: 'var(--font-mulish)' }}>
                   {person.name}
                 </p>
+                {person.id === user.id && (
+                  <span
+                    className="text-xs font-semibold rounded-full px-2.5 py-0.5"
+                    style={{ background: 'rgba(184,135,74,0.1)', color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+                  >
+                    You
+                  </span>
+                )}
               </li>
             ))}
           </ul>
-        )}
-
-        <p className="text-xs mt-6 pt-4" style={{ color: '#B0A090', fontFamily: 'var(--font-mulish)', borderTop: '1px solid rgba(200,182,155,0.3)' }}>
-          Logged in as <span style={{ color: '#8A7060' }}>{user.name}</span> · {user.email}
-        </p>
+        </div>
       </div>
 
     </div>

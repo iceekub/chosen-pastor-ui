@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { saveSettingsAction } from '@/app/actions/settings'
 import type { SessionUser } from '@/lib/api/types'
 import type { ChurchRead, BibleVersion } from '@/lib/api/churches'
@@ -13,6 +13,7 @@ interface Props {
 
 export function SettingsForm({ user, church, bibleVersions }: Props) {
   const [state, action, pending] = useActionState(saveSettingsAction, null)
+  const [selectedTranslation, setSelectedTranslation] = useState(church?.bible_translation ?? 'KJV')
 
   const label = (text: string) => (
     <label
@@ -115,7 +116,7 @@ export function SettingsForm({ user, church, bibleVersions }: Props) {
         {bibleVersions.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {bibleVersions.map(({ key, label: vLabel }) => {
-              const checked = (church?.bible_translation ?? 'KJV') === key
+              const checked = selectedTranslation === key
               return (
                 <label
                   key={key}
@@ -130,7 +131,8 @@ export function SettingsForm({ user, church, bibleVersions }: Props) {
                     type="radio"
                     name="bible_translation"
                     value={key}
-                    defaultChecked={checked}
+                    checked={checked}
+                    onChange={() => setSelectedTranslation(key)}
                     className="accent-[#B8874A]"
                   />
                   <div>

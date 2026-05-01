@@ -80,12 +80,12 @@ function ChurchForm({ church }: { church: ChurchRead | null }) {
 
       <div>
         {fieldLabel('Contact email')}
-        <input name="church_email" type="email" defaultValue={church?.contact_email ?? ''} placeholder="hello@yourchurch.com" className="input-warm w-full" />
+        <input name="church_email" type="email" defaultValue={church?.contact_email ?? ''} placeholder="Optional" className="input-warm w-full" />
       </div>
 
       <div>
         {fieldLabel('Contact phone')}
-        <input name="church_phone" type="tel" defaultValue={church?.contact_phone ?? ''} placeholder="+1 (615) 000-0000" className="input-warm w-full" />
+        <input name="church_phone" type="tel" defaultValue={church?.contact_phone ?? ''} placeholder="Optional" className="input-warm w-full" />
       </div>
 
       <div>

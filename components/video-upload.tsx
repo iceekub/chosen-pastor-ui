@@ -19,6 +19,7 @@ export function VideoUpload() {
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [videoId, setVideoId] = useState<string | null>(null)
+  const [videoRole, setVideoRole] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -52,8 +53,9 @@ export function VideoUpload() {
         const err = await presignRes.json().catch(() => ({}))
         throw new Error(err.error || 'Failed to get upload URL')
       }
-      const { presigned_upload_url, video_id } = await presignRes.json()
+      const { presigned_upload_url, video_id, role } = await presignRes.json()
       setVideoId(video_id)
+      setVideoRole(role ?? null)
 
       // Step 2: Upload directly to S3
       setUploadState('uploading')
@@ -94,6 +96,14 @@ export function VideoUpload() {
         >
           Your video is being processed. This can take a while for longer videos.
         </p>
+        {videoRole === 'primary' && (
+          <p
+            className="text-sm mt-1"
+            style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)', fontWeight: 600 }}
+          >
+            Ready to generate gardens once processing is complete.
+          </p>
+        )}
         <div className="flex items-center justify-center gap-4 mt-5">
           {videoId && (
             <Link
@@ -110,6 +120,7 @@ export function VideoUpload() {
               setDescription('')
               setUploadState('idle')
               setVideoId(null)
+              setVideoRole(null)
               if (fileInputRef.current) fileInputRef.current.value = ''
             }}
             className="text-sm underline hover:no-underline"

@@ -28,7 +28,8 @@ describe('GardenContentEditor — rendering', () => {
     ]
     render(<GardenContentEditor garden={makeGarden({ content_json: makeGardenContent({ cards }) })} />)
     expect(screen.getByText('Verse — John 3:16')).toBeInTheDocument()
-    expect(screen.getByText('Application')).toBeInTheDocument()
+    // tag field is overridden by CANONICAL_TAG; 'text' type always displays as 'Thought for Today'
+    expect(screen.getByText('Thought for Today')).toBeInTheDocument()
     expect(screen.getByText('For God so loved...')).toBeInTheDocument()
     expect(screen.getByText('Take a step today.')).toBeInTheDocument()
   })

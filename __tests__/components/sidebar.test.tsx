@@ -36,10 +36,10 @@ describe('Sidebar — church branding', () => {
     expect(screen.getByText('Pastor Jane')).toBeInTheDocument()
   })
 
-  it('displays CHOSEN wordmark', () => {
+  it('displays Chosen logo', () => {
     mockUsePathname.mockReturnValue('/dashboard')
     render(<Sidebar {...pastorProps} />)
-    expect(screen.getByText('CHOSEN')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Chosen' })).toBeInTheDocument()
   })
 })
 

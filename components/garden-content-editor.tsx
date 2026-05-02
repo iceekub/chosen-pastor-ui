@@ -316,6 +316,8 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
   const [content, setContent] = useState<GardenContent>(normalizeContent(garden))
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editCard, setEditCard] = useState<GardenCard | null>(null)
+  const [editingFinal, setEditingFinal] = useState(false)
+  const [editFinalCard, setEditFinalCard] = useState<ReflectionFinalGardenCard | null>(null)
   const [showAddMenu, setShowAddMenu] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -381,6 +383,20 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
   function cancelEdit() {
     setEditingIndex(null)
     setEditCard(null)
+  }
+
+  async function saveFinalReflection() {
+    if (!editFinalCard) return
+    const next: GardenContent = { ...content, final_reflection: editFinalCard }
+    setContent(next)
+    setEditingFinal(false)
+    setEditFinalCard(null)
+    await persist(next)
+  }
+
+  function cancelFinalEdit() {
+    setEditingFinal(false)
+    setEditFinalCard(null)
   }
 
   return (
@@ -481,6 +497,52 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Final Reflection — always shown, not removable */}
+      <div className="mb-6">
+        <p className="section-label mb-3">Final Reflection</p>
+        <div className="surface overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-2.5" style={{ background: 'rgba(230,218,200,0.3)', borderBottom: '1px solid #EAD9C4' }}>
+            <span className="section-label" style={{ color: '#C5B49A' }}>Reflection</span>
+            {!editingFinal ? (
+              <button
+                onClick={() => { setEditingFinal(true); setEditFinalCard(content.final_reflection ?? { id: 'final', type: 'reflection_final', tag: 'Reflection', content: '', placeholder: '' }) }}
+                className="text-xs font-semibold transition-colors"
+                style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+              >
+                Edit
+              </button>
+            ) : (
+              <span className="text-xs" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>Editing…</span>
+            )}
+          </div>
+          <div className="px-5 py-4">
+            {editingFinal && editFinalCard ? (
+              <div className="space-y-4">
+                <FinalEdit card={editFinalCard} onChange={setEditFinalCard} />
+                <div className="flex gap-2 pt-1">
+                  <button onClick={saveFinalReflection} disabled={saving} className="btn-gold text-xs px-4 py-2">
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    onClick={cancelFinalEdit}
+                    className="text-xs font-medium px-4 py-2 rounded-full transition-colors"
+                    style={{ color: '#8A7060', background: 'rgba(138,112,96,0.08)', fontFamily: 'var(--font-mulish)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : content.final_reflection ? (
+              <CardPreview card={content.final_reflection} />
+            ) : (
+              <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)', fontStyle: 'italic' }}>
+                No final reflection generated.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

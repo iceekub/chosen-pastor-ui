@@ -4,8 +4,7 @@ import { formatGardenDateLong } from '@/lib/dates'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { GardenContentEditor } from '@/components/garden-content-editor'
-import { GoLiveDateControl } from '@/components/go-live-date-control'
-import { setGoLiveDate } from './actions'
+import { uploadGardenMediaCardAction } from '@/app/actions/storage'
 import type { GardenStatus } from '@/lib/api/types'
 
 const STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
@@ -25,6 +24,9 @@ export default async function GardenDetailPage({ params }: Props) {
   if (!garden) notFound()
 
   const s = STATUS[garden.status] ?? STATUS.pending
+  const dateLabel = formatGardenDateLong(garden.garden_date)
+
+  const mediaCardUploadBase = uploadGardenMediaCardAction.bind(null, garden.id)
 
   return (
     <div className="px-8 py-9 max-w-3xl mx-auto">
@@ -38,7 +40,7 @@ export default async function GardenDetailPage({ params }: Props) {
 
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>
-          <p className="section-label mb-2">{formatGardenDateLong(garden.garden_date)}</p>
+          <p className="section-label mb-2">{dateLabel}</p>
           <h1
             className="text-3xl leading-tight"
             style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
@@ -53,11 +55,6 @@ export default async function GardenDetailPage({ params }: Props) {
           {s.label}
         </span>
       </div>
-
-      {/* Publish date control — always visible so pastor can set go_live_date */}
-      {garden.status === 'ready' && (
-        <GoLiveDateControl gardenId={garden.id} initialDate={garden.go_live_date} onSave={setGoLiveDate} />
-      )}
 
       {garden.status === 'generating' && (
         <div className="surface px-6 py-5 mb-6 anim-fadeUp" style={{ animationDelay: '0.08s' }}>
@@ -84,14 +81,14 @@ export default async function GardenDetailPage({ params }: Props) {
       {/* Editable content — shown when garden is ready or has content */}
       {(garden.status === 'ready' || garden.content_json) && (
         <div className="anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-          <GardenContentEditor garden={garden} />
+          <GardenContentEditor garden={garden} mediaCardUploadBase={mediaCardUploadBase} />
         </div>
       )}
 
       {/* Empty state for pending gardens with no content yet */}
       {garden.status === 'pending' && !garden.content_json && (
         <div className="anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-          <GardenContentEditor garden={garden} />
+          <GardenContentEditor garden={garden} mediaCardUploadBase={mediaCardUploadBase} />
         </div>
       )}
     </div>

@@ -5,14 +5,22 @@ import type {
   Garden,
   GardenCard,
   GardenContent,
+  MediaGardenCard,
   QuestionGardenCard,
   ReflectionFinalGardenCard,
   TextGardenCard,
   VerseGardenCard,
 } from '@/lib/api/types'
+import type { UploadResult } from '@/app/actions/storage'
+import { ImageUpload } from '@/components/image-upload'
+
+/** Server action pre-bound to gardenId: (cardId, formData) => UploadResult */
+type MediaCardUploadBase = (cardId: string, formData: FormData) => Promise<UploadResult>
 
 interface Props {
   garden: Garden
+  /** Pre-bound upload action passed from the server component */
+  mediaCardUploadBase?: MediaCardUploadBase
 }
 
 /* ─── helpers ─────────────────────────────────────────────── */
@@ -179,13 +187,67 @@ function FinalEdit({ card, onChange }: { card: ReflectionFinalGardenCard; onChan
   )
 }
 
-function CardEditForm({ card, onChange }: { card: GardenCard; onChange: (c: GardenCard) => void }) {
+function MediaEdit({
+  card,
+  onChange,
+  uploadBase,
+}: {
+  card: MediaGardenCard
+  onChange: (c: MediaGardenCard) => void
+  uploadBase?: MediaCardUploadBase
+}) {
+  // Bind this specific card's ID into the upload action (client-side bind is fine for non-sensitive IDs)
+  const uploadAction = uploadBase ? uploadBase.bind(null, card.id) : null
+
+  return (
+    <div className="space-y-3">
+      <Field label="Image">
+        {uploadAction ? (
+          <ImageUpload
+            action={uploadAction}
+            currentUrl={card.url || null}
+            label=""
+            aspectRatio="16/9"
+            onSuccess={url => onChange({ ...card, url })}
+          />
+        ) : (
+          <input
+            className="input-warm w-full"
+            style={inputStyle}
+            value={card.url}
+            onChange={e => onChange({ ...card, url: e.target.value })}
+            placeholder="https://…"
+          />
+        )}
+      </Field>
+      <Field label="Caption">
+        <input
+          className="input-warm w-full"
+          style={inputStyle}
+          value={card.caption ?? ''}
+          onChange={e => onChange({ ...card, caption: e.target.value })}
+          placeholder="Optional caption"
+        />
+      </Field>
+    </div>
+  )
+}
+
+function CardEditForm({
+  card,
+  onChange,
+  mediaUploadBase,
+}: {
+  card: GardenCard
+  onChange: (c: GardenCard) => void
+  mediaUploadBase?: MediaCardUploadBase
+}) {
   switch (card.type) {
     case 'verse':            return <VerseEdit card={card} onChange={onChange} />
     case 'text':             return <TextEdit card={card} onChange={onChange} />
     case 'reflection_mc':    return <MCEdit card={card} onChange={onChange} />
     case 'reflection_final': return <FinalEdit card={card} onChange={onChange} />
-    case 'media':            return <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>Media cards are not editable here.</p>
+    case 'media':            return <MediaEdit card={card} onChange={onChange} uploadBase={mediaUploadBase} />
   }
 }
 
@@ -250,7 +312,7 @@ const CARD_TYPES: { type: AddableCardType; label: string }[] = [
 
 /* ─── main component ──────────────────────────────────────── */
 
-export function GardenContentEditor({ garden }: Props) {
+export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
   const [content, setContent] = useState<GardenContent>(normalizeContent(garden))
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editCard, setEditCard] = useState<GardenCard | null>(null)
@@ -399,7 +461,7 @@ export function GardenContentEditor({ garden }: Props) {
             <div className="px-5 py-4">
               {editingIndex === index && editCard ? (
                 <div className="space-y-4">
-                  <CardEditForm card={editCard} onChange={setEditCard} />
+                  <CardEditForm card={editCard} onChange={setEditCard} mediaUploadBase={mediaCardUploadBase} />
                   <div className="flex gap-2 pt-1">
                     <button onClick={() => saveCard(index)} disabled={saving} className="btn-gold text-xs px-4 py-2">
                       {saving ? 'Saving…' : 'Save'}

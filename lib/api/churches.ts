@@ -1,4 +1,4 @@
-import { ragserv } from './client'
+import { ragserv, postgrest } from './client'
 
 export interface ChurchRead {
   id: string
@@ -10,6 +10,47 @@ export interface ChurchRead {
   contact_phone: string | null
   timezone: string | null
   bible_translation: string
+  logo_url: string | null
+  alt_logo_url: string | null
+  image_url: string | null
+}
+
+/** Lightweight logo fetch used by the dashboard layout for the sidebar. */
+export async function getChurchLogoUrl(
+  churchId: string,
+): Promise<string | null> {
+  try {
+    const row = await postgrest<{ logo_url: string | null }>(
+      `/churches?id=eq.${churchId}&select=logo_url`,
+      { singleRow: true },
+    )
+    return row?.logo_url ?? null
+  } catch {
+    return null
+  }
+}
+
+export interface ChurchAssets {
+  logo_url: string | null
+  alt_logo_url: string | null
+  image_url: string | null
+}
+
+/**
+ * Fetch asset URLs directly from PostgREST (bypasses ragserv which may not
+ * return logo_url / image_url). Used in the settings page alongside getChurch.
+ */
+export async function getChurchAssets(
+  churchId: string,
+): Promise<ChurchAssets> {
+  try {
+    return await postgrest<ChurchAssets>(
+      `/churches?id=eq.${churchId}&select=logo_url,alt_logo_url,image_url`,
+      { singleRow: true },
+    )
+  } catch {
+    return { logo_url: null, alt_logo_url: null, image_url: null }
+  }
 }
 
 export interface ChurchUpdate {

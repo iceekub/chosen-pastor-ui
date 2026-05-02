@@ -19,29 +19,35 @@ interface SidebarProps {
   userName: string
   churchName: string
   role: string
+  logoUrl?: string | null
 }
 
-export function Sidebar({ userName, churchName, role }: SidebarProps) {
+export function Sidebar({ userName, churchName, role, logoUrl }: SidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside className="sidebar flex flex-col w-64 min-h-screen shrink-0">
+    <aside className="sidebar flex flex-col w-64 h-screen sticky top-0 shrink-0 overflow-y-auto">
       {/* Church logo block */}
       <div className="px-5 pt-7 pb-4">
         <div className="flex items-center gap-3">
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            className="w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shrink-0"
             style={{
-              background: 'linear-gradient(135deg, #B8874A 0%, #8E6228 100%)',
-              boxShadow: '0 2px 10px rgba(184,135,74,0.4)',
+              background: logoUrl ? 'transparent' : 'linear-gradient(135deg, #B8874A 0%, #8E6228 100%)',
+              boxShadow: logoUrl ? 'none' : '0 2px 10px rgba(184,135,74,0.4)',
             }}
           >
-            <span
-              className="text-sm font-bold tracking-wide"
-              style={{ color: '#FDFAF5', fontFamily: 'var(--font-mulish)' }}
-            >
-              {churchName.slice(0, 2).toUpperCase()}
-            </span>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt={churchName} className="w-full h-full object-cover" />
+            ) : (
+              <span
+                className="text-sm font-bold tracking-wide"
+                style={{ color: '#FDFAF5', fontFamily: 'var(--font-mulish)' }}
+              >
+                {churchName.slice(0, 2).toUpperCase()}
+              </span>
+            )}
           </div>
           <div className="min-w-0">
             <p
@@ -164,7 +170,12 @@ function VideoIcon(props: React.SVGProps<SVGSVGElement>) {
 function GardenIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1M4.22 4.22l.707.707M18.364 18.364l.707.707M1 12h2m18 0h2M4.22 19.78l.707-.707M18.364 5.636l.707-.707M12 7a5 5 0 100 10A5 5 0 0012 7z" />
+      {/* stem */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 22v-7" />
+      {/* left petal */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15c0-3.5-2.5-6.5-7-7.5 0 4 2.5 7.5 7 7.5z" />
+      {/* right petal */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15c0-3.5 2.5-6.5 7-7.5 0 4-2.5 7.5-7 7.5z" />
     </svg>
   )
 }

@@ -2,8 +2,11 @@
 
 import { useActionState, useState, useEffect } from 'react'
 import { saveChurchAction, saveBibleTranslationAction } from '@/app/actions/settings'
+import { uploadChurchLogoAction, uploadChurchAltLogoAction, uploadChurchImageAction } from '@/app/actions/storage'
 import { InviteStaffForm } from '@/components/invite-staff-form'
-import type { SessionUser } from '@/lib/api/types'
+import { ImageUpload } from '@/components/image-upload'
+import { PastorsSection } from '@/components/pastors-section'
+import type { SessionUser, Pastor } from '@/lib/api/types'
 import type { ChurchRead, BibleVersion } from '@/lib/api/churches'
 
 interface Props {
@@ -11,6 +14,7 @@ interface Props {
   church: ChurchRead | null
   bibleVersions: BibleVersion[]
   team: { id: string; name: string }[]
+  pastors: Pastor[]
 }
 
 /* ── shared styles ── */
@@ -183,7 +187,7 @@ function BibleTranslationForm({ church, bibleVersions }: { church: ChurchRead | 
 
 /* ── Main export ── */
 
-export function SettingsForm({ user, church, bibleVersions, team }: Props) {
+export function SettingsForm({ user, church, bibleVersions, team, pastors }: Props) {
   return (
     <div className="space-y-8">
 
@@ -194,18 +198,50 @@ export function SettingsForm({ user, church, bibleVersions, team }: Props) {
       {/* Church assets */}
       <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.16s' }}>
         {sectionLabel('Church Assets')}
-        <p className="text-xs mb-4" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-          Logo and church image uploads coming soon.
+        <p className="text-xs mb-5" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
+          Shown in the Chosen app on your church's profile and home screens.
         </p>
-        <div className="rounded-xl border-dashed border-2 px-6 py-8 text-center" style={{ borderColor: '#D5C9B8' }}>
-          <p className="text-sm" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
-            Asset upload — coming soon
-          </p>
+        <div className="space-y-5">
+          {/* Logo row */}
+          <div className="flex gap-4">
+            <div style={{ width: 80, flexShrink: 0 }}>
+              <ImageUpload
+                action={uploadChurchLogoAction}
+                currentUrl={church?.logo_url}
+                label="Logo"
+                aspectRatio="1/1"
+              />
+            </div>
+            <div style={{ width: 80, flexShrink: 0 }}>
+              <ImageUpload
+                action={uploadChurchAltLogoAction}
+                currentUrl={church?.alt_logo_url}
+                label="Alt logo"
+                aspectRatio="1/1"
+              />
+            </div>
+          </div>
+          {/* Hero image */}
+          <div style={{ maxWidth: 280 }}>
+            <ImageUpload
+              action={uploadChurchImageAction}
+              currentUrl={church?.image_url}
+              label="Hero image"
+              hint="Landscape — shown on your church's home screen"
+              aspectRatio="16/9"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Team */}
+      {/* Pastors */}
       <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.22s' }}>
+        {sectionLabel('Pastors')}
+        <PastorsSection initialPastors={pastors} />
+      </div>
+
+      {/* Team */}
+      <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.28s' }}>
         {sectionLabel('Team')}
         <InviteStaffForm />
 

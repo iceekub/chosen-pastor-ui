@@ -3,12 +3,18 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 
+import { toISODate } from '@/lib/dates'
+
 type UploadState = 'idle' | 'requesting' | 'uploading' | 'completing' | 'done' | 'error'
 
 export function VideoUpload() {
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  // Defaults to today (the upload day) — staff can override to set
+  // the actual sermon date. A Sunday-dated upload to a primary-less
+  // week auto-promotes to role='primary' on the backend.
+  const [videoDate, setVideoDate] = useState<string>(() => toISODate(new Date()))
   const [uploadState, setUploadState] = useState<UploadState>('idle')
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -36,7 +42,11 @@ export function VideoUpload() {
       const presignRes = await fetch('/api/upload/presign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description: description || undefined }),
+        body: JSON.stringify({
+          title,
+          description: description || undefined,
+          video_date: videoDate || undefined,
+        }),
       })
       if (!presignRes.ok) {
         const err = await presignRes.json().catch(() => ({}))
@@ -169,6 +179,29 @@ export function VideoUpload() {
           className="input-warm w-full"
           placeholder="Sunday Sermon — April 6"
         />
+      </div>
+
+      {/* Sermon date */}
+      <div>
+        <label
+          className="block text-sm font-medium mb-1"
+          style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
+        >
+          Sermon date
+        </label>
+        <input
+          type="date"
+          value={videoDate}
+          onChange={(e) => setVideoDate(e.target.value)}
+          className="input-warm w-full"
+        />
+        <p
+          className="text-xs mt-1"
+          style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}
+        >
+          A Sunday date here makes this the week&apos;s primary sermon (when
+          one isn&apos;t already set). Defaults to today.
+        </p>
       </div>
 
       {/* Description */}

@@ -44,6 +44,7 @@ export function makeGarden(overrides: Partial<Garden> = {}): Garden {
     content_json: makeGardenContent(),
     status: 'ready',
     error_message: null,
+    is_stale: false,
     is_featured: false,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: null,
@@ -67,7 +68,12 @@ export function makeVideo(overrides: Partial<Video> = {}): Video {
     youtube_url: null,
     s3_key: null,
     thumbnail_url: null,
-    preached_at: null,
+    // Sunday 2026-04-26 anchors to the same week as the makeGarden
+    // factory's 2026-04-27 (Mon) — keeps cross-fixture tests
+    // consistent. Sunday-dated → eligible to be primary.
+    video_date: '2026-04-26',
+    role: 'primary',
+    week_anchor_sunday: '2026-04-26',
     duration_seconds: null,
     status: 'ready',
     ragie_document_id: null,
@@ -90,7 +96,9 @@ export function makeVideoListItem(overrides: Partial<VideoListItem> = {}): Video
     description: null,
     video_type: 'sermon',
     status: 'ready',
-    preached_at: null,
+    video_date: '2026-04-26',
+    role: 'primary',
+    week_anchor_sunday: '2026-04-26',
     created_at: '2026-01-01T00:00:00Z',
     updated_at: null,
     is_featured: false,

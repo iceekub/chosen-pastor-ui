@@ -64,3 +64,20 @@ export function toISODate(d: Date): string {
 export function isMondayISO(iso: string): boolean {
   return parseISODate(iso).getDay() === 1
 }
+
+/**
+ * Mirror of ragserv's ``week_anchor_sunday(d)``: the Sunday of the
+ * Sun-Sat span containing ``iso``. Returns the input unchanged when
+ * ``iso`` already names a Sunday.
+ *
+ * Useful for grouping videos by week client-side (e.g. fetching the
+ * week's primary banner without having to ask the server for the
+ * anchor of an arbitrary date).
+ */
+export function weekAnchorSundayISO(iso: string): string {
+  const d = parseISODate(iso)
+  // getDay(): 0 = Sun … 6 = Sat. Slide back that many days to land
+  // on Sunday (0 days when already Sunday).
+  d.setDate(d.getDate() - d.getDay())
+  return toISODate(d)
+}

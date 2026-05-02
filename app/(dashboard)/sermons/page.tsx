@@ -1,7 +1,8 @@
 import { getVideos } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
+import { formatGardenDateShort } from '@/lib/dates'
 import Link from 'next/link'
-import type { VideoStatus } from '@/lib/api/types'
+import type { VideoStatus, VideoRole } from '@/lib/api/types'
 
 const STATUS: Record<VideoStatus, { label: string; color: string; bg: string }> = {
   pending_upload: { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
@@ -10,6 +11,12 @@ const STATUS: Record<VideoStatus, { label: string; color: string; bg: string }> 
   processing:     { label: 'Processing', color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
   ready:          { label: 'Ready',      color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
   error:          { label: 'Error',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+}
+
+const ROLE: Record<VideoRole, { label: string; color: string; bg: string }> = {
+  primary:   { label: 'Primary',   color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
+  secondary: { label: 'Secondary', color: '#5878A8', bg: 'rgba(88,120,168,0.10)' },
+  ignored:   { label: 'Ignored',   color: '#9A8878', bg: 'rgba(154,136,120,0.10)' },
 }
 
 export default async function SermonsPage() {
@@ -77,7 +84,7 @@ export default async function SermonsPage() {
           <div
             className="grid text-xs font-semibold px-5 py-3"
             style={{
-              gridTemplateColumns: '1fr 120px 100px',
+              gridTemplateColumns: '1fr 110px 100px 100px',
               background: 'rgba(200,182,155,0.18)',
               borderBottom: '1px solid rgba(200,182,155,0.45)',
               color: '#9A8878',
@@ -88,17 +95,19 @@ export default async function SermonsPage() {
           >
             <span>Title</span>
             <span>Date</span>
+            <span>Role</span>
             <span>Status</span>
           </div>
           {videos.map((video, i) => {
             const s = STATUS[video.status] ?? STATUS.pending_upload
+            const r = ROLE[video.role] ?? ROLE.ignored
             return (
               <Link
                 key={video.id}
                 href={`/sermons/${video.id}`}
                 className="grid items-center px-5 py-3.5 anim-fadeUp hover:bg-[rgba(200,182,155,0.08)] transition-colors"
                 style={{
-                  gridTemplateColumns: '1fr 120px 100px',
+                  gridTemplateColumns: '1fr 110px 100px 100px',
                   borderBottom: i < videos.length - 1 ? '1px solid rgba(200,182,155,0.3)' : 'none',
                   animationDelay: `${0.1 + i * 0.04}s`,
                 }}
@@ -113,11 +122,15 @@ export default async function SermonsPage() {
                   className="text-xs pr-4"
                   style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}
                 >
-                  {new Date(video.created_at).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
+                  {formatGardenDateShort(video.video_date)}
+                </span>
+                <span>
+                  <span
+                    className="text-xs font-semibold rounded-full px-2.5 py-1"
+                    style={{ background: r.bg, color: r.color, fontFamily: 'var(--font-mulish)' }}
+                  >
+                    {r.label}
+                  </span>
                 </span>
                 <span>
                   <span

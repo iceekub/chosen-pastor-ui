@@ -2,7 +2,7 @@ import { getVideos } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
 import { formatGardenDateShort } from '@/lib/dates'
 import Link from 'next/link'
-import type { VideoStatus, VideoRole } from '@/lib/api/types'
+import type { VideoStatus } from '@/lib/api/types'
 
 const STATUS: Record<VideoStatus, { label: string; color: string; bg: string }> = {
   pending_upload: { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
@@ -13,11 +13,6 @@ const STATUS: Record<VideoStatus, { label: string; color: string; bg: string }> 
   error:          { label: 'Error',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
 }
 
-const ROLE: Record<VideoRole, { label: string; color: string; bg: string }> = {
-  primary:   { label: 'Primary',   color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
-  secondary: { label: 'Secondary', color: '#5878A8', bg: 'rgba(88,120,168,0.10)' },
-  ignored:   { label: 'Ignored',   color: '#9A8878', bg: 'rgba(154,136,120,0.10)' },
-}
 
 export default async function SermonsPage() {
   await verifySession()
@@ -100,7 +95,7 @@ export default async function SermonsPage() {
           </div>
           {videos.map((video, i) => {
             const s = STATUS[video.status] ?? STATUS.pending_upload
-            const r = ROLE[video.role] ?? ROLE.ignored
+            const isActive = video.role === 'primary'
             return (
               <Link
                 key={video.id}
@@ -125,12 +120,14 @@ export default async function SermonsPage() {
                   {formatGardenDateShort(video.video_date)}
                 </span>
                 <span>
-                  <span
-                    className="text-xs font-semibold rounded-full px-2.5 py-1"
-                    style={{ background: r.bg, color: r.color, fontFamily: 'var(--font-mulish)' }}
-                  >
-                    {r.label}
-                  </span>
+                  {isActive && (
+                    <span
+                      className="text-xs font-semibold rounded-full px-2.5 py-1"
+                      style={{ background: 'rgba(90,138,106,0.12)', color: '#5A8A6A', fontFamily: 'var(--font-mulish)' }}
+                    >
+                      Active
+                    </span>
+                  )}
                 </span>
                 <span>
                   <span

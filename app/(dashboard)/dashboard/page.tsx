@@ -2,7 +2,6 @@ import { verifySession } from '@/lib/dal'
 import { getVideos, getVideoGardens } from '@/lib/api/videos'
 import { formatGardenDateLong } from '@/lib/dates'
 import Link from 'next/link'
-import { formatGardenDateLong } from '@/lib/dates'
 import type { GardenListItem, GardenStatus } from '@/lib/api/types'
 
 export default async function DashboardPage() {

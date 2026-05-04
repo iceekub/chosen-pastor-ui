@@ -18,6 +18,7 @@ export async function saveChurchAction(
   try {
     await updateChurch(user.church_id, {
       name:          get('church_name') ?? undefined,
+      alias:         get('church_alias'),
       city:          get('church_city'),
       state:         get('church_state'),
       contact_email: get('church_email'),

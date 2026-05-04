@@ -27,17 +27,17 @@ export async function getVideo(id: string): Promise<Video> {
 
 /** Sermon detail with embedded gardens (single round-trip via PostgREST embedding). */
 export async function getVideoWithGardens(id: string): Promise<Video & {
-  gardens: Pick<Garden, 'id' | 'garden_date' | 'topic' | 'status' | 'is_stale'>[]
+  gardens: Pick<Garden, 'id' | 'garden_date' | 'topic' | 'content_json' | 'status' | 'is_stale'>[]
 }> {
   return postgrest(
-    `/videos?id=eq.${id}&select=*,gardens(id,garden_date,topic,status,is_stale)`,
+    `/videos?id=eq.${id}&select=*,gardens(id,garden_date,topic,content_json,status,is_stale)`,
     { singleRow: true },
   )
 }
 
 export async function getVideoGardens(videoId: string): Promise<GardenListItem[]> {
   return postgrest<GardenListItem[]>(
-    `/gardens?video_id=eq.${videoId}&select=id,video_id,church_id,garden_date,topic,status,is_stale,is_featured,error_message,created_at,updated_at&order=garden_date.asc`,
+    `/gardens?video_id=eq.${videoId}&select=id,video_id,church_id,garden_date,topic,content_json,status,is_stale,is_featured,error_message,created_at,updated_at&order=garden_date.asc`,
   )
 }
 

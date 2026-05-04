@@ -5,14 +5,22 @@ import type {
   Garden,
   GardenCard,
   GardenContent,
+  MediaGardenCard,
   QuestionGardenCard,
   ReflectionFinalGardenCard,
   TextGardenCard,
   VerseGardenCard,
 } from '@/lib/api/types'
+import type { UploadResult } from '@/app/actions/storage'
+import { ImageUpload } from '@/components/image-upload'
+
+/** Server action pre-bound to gardenId: (cardId, formData) => UploadResult */
+type MediaCardUploadBase = (cardId: string, formData: FormData) => Promise<UploadResult>
 
 interface Props {
   garden: Garden
+  /** Pre-bound upload action passed from the server component */
+  mediaCardUploadBase?: MediaCardUploadBase
 }
 
 /* ─── helpers ─────────────────────────────────────────────── */
@@ -179,13 +187,67 @@ function FinalEdit({ card, onChange }: { card: ReflectionFinalGardenCard; onChan
   )
 }
 
-function CardEditForm({ card, onChange }: { card: GardenCard; onChange: (c: GardenCard) => void }) {
+function MediaEdit({
+  card,
+  onChange,
+  uploadBase,
+}: {
+  card: MediaGardenCard
+  onChange: (c: MediaGardenCard) => void
+  uploadBase?: MediaCardUploadBase
+}) {
+  // Bind this specific card's ID into the upload action (client-side bind is fine for non-sensitive IDs)
+  const uploadAction = uploadBase ? uploadBase.bind(null, card.id) : null
+
+  return (
+    <div className="space-y-3">
+      <Field label="Image">
+        {uploadAction ? (
+          <ImageUpload
+            action={uploadAction}
+            currentUrl={card.url || null}
+            label=""
+            aspectRatio="16/9"
+            onSuccess={url => onChange({ ...card, url })}
+          />
+        ) : (
+          <input
+            className="input-warm w-full"
+            style={inputStyle}
+            value={card.url}
+            onChange={e => onChange({ ...card, url: e.target.value })}
+            placeholder="https://…"
+          />
+        )}
+      </Field>
+      <Field label="Caption">
+        <input
+          className="input-warm w-full"
+          style={inputStyle}
+          value={card.caption ?? ''}
+          onChange={e => onChange({ ...card, caption: e.target.value })}
+          placeholder="Optional caption"
+        />
+      </Field>
+    </div>
+  )
+}
+
+function CardEditForm({
+  card,
+  onChange,
+  mediaUploadBase,
+}: {
+  card: GardenCard
+  onChange: (c: GardenCard) => void
+  mediaUploadBase?: MediaCardUploadBase
+}) {
   switch (card.type) {
     case 'verse':            return <VerseEdit card={card} onChange={onChange} />
     case 'text':             return <TextEdit card={card} onChange={onChange} />
     case 'reflection_mc':    return <MCEdit card={card} onChange={onChange} />
     case 'reflection_final': return <FinalEdit card={card} onChange={onChange} />
-    case 'media':            return <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>Media cards are not editable here.</p>
+    case 'media':            return <MediaEdit card={card} onChange={onChange} uploadBase={mediaUploadBase} />
   }
 }
 
@@ -250,10 +312,12 @@ const CARD_TYPES: { type: AddableCardType; label: string }[] = [
 
 /* ─── main component ──────────────────────────────────────── */
 
-export function GardenContentEditor({ garden }: Props) {
+export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
   const [content, setContent] = useState<GardenContent>(normalizeContent(garden))
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editCard, setEditCard] = useState<GardenCard | null>(null)
+  const [editingFinal, setEditingFinal] = useState(false)
+  const [editFinalCard, setEditFinalCard] = useState<ReflectionFinalGardenCard | null>(null)
   const [showAddMenu, setShowAddMenu] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -319,6 +383,20 @@ export function GardenContentEditor({ garden }: Props) {
   function cancelEdit() {
     setEditingIndex(null)
     setEditCard(null)
+  }
+
+  async function saveFinalReflection() {
+    if (!editFinalCard) return
+    const next: GardenContent = { ...content, final_reflection: editFinalCard }
+    setContent(next)
+    setEditingFinal(false)
+    setEditFinalCard(null)
+    await persist(next)
+  }
+
+  function cancelFinalEdit() {
+    setEditingFinal(false)
+    setEditFinalCard(null)
   }
 
   return (
@@ -399,7 +477,7 @@ export function GardenContentEditor({ garden }: Props) {
             <div className="px-5 py-4">
               {editingIndex === index && editCard ? (
                 <div className="space-y-4">
-                  <CardEditForm card={editCard} onChange={setEditCard} />
+                  <CardEditForm card={editCard} onChange={setEditCard} mediaUploadBase={mediaCardUploadBase} />
                   <div className="flex gap-2 pt-1">
                     <button onClick={() => saveCard(index)} disabled={saving} className="btn-gold text-xs px-4 py-2">
                       {saving ? 'Saving…' : 'Save'}
@@ -419,6 +497,52 @@ export function GardenContentEditor({ garden }: Props) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Final Reflection — always shown, not removable */}
+      <div className="mb-6">
+        <p className="section-label mb-3">Final Reflection</p>
+        <div className="surface overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-2.5" style={{ background: 'rgba(230,218,200,0.3)', borderBottom: '1px solid #EAD9C4' }}>
+            <span className="section-label" style={{ color: '#C5B49A' }}>Reflection</span>
+            {!editingFinal ? (
+              <button
+                onClick={() => { setEditingFinal(true); setEditFinalCard(content.final_reflection ?? { id: 'final', type: 'reflection_final', tag: 'Reflection', content: '', placeholder: '' }) }}
+                className="text-xs font-semibold transition-colors"
+                style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+              >
+                Edit
+              </button>
+            ) : (
+              <span className="text-xs" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>Editing…</span>
+            )}
+          </div>
+          <div className="px-5 py-4">
+            {editingFinal && editFinalCard ? (
+              <div className="space-y-4">
+                <FinalEdit card={editFinalCard} onChange={setEditFinalCard} />
+                <div className="flex gap-2 pt-1">
+                  <button onClick={saveFinalReflection} disabled={saving} className="btn-gold text-xs px-4 py-2">
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    onClick={cancelFinalEdit}
+                    className="text-xs font-medium px-4 py-2 rounded-full transition-colors"
+                    style={{ color: '#8A7060', background: 'rgba(138,112,96,0.08)', fontFamily: 'var(--font-mulish)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : content.final_reflection ? (
+              <CardPreview card={content.final_reflection} />
+            ) : (
+              <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)', fontStyle: 'italic' }}>
+                No final reflection generated.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

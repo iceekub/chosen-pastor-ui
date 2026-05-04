@@ -168,7 +168,8 @@ export interface Garden {
   updated_at: string | null
 }
 
-export type GardenListItem = Omit<Garden, 'content_json'>
+/** List view includes content_json so we can show the AI-generated display title. */
+export type GardenListItem = Garden
 
 export interface UpdateGardenRequest {
   topic?: string

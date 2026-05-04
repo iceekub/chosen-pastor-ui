@@ -24,6 +24,17 @@ export type VideoStatus =
   | 'ready'
   | 'error'
 
+/**
+ * Per-week role of a video. Mirrors ragserv's VideoRole enum.
+ *
+ * - `primary`   — drives the week's gardens (transcript is the source).
+ * - `secondary` — its summary is added as supplemental context.
+ * - `ignored`   — present in the church library but not used for
+ *                 garden generation. Default for new uploads unless
+ *                 auto-promotion fires (Sunday-dated + week is empty).
+ */
+export type VideoRole = 'primary' | 'secondary' | 'ignored'
+
 export interface Video {
   id: string
   church_id: string
@@ -34,7 +45,12 @@ export interface Video {
   youtube_url: string | null
   s3_key: string | null
   thumbnail_url: string | null
-  preached_at: string | null
+  /** ISO date (YYYY-MM-DD) the sermon is for. Defaults to upload day. */
+  video_date: string
+  role: VideoRole
+  /** ISO date — the Sunday of the Sun-Sat span containing video_date.
+   *  Server-derived; the UI uses it to group videos by week. */
+  week_anchor_sunday: string
   duration_seconds: number | null
   status: VideoStatus
   ragie_document_id: string | null
@@ -56,7 +72,9 @@ export type VideoListItem = Pick<
   | 'description'
   | 'video_type'
   | 'status'
-  | 'preached_at'
+  | 'video_date'
+  | 'role'
+  | 'week_anchor_sunday'
   | 'created_at'
   | 'updated_at'
   | 'is_featured'
@@ -141,6 +159,10 @@ export interface Garden {
   content_json: GardenContent | null
   status: GardenStatus
   error_message: string | null
+  /** True when the week's primary video changed (or its transcript /
+   *  secondary set) after these gardens were generated. Cleared on a
+   *  successful regen. */
+  is_stale: boolean
   is_featured: boolean
   created_at: string
   updated_at: string | null

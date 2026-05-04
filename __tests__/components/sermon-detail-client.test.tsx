@@ -7,7 +7,11 @@ vi.mock('next/link', () => ({
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { SermonDetailClient } from '@/components/sermon-detail-client'
-import { makeVideo as makeVideoBase, makeGardenListItem } from '../factories'
+import {
+  makeVideo as makeVideoBase,
+  makeVideoListItem,
+  makeGardenListItem,
+} from '../factories'
 
 // Reset fetch mock between tests
 const mockFetch = vi.fn()
@@ -214,5 +218,172 @@ describe('SermonDetailClient — gardens list', () => {
       />
     )
     expect(screen.getByText('Generating gardens…')).toBeInTheDocument()
+  })
+})
+
+
+describe('SermonDetailClient — role picker', () => {
+  it('renders all three role buttons with the active role marked', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ role: 'primary' })}
+        initialGardens={[]}
+      />
+    )
+    const primaryBtn = screen.getByRole('button', { name: 'Primary' })
+    const secondaryBtn = screen.getByRole('button', { name: 'Secondary' })
+    const ignoredBtn = screen.getByRole('button', { name: 'Ignored' })
+    // Active role's button is disabled (already that role).
+    expect(primaryBtn).toBeDisabled()
+    expect(secondaryBtn).toBeEnabled()
+    expect(ignoredBtn).toBeEnabled()
+  })
+
+  it('PATCHes /api/videos/{id}/role and updates state on click', async () => {
+    mockFetch
+      // First call: PATCH role.
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => makeVideoBase({ id: 'vid-1', role: 'secondary' }),
+      })
+      // Second call: re-fetch gardens.
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      })
+
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ role: 'primary' })}
+        initialGardens={[]}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Secondary' }))
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/videos/vid-1/role',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ role: 'secondary' }),
+        }),
+      )
+    })
+
+    // After the optimistic update lands, the Secondary button should
+    // be disabled (it's now the active role).
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Secondary' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Primary' })).toBeEnabled()
+    })
+  })
+
+  it('surfaces backend error when role PATCH fails', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'Another primary already exists for this week.' }),
+    })
+
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ role: 'ignored' })}
+        initialGardens={[]}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Primary' }))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Another primary already exists for this week.')
+      ).toBeInTheDocument()
+    })
+  })
+})
+
+
+describe("SermonDetailClient — week-primary banner", () => {
+  it("links to the week's primary when this video isn't it", () => {
+    const primary = makeVideoListItem({ id: 'p-1', title: 'Pastor John' })
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ role: 'ignored' })}
+        initialGardens={[]}
+        weekPrimary={primary}
+      />
+    )
+    expect(screen.getByText(/This week's primary: Pastor John/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /This week's primary: Pastor John/i })
+    ).toHaveAttribute('href', '/sermons/p-1')
+  })
+
+  it("doesn't render the banner when this video is the primary", () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ role: 'primary' })}
+        initialGardens={[]}
+        weekPrimary={null}
+      />
+    )
+    expect(screen.queryByText(/This week's primary/)).not.toBeInTheDocument()
+  })
+})
+
+
+describe('SermonDetailClient — stale handling', () => {
+  it('shows the Stale badge when any garden is_stale=true', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ status: 'ready' })}
+        initialGardens={[makeGarden({ is_stale: true })]}
+      />
+    )
+    expect(screen.getByText('Stale')).toBeInTheDocument()
+  })
+
+  it('flips the Generate button to Regenerate when stale', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ status: 'ready' })}
+        initialGardens={[makeGarden({ is_stale: true })]}
+      />
+    )
+    expect(
+      screen.getByRole('button', { name: 'Regenerate Gardens' })
+    ).toBeInTheDocument()
+  })
+
+  it('regenerate posts force=true so the orchestrator wipes + recreates', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [makeGarden({ status: 'generating' })],
+    })
+
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ status: 'ready' })}
+        initialGardens={[makeGarden({ is_stale: true })]}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Regenerate Gardens' }))
+
+    await waitFor(() => {
+      const call = mockFetch.mock.calls.find(
+        ([url]) => url === '/api/videos/vid-1/generate-gardens'
+      )
+      expect(call).toBeDefined()
+      const body = JSON.parse(call![1].body)
+      expect(body.force).toBe(true)
+    })
+  })
+
+  it('disables Generate when this video is not the primary', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ role: 'ignored', status: 'ready' })}
+        initialGardens={[]}
+      />
+    )
+    expect(screen.getByRole('button', { name: 'Generate Gardens' })).toBeDisabled()
   })
 })

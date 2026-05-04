@@ -21,10 +21,11 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { title, description, video_date } = body as {
+  const { title, description, video_date, content_type } = body as {
     title: string
     description?: string
     video_date?: string
+    content_type?: string
   }
 
   if (!title) {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const data = await createVideo(title, description, undefined, video_date)
+    const data = await createVideo(title, description, undefined, video_date, content_type)
     return NextResponse.json({
       presigned_upload_url: data.presigned_upload_url,
       video_id: data.id,

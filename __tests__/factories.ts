@@ -53,8 +53,7 @@ export function makeGarden(overrides: Partial<Garden> = {}): Garden {
 }
 
 export function makeGardenListItem(overrides: Partial<GardenListItem> = {}): GardenListItem {
-  const { content_json: _drop, ...base } = makeGarden()
-  return { ...base, ...overrides }
+  return { ...makeGarden(), ...overrides }
 }
 
 export function makeVideo(overrides: Partial<Video> = {}): Video {

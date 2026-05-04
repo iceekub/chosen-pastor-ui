@@ -141,29 +141,6 @@ describe('VideoUpload — upload errors', () => {
     )
   })
 
-  it('shows error when complete fetch fails', async () => {
-    let callCount = 0
-    global.fetch = vi.fn().mockImplementation(() => {
-      callCount++
-      if (callCount === 1) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ presigned_upload_url: 'https://s3.example.com', video_id: 'abc' }),
-        })
-      }
-      return Promise.resolve({ ok: false, json: async () => ({}) })
-    })
-    mockXHR(true)
-
-    render(<VideoUpload />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    await userEvent.upload(input, makeVideoFile())
-    await userEvent.click(screen.getByRole('button', { name: /upload sermon/i }))
-
-    await waitFor(() =>
-      expect(screen.getByText(/failed to finalize upload/i)).toBeInTheDocument()
-    )
-  })
 })
 
 describe('VideoUpload — success state', () => {

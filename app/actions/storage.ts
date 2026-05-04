@@ -135,6 +135,38 @@ export async function uploadGardenMediaCardAction(
   }
 }
 
+/* ── Video thumbnail ──────────────────────────────────────── */
+
+/**
+ * videoId is pre-bound at call site via .bind():
+ *   const action = uploadVideoThumbnailAction.bind(null, video.id)
+ *
+ * Requires a `video-thumbnails` Supabase Storage bucket (public-read,
+ * staff-write scoped to church_id prefix).
+ */
+export async function uploadVideoThumbnailAction(
+  videoId: string,
+  formData: FormData,
+): Promise<UploadResult> {
+  const user = await verifySession()
+  if (!user.church_id) return { error: 'No church associated with your account.' }
+
+  const file = formData.get('file')
+  if (!validateFile(file)) return { error: 'Please select a JPEG, PNG, or WebP image under 10 MB.' }
+
+  const path = `${user.church_id}/${videoId}/thumbnail.${getExt(file)}`
+  try {
+    const url = await uploadToStorage('video-thumbnails', path, file)
+    await postgrest(`/videos?id=eq.${videoId}`, {
+      method: 'PATCH',
+      body: { thumbnail_url: url },
+    })
+    return { success: true, url }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Upload failed' }
+  }
+}
+
 /* ── Pastor avatar ────────────────────────────────────────── */
 
 /**

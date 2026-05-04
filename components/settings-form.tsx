@@ -102,6 +102,14 @@ function ChurchForm({ church }: { church: ChurchRead | null }) {
       </div>
 
       <div>
+        {fieldLabel('Short name / alias')}
+        <input name="church_alias" type="text" defaultValue={church?.alias ?? ''} placeholder="e.g. SBC, GCC" className="input-warm w-full" />
+        <p className="text-xs mt-1" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
+          Members can find your church by typing this alias in the app.
+        </p>
+      </div>
+
+      <div>
         {fieldLabel('Contact email')}
         <input name="church_email" type="email" defaultValue={church?.contact_email ?? ''} placeholder="hello@gracechurch.com" className="input-warm w-full" />
       </div>

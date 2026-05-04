@@ -90,8 +90,8 @@ export default async function SermonsPage() {
           >
             <span>Title</span>
             <span>Date</span>
-            <span>Role</span>
             <span>Status</span>
+            <span>Gardens</span>
           </div>
           {videos.map((video, i) => {
             const s = STATUS[video.status] ?? STATUS.pending_upload
@@ -120,6 +120,14 @@ export default async function SermonsPage() {
                   {formatGardenDateShort(video.video_date)}
                 </span>
                 <span>
+                  <span
+                    className="text-xs font-semibold rounded-full px-2.5 py-1"
+                    style={{ background: s.bg, color: s.color, fontFamily: 'var(--font-mulish)' }}
+                  >
+                    {s.label}
+                  </span>
+                </span>
+                <span>
                   {isActive && (
                     <span
                       className="text-xs font-semibold rounded-full px-2.5 py-1"
@@ -128,14 +136,6 @@ export default async function SermonsPage() {
                       Active
                     </span>
                   )}
-                </span>
-                <span>
-                  <span
-                    className="text-xs font-semibold rounded-full px-2.5 py-1"
-                    style={{ background: s.bg, color: s.color, fontFamily: 'var(--font-mulish)' }}
-                  >
-                    {s.label}
-                  </span>
                 </span>
               </Link>
             )

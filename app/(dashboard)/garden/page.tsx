@@ -1,13 +1,13 @@
 import { getVideos, getVideoGardens } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
+import { formatGardenDateLong } from '@/lib/dates'
 import Link from 'next/link'
 import type { GardenListItem, GardenStatus, VideoListItem } from '@/lib/api/types'
-
-const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 const STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
   pending:    { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   generating: { label: 'Generating', color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  reviewing:  { label: 'Reviewing',  color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   ready:      { label: 'Ready',      color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
   error:      { label: 'Error',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
 }
@@ -79,7 +79,8 @@ export default async function GardenPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {gardens
-                .sort((a, b) => a.day_number - b.day_number)
+                .slice()
+                .sort((a, b) => a.garden_date.localeCompare(b.garden_date))
                 .map((garden, i) => (
                   <GardenCard key={garden.id} garden={garden} delay={`${0.1 + i * 0.05}s`} />
                 ))}
@@ -104,7 +105,7 @@ function GardenCard({ garden, delay }: { garden: GardenListItem; delay: string }
           className="text-sm font-semibold leading-snug group-hover:text-[#B8874A] transition-colors"
           style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
         >
-          Day {garden.day_number} — {DAY_NAMES[garden.day_number] || `Day ${garden.day_number}`}
+          {formatGardenDateLong(garden.garden_date)}
         </p>
         <span
           className="shrink-0 text-xs font-semibold rounded-full px-2.5 py-0.5"

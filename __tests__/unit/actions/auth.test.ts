@@ -8,23 +8,25 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/lib/session', () => ({
   setSession: vi.fn(),
   deleteSession: vi.fn(),
+  getSession: vi.fn(),
 }))
 vi.mock('@/lib/api/auth', () => ({
   loginWithCredentials: vi.fn(),
-  logoutApi: vi.fn(),
+  logoutSupabase: vi.fn(),
 }))
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { redirect } from 'next/navigation'
-import { loginWithCredentials, logoutApi } from '@/lib/api/auth'
-import { setSession, deleteSession } from '@/lib/session'
+import { loginWithCredentials, logoutSupabase } from '@/lib/api/auth'
+import { setSession, deleteSession, getSession } from '@/lib/session'
 import { loginAction, logoutAction } from '@/app/actions/auth'
 import { ApiError } from '@/lib/api/client'
 
 const mockLogin = loginWithCredentials as ReturnType<typeof vi.fn>
-const mockLogout = logoutApi as ReturnType<typeof vi.fn>
+const mockLogout = logoutSupabase as ReturnType<typeof vi.fn>
 const mockSetSession = setSession as ReturnType<typeof vi.fn>
 const mockDeleteSession = deleteSession as ReturnType<typeof vi.fn>
+const mockGetSession = getSession as ReturnType<typeof vi.fn>
 const mockRedirect = vi.mocked(redirect)
 
 function makeForm(data: Record<string, string>) {
@@ -70,20 +72,29 @@ describe('loginAction — API errors', () => {
 
 describe('loginAction — success', () => {
   it('calls setSession and redirects to /dashboard on success', async () => {
-    const fakeUser = { id: '1', name: 'P', email: 'p@c.com', role: 'pastor', congregation_id: '1', congregation_name: 'C' }
-    mockLogin.mockResolvedValue({ token: 'api-token', user: fakeUser })
+    const fakeUser = { id: '1', name: 'P', email: 'p@c.com', role: 'pastor', church_id: '1', church_name: 'Demo Church' }
+    mockLogin.mockResolvedValue({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      user: fakeUser,
+    })
     mockSetSession.mockResolvedValue(undefined)
 
     await expect(
       loginAction(null, makeForm({ email: 'p@c.com', password: 'pw' }))
     ).rejects.toThrow('NEXT_REDIRECT:/dashboard')
 
-    expect(mockSetSession).toHaveBeenCalledWith('api-token', fakeUser)
+    expect(mockSetSession).toHaveBeenCalledWith({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      user: fakeUser,
+    })
   })
 })
 
 describe('logoutAction', () => {
   it('deletes the session and redirects to /login', async () => {
+    mockGetSession.mockResolvedValue({ accessToken: 'access', refreshToken: 'r', user: {} })
     mockLogout.mockResolvedValue(undefined)
     mockDeleteSession.mockResolvedValue(undefined)
 
@@ -91,7 +102,8 @@ describe('logoutAction', () => {
     expect(mockDeleteSession).toHaveBeenCalled()
   })
 
-  it('still clears session and redirects even if logoutApi throws', async () => {
+  it('still clears session and redirects even if Supabase logout throws', async () => {
+    mockGetSession.mockResolvedValue({ accessToken: 'access', refreshToken: 'r', user: {} })
     mockLogout.mockRejectedValue(new Error('API down'))
     mockDeleteSession.mockResolvedValue(undefined)
 

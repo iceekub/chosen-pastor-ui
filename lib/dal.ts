@@ -27,6 +27,6 @@ export const getOptionalSession = cache(async () => {
 /** Guard for super-admin only routes */
 export async function requireAdmin(): Promise<SessionUser> {
   const user = await verifySession()
-  if (user.role !== 'admin') redirect('/dashboard')
+  if (user.role !== 'super_admin') redirect('/dashboard')
   return user
 }

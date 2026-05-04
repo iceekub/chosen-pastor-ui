@@ -12,7 +12,7 @@ import { GET } from '@/app/api/videos/[id]/route'
 const mockGetSession = vi.mocked(getSession)
 const mockGetVideo   = vi.mocked(getVideo)
 
-const validSession = { apiToken: 'tok', user: { id: '1' } }
+const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
 
 function makeRequest(id: string) {
   return {
@@ -36,7 +36,7 @@ describe('GET /api/videos/[id]', () => {
     mockGetVideo.mockResolvedValue({
       id: 'abc-123', title: 'Sunday Sermon', status: 'ready',
       created_at: '2026-01-01T00:00:00Z', video_type: 'sermon',
-    })
+    } as never)
     const { req, ctx } = makeRequest('abc-123')
     const res = await GET(req, ctx)
     expect(res.status).toBe(200)

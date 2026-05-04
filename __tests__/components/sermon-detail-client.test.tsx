@@ -7,7 +7,7 @@ vi.mock('next/link', () => ({
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { SermonDetailClient } from '@/components/sermon-detail-client'
-import type { Video, GardenListItem } from '@/lib/api/types'
+import { makeVideo as makeVideoBase, makeGardenListItem } from '../factories'
 
 // Reset fetch mock between tests
 const mockFetch = vi.fn()
@@ -19,28 +19,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function makeVideo(overrides: Partial<Video> = {}): Video {
-  return {
-    id: 'vid-1',
-    title: 'Sunday Sermon',
-    status: 'ready',
-    created_at: '2026-01-01T00:00:00Z',
-    video_type: 'sermon',
-    ...overrides,
-  }
-}
-
-function makeGarden(overrides: Partial<GardenListItem> = {}): GardenListItem {
-  return {
-    id: 'g1',
-    video_id: 'vid-1',
-    day_number: 1,
-    topic: 'Faith',
-    status: 'ready',
-    created_at: '2026-01-01',
-    ...overrides,
-  }
-}
+const makeVideo = (overrides = {}) => makeVideoBase({ id: 'vid-1', title: 'Sunday Sermon', ...overrides })
+const makeGarden = (overrides = {}) => makeGardenListItem({ video_id: 'vid-1', topic: 'Faith', ...overrides })
 
 describe('SermonDetailClient — header', () => {
   it('renders the video title', () => {
@@ -203,14 +183,15 @@ describe('SermonDetailClient — generate gardens', () => {
 })
 
 describe('SermonDetailClient — gardens list', () => {
-  it('renders garden cards with day names', () => {
+  it('renders garden cards with day names + dates', () => {
+    // 2026-04-27 = Monday, 2026-04-28 = Tuesday.
     const gardens = [
-      makeGarden({ id: 'g1', day_number: 1, topic: 'Faith' }),
-      makeGarden({ id: 'g2', day_number: 2, topic: 'Hope' }),
+      makeGarden({ id: 'g1', garden_date: '2026-04-27', topic: 'Faith' }),
+      makeGarden({ id: 'g2', garden_date: '2026-04-28', topic: 'Hope' }),
     ]
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={gardens} />)
-    expect(screen.getByText('Day 1 — Monday')).toBeInTheDocument()
-    expect(screen.getByText('Day 2 — Tuesday')).toBeInTheDocument()
+    expect(screen.getByText('Monday, April 27')).toBeInTheDocument()
+    expect(screen.getByText('Tuesday, April 28')).toBeInTheDocument()
     expect(screen.getByText('Faith')).toBeInTheDocument()
     expect(screen.getByText('Hope')).toBeInTheDocument()
   })
@@ -219,10 +200,10 @@ describe('SermonDetailClient — gardens list', () => {
     render(
       <SermonDetailClient
         initialVideo={makeVideo({ status: 'ready' })}
-        initialGardens={[makeGarden({ id: 'g1' })]}
+        initialGardens={[makeGarden({ id: 'g1', garden_date: '2026-04-27' })]}
       />
     )
-    expect(screen.getByRole('link', { name: /Day 1/i })).toHaveAttribute('href', '/garden/g1')
+    expect(screen.getByRole('link', { name: /Monday, April 27/i })).toHaveAttribute('href', '/garden/g1')
   })
 
   it('shows generating state when a garden has status generating', () => {

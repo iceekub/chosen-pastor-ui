@@ -13,10 +13,10 @@ import type { Session } from '@/lib/session'
 const mockDecrypt = decrypt as ReturnType<typeof vi.fn>
 
 const validSession: Session = {
-  apiToken: 'tok',
+  accessToken: 'access-token-test', refreshToken: 'refresh-token-test',
   user: {
     id: '1', name: 'Pastor', email: 'p@test.com',
-    role: 'pastor', congregation_id: '1', congregation_name: 'Church',
+    role: 'pastor', church_id: '1', church_name: 'Demo Church',
   },
 }
 

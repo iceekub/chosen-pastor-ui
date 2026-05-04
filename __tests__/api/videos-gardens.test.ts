@@ -14,7 +14,7 @@ const mockGetSession      = vi.mocked(getSession)
 const mockGetGardens      = vi.mocked(getVideoGardens)
 const mockGenerateGardens = vi.mocked(generateGardens)
 
-const validSession = { apiToken: 'tok', user: { id: '1' } }
+const validSession = { accessToken: 'access-token-test', refreshToken: 'refresh-token-test', user: { id: '1', name: 'Test', email: 't@t', role: 'pastor' as const, church_id: 'c1', church_name: 'Demo' } }
 
 function makeGetRequest(id: string) {
   return {
@@ -34,10 +34,13 @@ function makePostRequest(id: string, body?: object) {
   }
 }
 
+// 2026-04-27 = Monday, 2026-04-28 = Tuesday.
 const fakeGardens = [
-  { id: 'g1', video_id: 'abc', day_number: 1, topic: 'Faith', status: 'ready' as const, created_at: '2026-01-01' },
-  { id: 'g2', video_id: 'abc', day_number: 2, topic: 'Hope',  status: 'ready' as const, created_at: '2026-01-01' },
-]
+  { id: 'g1', video_id: 'abc', garden_date: '2026-04-27', topic: 'Faith', status: 'ready' as const, created_at: '2026-01-01' },
+  { id: 'g2', video_id: 'abc', garden_date: '2026-04-28', topic: 'Hope',  status: 'ready' as const, created_at: '2026-01-01' },
+] as never
+
+const VALID_MONDAY = '2026-04-27'
 
 beforeEach(() => vi.clearAllMocks())
 
@@ -72,41 +75,52 @@ describe('GET /api/videos/[id]/gardens', () => {
 describe('POST /api/videos/[id]/generate-gardens', () => {
   it('returns 401 when there is no session', async () => {
     mockGetSession.mockResolvedValue(null)
-    const { req, ctx } = makePostRequest('abc')
+    const { req, ctx } = makePostRequest('abc', { week_starts_at: VALID_MONDAY })
     const res = await POST(req, ctx)
     expect(res.status).toBe(401)
+  })
+
+  it('returns 400 when week_starts_at is missing', async () => {
+    mockGetSession.mockResolvedValue(validSession)
+    const { req, ctx } = makePostRequest('abc', {})  // no week_starts_at
+    const res = await POST(req, ctx)
+    expect(res.status).toBe(400)
+    expect(mockGenerateGardens).not.toHaveBeenCalled()
   })
 
   it('returns 202 with gardens on success', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockGenerateGardens.mockResolvedValue(fakeGardens)
-    const { req, ctx } = makePostRequest('abc')
+    const { req, ctx } = makePostRequest('abc', { week_starts_at: VALID_MONDAY })
     const res = await POST(req, ctx)
     expect(res.status).toBe(202)
     const body = await res.json()
     expect(body).toHaveLength(2)
   })
 
-  it('passes optional instructions to the API', async () => {
+  it('passes week_starts_at + optional instructions to the API', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockGenerateGardens.mockResolvedValue(fakeGardens)
-    const { req, ctx } = makePostRequest('abc', { instructions: 'Focus on grace' })
+    const { req, ctx } = makePostRequest('abc', {
+      week_starts_at: VALID_MONDAY,
+      instructions: 'Focus on grace',
+    })
     await POST(req, ctx)
-    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', 'Focus on grace')
+    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', VALID_MONDAY, 'Focus on grace')
   })
 
-  it('passes undefined when no instructions provided', async () => {
+  it('passes undefined for instructions when not provided', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockGenerateGardens.mockResolvedValue(fakeGardens)
-    const { req, ctx } = makePostRequest('abc')
+    const { req, ctx } = makePostRequest('abc', { week_starts_at: VALID_MONDAY })
     await POST(req, ctx)
-    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', undefined)
+    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', VALID_MONDAY, undefined)
   })
 
   it('returns 502 when generateGardens throws', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockGenerateGardens.mockRejectedValue(new Error('Backend down'))
-    const { req, ctx } = makePostRequest('abc')
+    const { req, ctx } = makePostRequest('abc', { week_starts_at: VALID_MONDAY })
     const res = await POST(req, ctx)
     expect(res.status).toBe(502)
   })

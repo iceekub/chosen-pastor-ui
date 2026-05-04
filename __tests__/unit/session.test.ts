@@ -10,14 +10,14 @@ import { encrypt, decrypt } from '@/lib/session'
 import type { Session } from '@/lib/session'
 
 const mockSession: Session = {
-  apiToken: 'test-api-token',
+  accessToken: 'access-token-test', refreshToken: 'refresh-token-test',
   user: {
     id: '1',
     name: 'Pastor Test',
     email: 'pastor@test.com',
     role: 'pastor',
-    congregation_id: '42',
-    congregation_name: 'Test Church',
+    church_id: '42',
+    church_name: 'Demo Church',
   },
 }
 
@@ -34,7 +34,7 @@ describe('session — encrypt / decrypt', () => {
     const result = await decrypt(token)
     expect(result?.user.id).toBe(mockSession.user.id)
     expect(result?.user.email).toBe(mockSession.user.email)
-    expect(result?.apiToken).toBe(mockSession.apiToken)
+    expect(result?.accessToken).toBe(mockSession.accessToken)
   })
 
   it('decrypt returns null for a malformed token', async () => {

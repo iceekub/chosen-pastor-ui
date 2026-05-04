@@ -13,7 +13,7 @@ import { Sidebar } from '@/components/sidebar'
 const mockUsePathname = usePathname as ReturnType<typeof vi.fn>
 
 const pastorProps = { userName: 'Pastor Jane', churchName: 'Grace Community', role: 'pastor' }
-const adminProps  = { ...pastorProps, role: 'admin' }
+const adminProps  = { ...pastorProps, role: 'super_admin' }
 
 beforeEach(() => vi.clearAllMocks())
 

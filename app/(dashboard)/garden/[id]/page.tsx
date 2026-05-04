@@ -45,7 +45,7 @@ export default async function GardenDetailPage({ params }: Props) {
             className="text-3xl leading-tight"
             style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
           >
-            {garden.topic}
+            {garden.content_json?.title ?? garden.topic}
           </h1>
         </div>
         <span

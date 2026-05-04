@@ -116,7 +116,7 @@ function GardenRow({ garden, delay }: { garden: GardenListItem; delay: string })
           {formatGardenDateLong(garden.garden_date)}
         </p>
         <p className="text-xs mt-0.5" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-          {garden.topic}
+          {garden.content_json?.title ?? garden.topic}
         </p>
       </div>
       <span

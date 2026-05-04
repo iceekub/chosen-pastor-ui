@@ -115,7 +115,7 @@ function GardenCard({ garden, delay }: { garden: GardenListItem; delay: string }
         </span>
       </div>
       <p className="text-xs line-clamp-2" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-        {garden.topic}
+        {garden.content_json?.title ?? garden.topic}
       </p>
     </Link>
   )

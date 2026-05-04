@@ -476,7 +476,7 @@ export function SermonDetailClient({
                       </span>
                     </div>
                     <p className="text-xs" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-                      {garden.topic}
+                      {garden.content_json?.title ?? garden.topic}
                     </p>
                   </Link>
                 )

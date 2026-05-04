@@ -3,8 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import type { Video, VideoStatus, GardenListItem, GardenStatus } from '@/lib/api/types'
-
-const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+import {
+  formatGardenDateLong,
+  isMondayISO,
+  thisWeeksMondayISO,
+} from '@/lib/dates'
 
 const STATUS_DISPLAY: Record<VideoStatus, { label: string; color: string; bg: string }> = {
   pending_upload: { label: 'Pending Upload', color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
@@ -34,7 +37,11 @@ export function SermonDetailClient({ initialVideo, initialGardens }: Props) {
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
   const [instructions, setInstructions] = useState('')
+  // Defaults to this week's Monday so the form is usable in one click;
+  // the pastor can pick a future Monday to schedule weeks ahead.
+  const [weekStartsAt, setWeekStartsAt] = useState(() => thisWeeksMondayISO())
   const [showTranscript, setShowTranscript] = useState(false)
+  const weekStartsAtIsMonday = isMondayISO(weekStartsAt)
 
   const isProcessing = video.status === 'processing' || video.status === 'uploaded'
   const isReady = video.status === 'ready'
@@ -81,13 +88,20 @@ export function SermonDetailClient({ initialVideo, initialGardens }: Props) {
   }, [gardensGenerating, generating, video.id])
 
   const handleGenerateGardens = useCallback(async () => {
+    if (!isMondayISO(weekStartsAt)) {
+      setGenError('Please pick a Monday — gardens run Mon–Sat for that week.')
+      return
+    }
     setGenerating(true)
     setGenError(null)
     try {
       const res = await fetch(`/api/videos/${video.id}/generate-gardens`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(instructions ? { instructions } : {}),
+        body: JSON.stringify({
+          week_starts_at: weekStartsAt,
+          ...(instructions ? { instructions } : {}),
+        }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -99,7 +113,7 @@ export function SermonDetailClient({ initialVideo, initialGardens }: Props) {
       setGenError(err instanceof Error ? err.message : 'Generation failed')
       setGenerating(false)
     }
-  }, [video.id, instructions])
+  }, [video.id, instructions, weekStartsAt])
 
   const s = STATUS_DISPLAY[video.status] ?? STATUS_DISPLAY.pending_upload
 
@@ -204,8 +218,30 @@ export function SermonDetailClient({ initialVideo, initialGardens }: Props) {
         <div className="surface px-6 py-6 mb-6 anim-fadeUp" style={{ animationDelay: '0.12s' }}>
           <p className="section-label mb-3">Generate Gardens</p>
           <p className="text-sm mb-4" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-            Generate six daily devotional gardens (Monday–Saturday) from this sermon.
+            Generate six daily devotional gardens (Monday–Saturday) from this sermon for the week starting on the Monday you choose.
           </p>
+          <div className="mb-4">
+            <label
+              className="block text-sm font-medium mb-1"
+              style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
+            >
+              Week starts (Monday)
+            </label>
+            <input
+              type="date"
+              value={weekStartsAt}
+              onChange={(e) => setWeekStartsAt(e.target.value)}
+              className="input-warm w-full"
+            />
+            {!weekStartsAtIsMonday && (
+              <p
+                className="text-xs mt-1"
+                style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
+              >
+                Pick a Monday — gardens run Mon–Sat for that week.
+              </p>
+            )}
+          </div>
           <div className="mb-4">
             <label
               className="block text-sm font-medium mb-1"
@@ -234,7 +270,11 @@ export function SermonDetailClient({ initialVideo, initialGardens }: Props) {
               {genError}
             </p>
           )}
-          <button onClick={handleGenerateGardens} className="btn-gold px-5 py-2.5 text-sm">
+          <button
+            onClick={handleGenerateGardens}
+            disabled={!weekStartsAtIsMonday}
+            className="btn-gold px-5 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Generate Gardens
           </button>
         </div>
@@ -266,7 +306,8 @@ export function SermonDetailClient({ initialVideo, initialGardens }: Props) {
           <p className="section-label mb-3">Gardens</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {gardens
-              .sort((a, b) => a.day_number - b.day_number)
+              .slice()
+              .sort((a, b) => a.garden_date.localeCompare(b.garden_date))
               .map((garden) => {
                 const gs = GARDEN_STATUS[garden.status] ?? GARDEN_STATUS.pending
                 return (
@@ -280,7 +321,7 @@ export function SermonDetailClient({ initialVideo, initialGardens }: Props) {
                         className="text-sm font-semibold group-hover:text-[#B8874A] transition-colors"
                         style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
                       >
-                        Day {garden.day_number} — {DAY_NAMES[garden.day_number] || `Day ${garden.day_number}`}
+                        {formatGardenDateLong(garden.garden_date)}
                       </p>
                       <span
                         className="shrink-0 text-xs font-semibold rounded-full px-2.5 py-0.5"

@@ -18,14 +18,14 @@ interface Props {
 /* ─── helpers ─────────────────────────────────────────────── */
 
 function emptyContent(garden: Garden): GardenContent {
-  return { day_number: garden.day_number, topic: garden.topic, cards: [] }
+  return { topic: garden.topic, cards: [] }
 }
 
 function normalizeContent(garden: Garden): GardenContent {
   const raw = garden.content_json
   if (!raw) return emptyContent(garden)
   if (Array.isArray(raw)) {
-    return { day_number: garden.day_number, topic: garden.topic, cards: raw as GardenCard[] }
+    return { topic: garden.topic, cards: raw as GardenCard[] }
   }
   return { ...raw, cards: raw.cards ?? [] }
 }

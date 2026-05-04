@@ -121,7 +121,8 @@ export interface MediaGardenCard extends BaseCard {
 }
 
 export interface GardenContent {
-  day_number: number
+  // The DB row's `garden_date` is the canonical source for "which day
+  // is this for"; `GardenContent` no longer echoes it back.
   topic: string
   title?: string
   push?: string
@@ -133,12 +134,13 @@ export interface Garden {
   id: string
   video_id: string
   church_id: string
-  day_number: number
+  // ISO date (YYYY-MM-DD). Mon–Sat only; Sunday is rejected at the
+  // DB layer (CHECK constraint). One garden per (church_id, garden_date).
+  garden_date: string
   topic: string
   content_json: GardenContent | null
   status: GardenStatus
   error_message: string | null
-  go_live_date: string | null
   is_featured: boolean
   created_at: string
   updated_at: string | null
@@ -149,7 +151,6 @@ export type GardenListItem = Omit<Garden, 'content_json'>
 export interface UpdateGardenRequest {
   topic?: string
   content_json?: GardenContent
-  go_live_date?: string | null
   is_featured?: boolean
 }
 

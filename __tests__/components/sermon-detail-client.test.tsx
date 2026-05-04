@@ -183,14 +183,15 @@ describe('SermonDetailClient — generate gardens', () => {
 })
 
 describe('SermonDetailClient — gardens list', () => {
-  it('renders garden cards with day names', () => {
+  it('renders garden cards with day names + dates', () => {
+    // 2026-04-27 = Monday, 2026-04-28 = Tuesday.
     const gardens = [
-      makeGarden({ id: 'g1', day_number: 1, topic: 'Faith' }),
-      makeGarden({ id: 'g2', day_number: 2, topic: 'Hope' }),
+      makeGarden({ id: 'g1', garden_date: '2026-04-27', topic: 'Faith' }),
+      makeGarden({ id: 'g2', garden_date: '2026-04-28', topic: 'Hope' }),
     ]
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={gardens} />)
-    expect(screen.getByText('Day 1 — Monday')).toBeInTheDocument()
-    expect(screen.getByText('Day 2 — Tuesday')).toBeInTheDocument()
+    expect(screen.getByText('Monday, April 27')).toBeInTheDocument()
+    expect(screen.getByText('Tuesday, April 28')).toBeInTheDocument()
     expect(screen.getByText('Faith')).toBeInTheDocument()
     expect(screen.getByText('Hope')).toBeInTheDocument()
   })
@@ -199,10 +200,10 @@ describe('SermonDetailClient — gardens list', () => {
     render(
       <SermonDetailClient
         initialVideo={makeVideo({ status: 'ready' })}
-        initialGardens={[makeGarden({ id: 'g1' })]}
+        initialGardens={[makeGarden({ id: 'g1', garden_date: '2026-04-27' })]}
       />
     )
-    expect(screen.getByRole('link', { name: /Day 1/i })).toHaveAttribute('href', '/garden/g1')
+    expect(screen.getByRole('link', { name: /Monday, April 27/i })).toHaveAttribute('href', '/garden/g1')
   })
 
   it('shows generating state when a garden has status generating', () => {

@@ -1,13 +1,12 @@
 import { getGarden } from '@/lib/api/garden'
 import { verifySession } from '@/lib/dal'
+import { formatGardenDateLong } from '@/lib/dates'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { GardenContentEditor } from '@/components/garden-content-editor'
 import { GoLiveDateControl } from '@/components/go-live-date-control'
 import { setGoLiveDate } from './actions'
 import type { GardenStatus } from '@/lib/api/types'
-
-const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 const STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
   pending:    { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
@@ -26,7 +25,6 @@ export default async function GardenDetailPage({ params }: Props) {
   if (!garden) notFound()
 
   const s = STATUS[garden.status] ?? STATUS.pending
-  const dayName = DAY_NAMES[garden.day_number] || `Day ${garden.day_number}`
 
   return (
     <div className="px-8 py-9 max-w-3xl mx-auto">
@@ -40,7 +38,7 @@ export default async function GardenDetailPage({ params }: Props) {
 
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>
-          <p className="section-label mb-2">Day {garden.day_number} — {dayName}</p>
+          <p className="section-label mb-2">{formatGardenDateLong(garden.garden_date)}</p>
           <h1
             className="text-3xl leading-tight"
             style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}

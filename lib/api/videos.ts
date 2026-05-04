@@ -21,17 +21,17 @@ export async function getVideo(id: string): Promise<Video> {
 
 /** Sermon detail with embedded gardens (single round-trip via PostgREST embedding). */
 export async function getVideoWithGardens(id: string): Promise<Video & {
-  gardens: Pick<Garden, 'id' | 'day_number' | 'topic' | 'status' | 'go_live_date'>[]
+  gardens: Pick<Garden, 'id' | 'garden_date' | 'topic' | 'status'>[]
 }> {
   return postgrest(
-    `/videos?id=eq.${id}&select=*,gardens(id,day_number,topic,status,go_live_date)`,
+    `/videos?id=eq.${id}&select=*,gardens(id,garden_date,topic,status)`,
     { singleRow: true },
   )
 }
 
 export async function getVideoGardens(videoId: string): Promise<GardenListItem[]> {
   return postgrest<GardenListItem[]>(
-    `/gardens?video_id=eq.${videoId}&select=id,video_id,church_id,day_number,topic,status,go_live_date,is_featured,error_message,created_at,updated_at&order=day_number.asc`,
+    `/gardens?video_id=eq.${videoId}&select=id,video_id,church_id,garden_date,topic,status,is_featured,error_message,created_at,updated_at&order=garden_date.asc`,
   )
 }
 
@@ -57,10 +57,18 @@ export async function completeUpload(videoId: string): Promise<Video> {
 
 export async function generateGardens(
   videoId: string,
+  weekStartsAt: string,
   instructions?: string,
 ): Promise<GardenListItem[]> {
+  // weekStartsAt: ISO date for a Monday (YYYY-MM-DD). Ragserv validates
+  // that it's actually a Monday and rejects with 422 otherwise; we
+  // also validate at the form-input layer for a better error.
   return ragserv<GardenListItem[]>('/gardens/generate', {
     method: 'POST',
-    body: { video_id: videoId, ...(instructions ? { instructions } : {}) },
+    body: {
+      video_id: videoId,
+      week_starts_at: weekStartsAt,
+      ...(instructions ? { instructions } : {}),
+    },
   })
 }

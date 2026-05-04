@@ -63,6 +63,7 @@ export async function createVideo(
   description?: string,
   video_type = 'sermon',
   videoDate?: string,
+  contentType?: string,
 ): Promise<VideoCreateResponse> {
   // videoDate is the sermon's calendar date (YYYY-MM-DD). Omit to
   // default to today server-side. Sunday-dated uploads auto-promote
@@ -74,6 +75,7 @@ export async function createVideo(
       description,
       video_type,
       ...(videoDate ? { video_date: videoDate } : {}),
+      ...(contentType ? { content_type: contentType } : {}),
     },
   })
 }

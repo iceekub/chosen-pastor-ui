@@ -9,24 +9,17 @@ export async function inviteStaffAction(
   _prev: { error?: string; success?: string } | null,
   formData: FormData,
 ): Promise<{ error?: string; success?: string }> {
-  const user = await verifySession()
-  if (user.role === 'parishioner') {
-    return { error: 'Only staff and pastors can invite.' }
-  }
+  await verifySession()
 
   const email = (formData.get('email') as string)?.trim()
   const name = (formData.get('name') as string)?.trim()
-  const role = formData.get('role') as 'pastor' | 'staff'
 
-  if (!email || !name || !role) {
-    return { error: 'Email, name, and role are required.' }
-  }
-  if (role !== 'pastor' && role !== 'staff') {
-    return { error: 'Role must be pastor or staff.' }
+  if (!email || !name) {
+    return { error: 'Name and email are required.' }
   }
 
   try {
-    await inviteStaff({ email, name, role })
+    await inviteStaff({ email, name, role: 'staff' })
   } catch (err) {
     if (err instanceof ApiError && err.status === 422) {
       return { error: 'That email already has an account.' }

@@ -9,7 +9,7 @@ export default async function AdminPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-stone-900">Super Admin</h1>
         <p className="text-stone-500 mt-1 text-sm">
-          Chosen staff only — manage church onboarding.
+          Chosen team only — manage church onboarding.
         </p>
       </div>
 

@@ -8,8 +8,6 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: HomeIcon },
   { href: '/sermons',   label: 'Sermons',   icon: VideoIcon },
   { href: '/garden',    label: 'Garden',    icon: GardenIcon },
-  { href: '/themes',    label: 'Themes',    icon: TagIcon },
-  { href: '/staff',     label: 'Staff',     icon: PeopleIcon },
   { href: '/settings',  label: 'Settings',  icon: SettingsIcon },
 ]
 
@@ -53,7 +51,7 @@ export function Sidebar({ userName, churchName, role }: SidebarProps) {
               {churchName}
             </p>
             <p className="text-xs truncate mt-0.5" style={{ color: '#9A8878' }}>
-              Pastor Portal
+              Church Portal
             </p>
           </div>
         </div>
@@ -135,16 +133,10 @@ export function Sidebar({ userName, churchName, role }: SidebarProps) {
           </button>
         </form>
 
-        {/* Chosen wordmark */}
-        <div className="mt-5 px-3 flex items-center gap-2.5">
-          <div className="flex-1" style={{ height: '1px', background: '#3A2410' }} />
-          <span
-            className="text-xs tracking-[0.18em] font-bold"
-            style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}
-          >
-            CHOSEN
-          </span>
-          <div className="flex-1" style={{ height: '1px', background: '#3A2410' }} />
+        {/* Chosen logo */}
+        <div className="mt-5 px-3 flex justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/chosen-logo.png" alt="Chosen" className="w-24 opacity-60" />
         </div>
       </div>
     </aside>

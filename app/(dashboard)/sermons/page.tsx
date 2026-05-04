@@ -14,7 +14,13 @@ const STATUS: Record<VideoStatus, { label: string; color: string; bg: string }> 
 
 export default async function SermonsPage() {
   await verifySession()
-  const videos = await getVideos().catch(() => [])
+  let videos: Awaited<ReturnType<typeof getVideos>> = []
+  let videoError: string | null = null
+  try {
+    videos = await getVideos()
+  } catch (e) {
+    videoError = e instanceof Error ? e.message : String(e)
+  }
 
   return (
     <div className="px-8 py-9 max-w-5xl mx-auto">
@@ -38,6 +44,12 @@ export default async function SermonsPage() {
           + Upload sermon
         </Link>
       </div>
+
+      {videoError && (
+        <div className="mb-4 p-4 rounded bg-red-50 border border-red-200 text-red-700 text-sm font-mono break-all">
+          API error: {videoError}
+        </div>
+      )}
 
       {videos.length === 0 ? (
         <div

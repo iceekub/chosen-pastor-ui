@@ -4,6 +4,8 @@ import { formatGardenDateLong } from '@/lib/dates'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { GardenContentEditor } from '@/components/garden-content-editor'
+import { GoLiveDateControl } from '@/components/go-live-date-control'
+import { setGoLiveDate } from './actions'
 import type { GardenStatus } from '@/lib/api/types'
 
 const STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
@@ -51,6 +53,11 @@ export default async function GardenDetailPage({ params }: Props) {
           {s.label}
         </span>
       </div>
+
+      {/* Publish date control — always visible so pastor can set go_live_date */}
+      {garden.status === 'ready' && (
+        <GoLiveDateControl gardenId={garden.id} initialDate={garden.go_live_date} onSave={setGoLiveDate} />
+      )}
 
       {garden.status === 'generating' && (
         <div className="surface px-6 py-5 mb-6 anim-fadeUp" style={{ animationDelay: '0.08s' }}>

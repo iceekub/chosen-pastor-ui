@@ -16,9 +16,24 @@ export interface SessionUser {
 
 // ─── Videos (sermons) ───────────────────────────────────────────────────────
 
+/**
+ * Lifecycle states a video moves through. Mirrors the DB CHECK on
+ * `videos.status` (init.sql + 20260430000002_video_transcoding_fields).
+ *
+ *   pending_upload  → waiting for the client PUT to S3
+ *   downloading     → YouTube import in flight
+ *   transcoding     → MediaConvert running (often several minutes)
+ *   transcode_failed → MediaConvert errored; row is terminal
+ *   uploaded        → transcoded MP4 + thumbnails landed; Ragie kicks off
+ *   processing      → Ragie indexing
+ *   ready           → transcript saved, gardens generatable
+ *   error           → terminal failure outside the transcode path
+ */
 export type VideoStatus =
   | 'pending_upload'
   | 'downloading'
+  | 'transcoding'
+  | 'transcode_failed'
   | 'uploaded'
   | 'processing'
   | 'ready'

@@ -1,8 +1,19 @@
 import { verifySession } from '@/lib/dal'
 import { getVideos, getVideoGardens } from '@/lib/api/videos'
 import { formatGardenDateLong } from '@/lib/dates'
+import { SermonListAutoRefresh } from '@/components/sermon-list-auto-refresh'
 import Link from 'next/link'
-import type { GardenListItem, GardenStatus } from '@/lib/api/types'
+import type { GardenListItem, GardenStatus, VideoStatus } from '@/lib/api/types'
+
+// Mirrors ACTIVE_STATUSES in app/(dashboard)/sermons/page.tsx — kept
+// inline (rather than extracted to lib) because it's only used in two
+// pages and the duplication is two lines.
+const VIDEO_ACTIVE: ReadonlySet<VideoStatus> = new Set([
+  'pending_upload', 'downloading', 'transcoding', 'uploaded', 'processing',
+])
+const GARDEN_ACTIVE: ReadonlySet<GardenStatus> = new Set([
+  'pending', 'generating', 'reviewing',
+])
 
 export default async function DashboardPage() {
   const user = await verifySession()
@@ -18,9 +29,13 @@ export default async function DashboardPage() {
 
   const readyGardens = allGardens.filter((g) => g.status === 'ready')
   const processingVideos = videos.filter((v) => v.status === 'processing')
+  const hasActive =
+    videos.some((v) => VIDEO_ACTIVE.has(v.status))
+    || allGardens.some((g) => GARDEN_ACTIVE.has(g.status))
 
   return (
     <div className="px-8 py-9 max-w-5xl mx-auto">
+      <SermonListAutoRefresh hasActive={hasActive} />
       {/* Header */}
       <div className="mb-9 anim-fadeUp">
         <p className="section-label mb-2">Welcome back</p>

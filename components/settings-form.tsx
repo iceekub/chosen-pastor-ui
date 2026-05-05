@@ -38,7 +38,13 @@ function Feedback({ state }: { state: { error?: string; success?: boolean } | nu
 
   useEffect(() => {
     if (state?.success) {
+      // Reset animation state when a new success arrives. These two sync
+      // setState calls are intentional — they must fire before the fade
+      // timers start so the element is visible at the start of each
+      // success animation cycle.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpacity(1)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHidden(false)
       const fadeStart = setTimeout(() => setOpacity(0), 2500)
       const remove    = setTimeout(() => setHidden(true), 3200)
@@ -207,7 +213,7 @@ export function SettingsForm({ user, church, bibleVersions, team, pastors }: Pro
       <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.16s' }}>
         {sectionLabel('Church Assets')}
         <p className="text-xs mb-5" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-          Shown in the Chosen app on your church's profile and home screens.
+          Shown in the Chosen app on your church&apos;s profile and home screens.
         </p>
         <div className="space-y-5">
           {/* Logo row */}

@@ -101,7 +101,7 @@ export function SermonDetailClient({
   // Poll garden status while generating
   useEffect(() => {
     if (!gardensGenerating && !generating) return
-    let delay = 15_000 // start polling after 15s
+    const delay = 15_000 // start polling after 15s
     const timeout = setTimeout(() => {
       const interval = setInterval(async () => {
         try {

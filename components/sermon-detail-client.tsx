@@ -11,6 +11,7 @@ import type {
   VideoListItem,
   VideoStatus,
 } from '@/lib/api/types'
+import { ThumbnailPicker } from '@/components/thumbnail-picker'
 import {
   formatGardenDateLong,
   formatGardenDateShort,
@@ -256,6 +257,9 @@ export function SermonDetailClient({
           </p>
         </div>
       )}
+
+      {/* Thumbnail picker — auto-frame candidates + custom upload */}
+      <ThumbnailPicker video={video} />
 
       {/* Processing state */}
       {isProcessing && (

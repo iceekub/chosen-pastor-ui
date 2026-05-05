@@ -60,4 +60,48 @@ describe('POST /api/upload/presign', () => {
     const res = await POST(makeRequest({ title: 'Test Sermon' }))
     expect(res.status).toBe(502)
   })
+
+  // Regression: createVideo previously only accepted 4 params; the 5th
+  // (content_type) was silently dropped, causing S3 uploads to be stored
+  // with the wrong Content-Type. This verifies the route forwards it.
+  it('forwards content_type as the 5th argument to createVideo', async () => {
+    mockGetSession.mockResolvedValue(validSession)
+    mockCreateVideo.mockResolvedValue({
+      id: 'abc-123',
+      presigned_upload_url: 'https://s3.example.com/upload',
+      title: 'Test Sermon',
+      status: 'pending_upload',
+    } as never)
+
+    await POST(makeRequest({ title: 'Test Sermon', content_type: 'video/mp4' }))
+
+    // Args: title, description, video_type (undefined→default), video_date, content_type
+    expect(mockCreateVideo).toHaveBeenCalledWith(
+      'Test Sermon',
+      undefined,
+      undefined,
+      undefined,
+      'video/mp4',
+    )
+  })
+
+  it('calls createVideo with video_date when provided', async () => {
+    mockGetSession.mockResolvedValue(validSession)
+    mockCreateVideo.mockResolvedValue({
+      id: 'abc-123',
+      presigned_upload_url: 'https://s3.example.com/upload',
+      title: 'Test Sermon',
+      status: 'pending_upload',
+    } as never)
+
+    await POST(makeRequest({ title: 'Test Sermon', video_date: '2026-04-27' }))
+
+    expect(mockCreateVideo).toHaveBeenCalledWith(
+      'Test Sermon',
+      undefined,
+      undefined,
+      '2026-04-27',
+      undefined,
+    )
+  })
 })

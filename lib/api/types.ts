@@ -192,6 +192,10 @@ export interface Church {
   timezone: string
   ragie_partition_id: string | null
   logo_url: string | null
+  /** Alternate logo variant — e.g. a wordmark to pair with a monogram,
+   *  or a light-on-dark version for headers. Optional; falls back to
+   *  ``logo_url`` when absent. */
+  alt_logo_url: string | null
   image_url: string | null
   is_searchable: boolean
   created_at: string

@@ -138,11 +138,14 @@ export async function uploadGardenMediaCardAction(
 /* ── Video thumbnail ──────────────────────────────────────── */
 
 /**
+ * Custom-thumbnail upload override (when the auto-pick is bad).
  * videoId is pre-bound at call site via .bind():
  *   const action = uploadVideoThumbnailAction.bind(null, video.id)
  *
- * Requires a `video-thumbnails` Supabase Storage bucket (public-read,
- * staff-write scoped to church_id prefix).
+ * Backed by the `video-thumbnails` Supabase Storage bucket
+ * (public-read, staff-write scoped to church_id prefix). Bucket +
+ * RLS are added in
+ * backend/supabase/migrations/20260506000001_video_thumbnails_bucket.sql.
  */
 export async function uploadVideoThumbnailAction(
   videoId: string,
@@ -164,6 +167,37 @@ export async function uploadVideoThumbnailAction(
     return { success: true, url }
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Upload failed' }
+  }
+}
+
+/**
+ * Pick one of the auto-generated MediaConvert frame captures as
+ * the official thumbnail. Pure metadata change — no data is copied
+ * between buckets; we just update videos.thumbnail_url to point at
+ * a different (public, already-existing) S3 URL.
+ *
+ * The caller passes the chosen URL (constructed client-side from
+ * `video.thumbnail_keys` via `lib/thumbnails.ts:thumbnailKeyToUrl`).
+ * We trust it because RLS on the videos table already gates writes
+ * to staff-of-this-church anyway — there's nothing the URL can be
+ * abused into beyond what staff can already do via PostgREST direct.
+ */
+export async function pickAutoFrameAction(
+  videoId: string,
+  url: string,
+): Promise<UploadResult> {
+  const user = await verifySession()
+  if (!user.church_id) return { error: 'No church associated with your account.' }
+  if (!url) return { error: 'Missing thumbnail URL.' }
+
+  try {
+    await postgrest(`/videos?id=eq.${videoId}`, {
+      method: 'PATCH',
+      body: { thumbnail_url: url },
+    })
+    return { success: true, url }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Pick failed' }
   }
 }
 

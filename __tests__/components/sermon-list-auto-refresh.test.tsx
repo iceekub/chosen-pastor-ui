@@ -13,6 +13,11 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh }),
 }))
 
+const mockAddNotification = vi.fn()
+vi.mock('@/lib/notifications', () => ({
+  useNotifications: () => ({ addNotification: mockAddNotification }),
+}))
+
 beforeEach(() => {
   mockRefresh.mockReset()
   vi.useFakeTimers()

@@ -2,6 +2,7 @@ import { getVideos } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
 import { formatGardenDateShort } from '@/lib/dates'
 import { SermonListAutoRefresh } from '@/components/sermon-list-auto-refresh'
+import type { ActiveVideo } from '@/components/sermon-list-auto-refresh'
 import Link from 'next/link'
 import type { VideoStatus } from '@/lib/api/types'
 
@@ -40,10 +41,13 @@ export default async function SermonsPage() {
     videoError = e instanceof Error ? e.message : String(e)
   }
   const hasActive = videos.some((v) => ACTIVE_STATUSES.has(v.status))
+  const activeVideos: ActiveVideo[] = videos
+    .filter((v) => ACTIVE_STATUSES.has(v.status))
+    .map((v) => ({ id: v.id, title: v.title, status: v.status }))
 
   return (
     <div className="px-8 py-9 max-w-5xl mx-auto">
-      <SermonListAutoRefresh hasActive={hasActive} />
+      <SermonListAutoRefresh hasActive={hasActive} activeVideos={activeVideos} />
       <div className="flex items-end justify-between mb-8 anim-fadeUp">
         <div>
           <p className="section-label mb-2">Content</p>

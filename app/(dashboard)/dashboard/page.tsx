@@ -2,6 +2,7 @@ import { verifySession } from '@/lib/dal'
 import { getVideos, getVideoGardens } from '@/lib/api/videos'
 import { formatGardenDateLong } from '@/lib/dates'
 import { SermonListAutoRefresh } from '@/components/sermon-list-auto-refresh'
+import type { ActiveVideo } from '@/components/sermon-list-auto-refresh'
 import Link from 'next/link'
 import type { GardenListItem, GardenStatus, VideoStatus } from '@/lib/api/types'
 
@@ -32,10 +33,13 @@ export default async function DashboardPage() {
   const hasActive =
     videos.some((v) => VIDEO_ACTIVE.has(v.status))
     || allGardens.some((g) => GARDEN_ACTIVE.has(g.status))
+  const activeVideos: ActiveVideo[] = videos
+    .filter((v) => VIDEO_ACTIVE.has(v.status))
+    .map((v) => ({ id: v.id, title: v.title, status: v.status }))
 
   return (
     <div className="px-8 py-9 max-w-5xl mx-auto">
-      <SermonListAutoRefresh hasActive={hasActive} />
+      <SermonListAutoRefresh hasActive={hasActive} activeVideos={activeVideos} />
       {/* Header */}
       <div className="mb-9 anim-fadeUp">
         <p className="section-label mb-2">Welcome back</p>

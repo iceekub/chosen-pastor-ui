@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import { useNotifications } from '@/lib/notifications'
 import type {
   GardenListItem,
   GardenStatus,
@@ -60,8 +61,12 @@ export function SermonDetailClient({
   initialGardens,
   weekPrimary,
 }: Props) {
+  const { addNotification } = useNotifications()
   const [video, setVideo] = useState(initialVideo)
   const [gardens, setGardens] = useState(initialGardens)
+  // Track last-known video status so we can detect the → ready transition
+  // without firing on mount (same pattern as SermonListAutoRefresh).
+  const prevVideoStatusRef = useRef(initialVideo.status)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
   const [instructions, setInstructions] = useState('')
@@ -107,12 +112,16 @@ export function SermonDetailClient({
         const res = await fetch(`/api/videos/${video.id}`)
         if (res.ok) {
           const updated = await res.json()
+          if (prevVideoStatusRef.current !== 'ready' && updated.status === 'ready') {
+            addNotification({ type: 'video_ready', title: updated.title, videoId: updated.id })
+          }
+          prevVideoStatusRef.current = updated.status
           setVideo(updated)
         }
       } catch { /* ignore polling errors */ }
     }, 15_000)
     return () => clearInterval(interval)
-  }, [videoIsActive, video.id])
+  }, [videoIsActive, video.id, addNotification])
 
   // Poll garden status while generating
   useEffect(() => {
@@ -127,6 +136,9 @@ export function SermonDetailClient({
             setGardens(updated)
             const allDone = updated.every((g) => g.status === 'ready' || g.status === 'error')
             if (allDone) {
+              if (updated.some((g) => g.status === 'ready')) {
+                addNotification({ type: 'gardens_ready', title: video.title, videoId: video.id })
+              }
               setGenerating(false)
               clearInterval(interval)
             }

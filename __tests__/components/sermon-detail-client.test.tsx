@@ -4,6 +4,11 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+const mockAddNotification = vi.fn()
+vi.mock('@/lib/notifications', () => ({
+  useNotifications: () => ({ addNotification: mockAddNotification }),
+}))
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SermonDetailClient } from '@/components/sermon-detail-client'

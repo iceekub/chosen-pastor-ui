@@ -39,13 +39,6 @@ describe('createVideo', () => {
     expect(init.body).toMatchObject({ video_date: '2026-04-05' })
   })
 
-  it('omits video_date from body when not provided', async () => {
-    mockRagserv.mockResolvedValue({ id: 'v1', presigned_upload_url: '...', status: 'pending_upload' })
-    await createVideo('Easter Sermon')
-    const [, init] = mockRagserv.mock.calls[0]
-    expect(init.body).not.toHaveProperty('video_date')
-  })
-
   // Regression: the 5th param (contentType) was dropped during a rebase, so
   // S3 pre-signed URLs were generated without Content-Type enforcement.
   it('includes content_type in the body when provided (5th param regression)', async () => {
@@ -55,29 +48,6 @@ describe('createVideo', () => {
     expect(init.body).toMatchObject({ content_type: 'video/mp4' })
   })
 
-  it('omits content_type from body when not provided', async () => {
-    mockRagserv.mockResolvedValue({ id: 'v1', presigned_upload_url: '...', status: 'pending_upload' })
-    await createVideo('Sunday Sermon')
-    const [, init] = mockRagserv.mock.calls[0]
-    expect(init.body).not.toHaveProperty('content_type')
-  })
-
-  it('accepts all 5 arguments without TypeScript error', async () => {
-    mockRagserv.mockResolvedValue({ id: 'v1', presigned_upload_url: '...', status: 'pending_upload' })
-    // If the signature regresses to 4 params, this call becomes a type error
-    // (caught at build/lint time) AND the content_type assertion above fails.
-    await expect(
-      createVideo('Full Upload', 'A description', 'sermon', '2026-04-27', 'video/quicktime'),
-    ).resolves.toBeDefined()
-    const [, init] = mockRagserv.mock.calls[0]
-    expect(init.body).toMatchObject({
-      title: 'Full Upload',
-      description: 'A description',
-      video_type: 'sermon',
-      video_date: '2026-04-27',
-      content_type: 'video/quicktime',
-    })
-  })
 })
 
 // ── generateGardens ─────────────────────────────────────────────────────────

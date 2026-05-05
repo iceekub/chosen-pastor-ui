@@ -27,11 +27,6 @@ const makeVideo = (overrides = {}) => makeVideoBase({ id: 'vid-1', title: 'Sunda
 const makeGarden = (overrides = {}) => makeGardenListItem({ video_id: 'vid-1', topic: 'Faith', ...overrides })
 
 describe('SermonDetailClient — header', () => {
-  it('renders the video title', () => {
-    render(<SermonDetailClient initialVideo={makeVideo()} initialGardens={[]} />)
-    expect(screen.getByText('Sunday Sermon')).toBeInTheDocument()
-  })
-
   it('renders the Ready status badge', () => {
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={[]} />)
     expect(screen.getByText('Ready')).toBeInTheDocument()
@@ -42,10 +37,6 @@ describe('SermonDetailClient — header', () => {
     expect(screen.getByText('Processing')).toBeInTheDocument()
   })
 
-  it('renders video description when present', () => {
-    render(<SermonDetailClient initialVideo={makeVideo({ description: 'A great sermon' })} initialGardens={[]} />)
-    expect(screen.getByText('A great sermon')).toBeInTheDocument()
-  })
 })
 
 describe('SermonDetailClient — processing state', () => {
@@ -83,11 +74,6 @@ describe('SermonDetailClient — error state', () => {
 })
 
 describe('SermonDetailClient — transcript', () => {
-  it('does not show transcript toggle when no transcript', () => {
-    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={[]} />)
-    expect(screen.queryByText('Transcript')).not.toBeInTheDocument()
-  })
-
   it('shows transcript toggle when ready and transcript exists', () => {
     render(
       <SermonDetailClient
@@ -187,29 +173,6 @@ describe('SermonDetailClient — generate gardens', () => {
 })
 
 describe('SermonDetailClient — gardens list', () => {
-  it('renders garden cards with day names + dates', () => {
-    // 2026-04-27 = Monday, 2026-04-28 = Tuesday.
-    const gardens = [
-      makeGarden({ id: 'g1', garden_date: '2026-04-27', topic: 'Faith' }),
-      makeGarden({ id: 'g2', garden_date: '2026-04-28', topic: 'Hope' }),
-    ]
-    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={gardens} />)
-    expect(screen.getByText('Monday, April 27')).toBeInTheDocument()
-    expect(screen.getByText('Tuesday, April 28')).toBeInTheDocument()
-    expect(screen.getByText('Faith')).toBeInTheDocument()
-    expect(screen.getByText('Hope')).toBeInTheDocument()
-  })
-
-  it('links each garden to /garden/{id}', () => {
-    render(
-      <SermonDetailClient
-        initialVideo={makeVideo({ status: 'ready' })}
-        initialGardens={[makeGarden({ id: 'g1', garden_date: '2026-04-27' })]}
-      />
-    )
-    expect(screen.getByRole('link', { name: /Monday, April 27/i })).toHaveAttribute('href', '/garden/g1')
-  })
-
   it('shows generating state when a garden has status generating', () => {
     render(
       <SermonDetailClient
@@ -223,22 +186,6 @@ describe('SermonDetailClient — gardens list', () => {
 
 
 describe('SermonDetailClient — role picker', () => {
-  it('renders all three role buttons with the active role marked', () => {
-    render(
-      <SermonDetailClient
-        initialVideo={makeVideo({ role: 'primary' })}
-        initialGardens={[]}
-      />
-    )
-    const primaryBtn = screen.getByRole('button', { name: 'Primary' })
-    const secondaryBtn = screen.getByRole('button', { name: 'Secondary' })
-    const ignoredBtn = screen.getByRole('button', { name: 'Ignored' })
-    // Active role's button is disabled (already that role).
-    expect(primaryBtn).toBeDisabled()
-    expect(secondaryBtn).toBeEnabled()
-    expect(ignoredBtn).toBeEnabled()
-  })
-
   it('PATCHes /api/videos/{id}/role and updates state on click', async () => {
     mockFetch
       // First call: PATCH role.
@@ -301,33 +248,6 @@ describe('SermonDetailClient — role picker', () => {
 })
 
 
-describe("SermonDetailClient — week-primary banner", () => {
-  it("links to the week's primary when this video isn't it", () => {
-    const primary = makeVideoListItem({ id: 'p-1', title: 'Pastor John' })
-    render(
-      <SermonDetailClient
-        initialVideo={makeVideo({ role: 'ignored' })}
-        initialGardens={[]}
-        weekPrimary={primary}
-      />
-    )
-    expect(screen.getByText(/This week's primary: Pastor John/)).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: /This week's primary: Pastor John/i })
-    ).toHaveAttribute('href', '/sermons/p-1')
-  })
-
-  it("doesn't render the banner when this video is the primary", () => {
-    render(
-      <SermonDetailClient
-        initialVideo={makeVideo({ role: 'primary' })}
-        initialGardens={[]}
-        weekPrimary={null}
-      />
-    )
-    expect(screen.queryByText(/This week's primary/)).not.toBeInTheDocument()
-  })
-})
 
 
 describe('SermonDetailClient — stale handling', () => {

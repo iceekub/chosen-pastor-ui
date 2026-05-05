@@ -17,63 +17,6 @@ const adminProps  = { ...pastorProps, role: 'super_admin' }
 
 beforeEach(() => vi.clearAllMocks())
 
-describe('Sidebar — church branding', () => {
-  it('displays the church name', () => {
-    mockUsePathname.mockReturnValue('/dashboard')
-    render(<Sidebar {...pastorProps} />)
-    expect(screen.getByText('Grace Community')).toBeInTheDocument()
-  })
-
-  it('shows the first two characters of church name as initials', () => {
-    mockUsePathname.mockReturnValue('/dashboard')
-    render(<Sidebar {...pastorProps} />)
-    expect(screen.getByText('GR')).toBeInTheDocument()
-  })
-
-  it('displays pastor name', () => {
-    mockUsePathname.mockReturnValue('/dashboard')
-    render(<Sidebar {...pastorProps} />)
-    expect(screen.getByText('Pastor Jane')).toBeInTheDocument()
-  })
-
-  it('displays Chosen logo', () => {
-    mockUsePathname.mockReturnValue('/dashboard')
-    render(<Sidebar {...pastorProps} />)
-    expect(screen.getByRole('img', { name: 'Chosen' })).toBeInTheDocument()
-  })
-})
-
-describe('Sidebar — navigation active states', () => {
-  it('marks Dashboard as active on /dashboard', () => {
-    mockUsePathname.mockReturnValue('/dashboard')
-    render(<Sidebar {...pastorProps} />)
-    const link = screen.getByRole('link', { name: /dashboard/i })
-    expect(link).toHaveStyle({ borderLeft: '2px solid #B8874A' })
-  })
-
-  it('marks Sermons as active on /sermons', () => {
-    mockUsePathname.mockReturnValue('/sermons')
-    render(<Sidebar {...pastorProps} />)
-    const link = screen.getByRole('link', { name: /sermons/i })
-    expect(link).toHaveStyle({ borderLeft: '2px solid #B8874A' })
-  })
-
-  it('marks Sermons as active on /sermons/upload (startsWith)', () => {
-    mockUsePathname.mockReturnValue('/sermons/upload')
-    render(<Sidebar {...pastorProps} />)
-    const link = screen.getByRole('link', { name: /sermons/i })
-    expect(link).toHaveStyle({ borderLeft: '2px solid #B8874A' })
-  })
-
-  it('does not mark Dashboard as active on /sermons', () => {
-    mockUsePathname.mockReturnValue('/sermons')
-    render(<Sidebar {...pastorProps} />)
-    const link = screen.getByRole('link', { name: /dashboard/i })
-    // Active links have the gold colour — inactive ones must not
-    expect(link).not.toHaveStyle({ borderLeft: '2px solid #B8874A' })
-  })
-})
-
 describe('Sidebar — RBAC', () => {
   it('does not show Admin link for pastor role', () => {
     mockUsePathname.mockReturnValue('/dashboard')

@@ -113,7 +113,7 @@ export function ImageUpload({
           className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           style={{ background: 'rgba(44,30,15,0.45)' }}
         >
-          <p className="text-xs font-semibold text-white" style={{ fontFamily: 'var(--font-mulish)' }}>
+          <p className="text-xs font-semibold text-white text-center" style={{ fontFamily: 'var(--font-mulish)' }}>
             {isPending ? 'Uploading…' : hasImage ? 'Change image' : 'Upload image'}
           </p>
         </div>

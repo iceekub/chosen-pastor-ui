@@ -1,4 +1,4 @@
-import { getVideo, getVideoGardens, getWeekPrimary } from '@/lib/api/videos'
+import { getVideo, getVideoGardens } from '@/lib/api/videos'
 import { listThemes, listThemesForVideo } from '@/lib/api/themes'
 import { verifySession } from '@/lib/dal'
 import { notFound } from 'next/navigation'
@@ -16,14 +16,10 @@ export default async function SermonDetailPage({ params }: Props) {
   const video = await getVideo(id).catch(() => null)
   if (!video) notFound()
 
-  const [gardens, allThemes, taggedThemes, weekPrimary] = await Promise.all([
+  const [gardens, allThemes, taggedThemes] = await Promise.all([
     getVideoGardens(id).catch(() => []),
     listThemes().catch(() => []),
     listThemesForVideo(id).catch(() => []),
-    // Only need the banner data when this video is NOT the primary.
-    video.role === 'primary'
-      ? Promise.resolve(null)
-      : getWeekPrimary(video.church_id, video.week_anchor_sunday).catch(() => null),
   ])
 
   return (
@@ -39,7 +35,6 @@ export default async function SermonDetailPage({ params }: Props) {
       <SermonDetailClient
         initialVideo={video}
         initialGardens={gardens}
-        weekPrimary={weekPrimary}
       />
 
       <section

@@ -1,4 +1,5 @@
 import { getGarden } from '@/lib/api/garden'
+import { getVideo } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
 import { formatGardenDateLong } from '@/lib/dates'
 import { notFound } from 'next/navigation'
@@ -23,6 +24,11 @@ export default async function GardenDetailPage({ params }: Props) {
   const garden = await getGarden(id).catch(() => null)
   if (!garden) notFound()
 
+  // Fetch the sermon that generated this garden so we can show a notifier
+  // linking back to it. Soft-fail — if the video is missing the notifier
+  // is simply omitted rather than breaking the page.
+  const sourceVideo = await getVideo(garden.video_id).catch(() => null)
+
   const s = STATUS[garden.status] ?? STATUS.pending
   const dateLabel = formatGardenDateLong(garden.garden_date)
 
@@ -37,6 +43,25 @@ export default async function GardenDetailPage({ params }: Props) {
       >
         &larr; Back to Garden
       </Link>
+
+      {/* Source sermon notifier — links back to the sermon that generated
+          this garden so the pastor can navigate between the two easily. */}
+      {sourceVideo && (
+        <Link
+          href={`/sermons/${sourceVideo.id}`}
+          className="flex items-center gap-3 surface px-5 py-3.5 mb-6 anim-fadeUp hover:scale-[1.005] transition-transform duration-200"
+          style={{ animationDelay: '0.04s', borderColor: 'rgba(184,135,74,0.25)', background: 'rgba(184,135,74,0.04)' }}
+        >
+          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: '#B8874A' }} />
+          <p className="text-sm flex-1 min-w-0" style={{ fontFamily: 'var(--font-mulish)', color: '#5A4A38' }}>
+            Generated from{' '}
+            <span className="font-semibold" style={{ color: '#2C1E0F' }}>{sourceVideo.title}</span>
+          </p>
+          <span className="shrink-0 text-xs" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}>
+            View sermon →
+          </span>
+        </Link>
+      )}
 
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>

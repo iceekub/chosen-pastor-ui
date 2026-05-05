@@ -96,8 +96,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { href: '/sermons/upload', title: 'Upload sermon', desc: 'Add a new video to the library' },
-            { href: '/garden',         title: 'View Gardens',   desc: 'Browse AI-generated devotional gardens' },
-            { href: '/documents',      title: 'Add document',   desc: 'Upload reference material for the AI' },
+            { href: '/garden',         title: 'View Gardens',   desc: 'Browse devotional gardens' },
           ].map(({ href, title, desc }, i) => (
             <Link
               key={href}

@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect } from 'react'
 import { saveChurchAction, saveBibleTranslationAction } from '@/app/actions/settings'
-import { uploadChurchLogoAction, uploadChurchAltLogoAction, uploadChurchImageAction } from '@/app/actions/storage'
+import { uploadChurchLogoAction, uploadChurchSearchLogoAction, uploadChurchAltLogoAction, uploadChurchImageAction } from '@/app/actions/storage'
 import { InviteStaffForm } from '@/components/invite-staff-form'
 import { ImageUpload } from '@/components/image-upload'
 import { PastorsSection } from '@/components/pastors-section'
@@ -229,9 +229,20 @@ export function SettingsForm({ user, church, bibleVersions, team, pastors }: Pro
             </div>
             <div style={{ width: 80, flexShrink: 0 }}>
               <ImageUpload
+                action={uploadChurchSearchLogoAction}
+                currentUrl={church?.logo_search_url}
+                label="Search logo"
+                hint="Shown in onboarding search"
+                aspectRatio="1/1"
+                objectFit="contain"
+              />
+            </div>
+            <div style={{ width: 80, flexShrink: 0 }}>
+              <ImageUpload
                 action={uploadChurchAltLogoAction}
                 currentUrl={church?.alt_logo_url}
                 label="Alt logo"
+                hint="Reversed/white for dark backgrounds"
                 aspectRatio="1/1"
                 objectFit="contain"
               />

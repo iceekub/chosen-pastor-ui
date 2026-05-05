@@ -61,6 +61,30 @@ export async function uploadChurchLogoAction(
   }
 }
 
+/* ── Church search logo ───────────────────────────────────── */
+
+export async function uploadChurchSearchLogoAction(
+  formData: FormData,
+): Promise<UploadResult> {
+  const user = await verifySession()
+  if (!user.church_id) return { error: 'No church associated with your account.' }
+
+  const file = formData.get('file')
+  if (!validateFile(file)) return { error: 'Please select a JPEG, PNG, or WebP image under 10 MB.' }
+
+  const path = `${user.church_id}/logo-search.${getExt(file)}`
+  try {
+    const url = await uploadToStorage('church-logos', path, file)
+    await postgrest(`/churches?id=eq.${user.church_id}`, {
+      method: 'PATCH',
+      body: { logo_search_url: url },
+    })
+    return { success: true, url }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Upload failed' }
+  }
+}
+
 /* ── Church alt logo ──────────────────────────────────────── */
 
 export async function uploadChurchAltLogoAction(

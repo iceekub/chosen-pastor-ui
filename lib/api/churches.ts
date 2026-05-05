@@ -11,6 +11,7 @@ export interface ChurchRead {
   timezone: string | null
   bible_translation: string
   logo_url: string | null
+  logo_search_url: string | null
   alt_logo_url: string | null
   image_url: string | null
 }
@@ -32,6 +33,7 @@ export async function getChurchLogoUrl(
 
 export interface ChurchAssets {
   logo_url: string | null
+  logo_search_url: string | null
   alt_logo_url: string | null
   image_url: string | null
 }
@@ -45,11 +47,11 @@ export async function getChurchAssets(
 ): Promise<ChurchAssets> {
   try {
     return await postgrest<ChurchAssets>(
-      `/churches?id=eq.${churchId}&select=logo_url,alt_logo_url,image_url`,
+      `/churches?id=eq.${churchId}&select=logo_url,logo_search_url,alt_logo_url,image_url`,
       { singleRow: true },
     )
   } catch {
-    return { logo_url: null, alt_logo_url: null, image_url: null }
+    return { logo_url: null, logo_search_url: null, alt_logo_url: null, image_url: null }
   }
 }
 

@@ -39,7 +39,7 @@ export function Sidebar({ userName, churchName, role, logoUrl }: SidebarProps) {
           >
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt={churchName} className="w-full h-full object-cover" />
+              <img src={logoUrl} alt={churchName} className="w-full h-full object-contain p-1" />
             ) : (
               <span
                 className="text-sm font-bold tracking-wide"

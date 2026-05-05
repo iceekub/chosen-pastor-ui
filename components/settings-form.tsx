@@ -224,6 +224,7 @@ export function SettingsForm({ user, church, bibleVersions, team, pastors }: Pro
                 currentUrl={church?.logo_url}
                 label="Logo"
                 aspectRatio="1/1"
+                objectFit="contain"
               />
             </div>
             <div style={{ width: 80, flexShrink: 0 }}>
@@ -232,6 +233,7 @@ export function SettingsForm({ user, church, bibleVersions, team, pastors }: Pro
                 currentUrl={church?.alt_logo_url}
                 label="Alt logo"
                 aspectRatio="1/1"
+                objectFit="contain"
               />
             </div>
           </div>

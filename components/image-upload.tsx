@@ -12,6 +12,8 @@ interface ImageUploadProps {
   hint?: string
   /** CSS aspect-ratio value, e.g. "16/9" or "1/1" */
   aspectRatio?: string
+  /** How the image fills its box. Use "contain" for logos, "cover" for hero images. */
+  objectFit?: 'cover' | 'contain'
   /** Optional callback when upload succeeds — receives the new public URL */
   onSuccess?: (url: string) => void
 }
@@ -22,6 +24,7 @@ export function ImageUpload({
   label,
   hint,
   aspectRatio = '16/9',
+  objectFit = 'cover',
   onSuccess,
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -94,7 +97,7 @@ export function ImageUpload({
           <img
             src={previewUrl}
             alt={label}
-            className="absolute inset-0 w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain p-2' : 'object-cover'}`}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-2">

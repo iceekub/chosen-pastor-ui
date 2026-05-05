@@ -28,12 +28,14 @@ const ROLE_DESCRIPTIONS: Record<VideoRole, string> = {
 }
 
 const STATUS_DISPLAY: Record<VideoStatus, { label: string; color: string; bg: string }> = {
-  pending_upload: { label: 'Pending Upload', color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
-  downloading:    { label: 'Downloading',    color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
-  uploaded:       { label: 'Uploaded',       color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
-  processing:     { label: 'Processing',    color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
-  ready:          { label: 'Ready',          color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
-  error:          { label: 'Error',          color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+  pending_upload:   { label: 'Pending Upload',  color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
+  downloading:      { label: 'Downloading',     color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
+  transcoding:      { label: 'Transcoding',     color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  transcode_failed: { label: 'Transcode Failed', color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+  uploaded:         { label: 'Uploaded',        color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
+  processing:       { label: 'Processing',      color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  ready:            { label: 'Ready',           color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
+  error:            { label: 'Error',           color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
 }
 
 const GARDEN_STATUS: Record<GardenStatus, { label: string; color: string; bg: string }> = {
@@ -76,16 +78,30 @@ export function SermonDetailClient({
     return toISODate(d)
   }, [video.week_anchor_sunday])
 
-  const isProcessing = video.status === 'processing' || video.status === 'uploaded'
+  // "Active" = the row is moving through the pipeline and we should
+  // be polling for status / thumbnail updates. Includes the long
+  // transcoding phase (MediaConvert) where the row sits for several
+  // minutes — without it the page would show a stale processing badge
+  // and no thumbnail until the user manually refreshed.
+  const videoIsActive =
+    video.status === 'pending_upload'
+    || video.status === 'downloading'
+    || video.status === 'transcoding'
+    || video.status === 'uploaded'
+    || video.status === 'processing'
+  const isProcessing = videoIsActive  // kept for the existing UI banner condition
   const isReady = video.status === 'ready'
   const hasError = video.status === 'error'
   const gardensGenerating = gardens.some((g) => g.status === 'pending' || g.status === 'generating')
   const gardensStale = gardens.some((g) => g.is_stale)
   const isPrimary = video.role === 'primary'
 
-  // Poll video status while processing
+  // Poll video status while the row is in any non-terminal state.
+  // 15s — short enough that the thumbnail / status badge appears
+  // promptly after MediaConvert + Ragie finish, long enough that
+  // we're not hammering ragserv during multi-minute transcodes.
   useEffect(() => {
-    if (!isProcessing) return
+    if (!videoIsActive) return
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`/api/videos/${video.id}`)
@@ -94,9 +110,9 @@ export function SermonDetailClient({
           setVideo(updated)
         }
       } catch { /* ignore polling errors */ }
-    }, 30_000)
+    }, 15_000)
     return () => clearInterval(interval)
-  }, [isProcessing, video.id])
+  }, [videoIsActive, video.id])
 
   // Poll garden status while generating
   useEffect(() => {

@@ -1,17 +1,33 @@
 import { getVideos } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
 import { formatGardenDateShort } from '@/lib/dates'
+import { SermonListAutoRefresh } from '@/components/sermon-list-auto-refresh'
 import Link from 'next/link'
 import type { VideoStatus } from '@/lib/api/types'
 
 const STATUS: Record<VideoStatus, { label: string; color: string; bg: string }> = {
-  pending_upload: { label: 'Pending',    color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
-  downloading:    { label: 'Downloading', color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
-  uploaded:       { label: 'Uploaded',   color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
-  processing:     { label: 'Processing', color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
-  ready:          { label: 'Ready',      color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
-  error:          { label: 'Error',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+  pending_upload:   { label: 'Pending',           color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
+  downloading:      { label: 'Downloading',       color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
+  transcoding:      { label: 'Transcoding',       color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  transcode_failed: { label: 'Transcode Failed',  color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+  uploaded:         { label: 'Uploaded',          color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
+  processing:       { label: 'Processing',        color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  ready:            { label: 'Ready',             color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
+  error:            { label: 'Error',             color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
 }
+
+// Statuses where the row may still mutate (status, thumbnail_url,
+// summary, etc.) on the backend. While any visible row is in one of
+// these, the page auto-refreshes every 15s so the user doesn't have
+// to manually reload. Terminal states (ready, error, transcode_failed)
+// are excluded.
+const ACTIVE_STATUSES: ReadonlySet<VideoStatus> = new Set([
+  'pending_upload',
+  'downloading',
+  'transcoding',
+  'uploaded',
+  'processing',
+])
 
 
 export default async function SermonsPage() {
@@ -23,9 +39,11 @@ export default async function SermonsPage() {
   } catch (e) {
     videoError = e instanceof Error ? e.message : String(e)
   }
+  const hasActive = videos.some((v) => ACTIVE_STATUSES.has(v.status))
 
   return (
     <div className="px-8 py-9 max-w-5xl mx-auto">
+      <SermonListAutoRefresh hasActive={hasActive} />
       <div className="flex items-end justify-between mb-8 anim-fadeUp">
         <div>
           <p className="section-label mb-2">Content</p>

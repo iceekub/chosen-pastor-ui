@@ -59,7 +59,18 @@ export interface Video {
   video_type: string
   youtube_url: string | null
   s3_key: string | null
+  /** Public URL of the currently-displayed thumbnail. Set by ragserv
+   *  at transcode-complete to one of the auto-generated frame
+   *  captures (middle frame by default), and may be overridden by
+   *  staff via the thumbnail picker (either to a different
+   *  auto-frame URL or to a custom upload in the video-thumbnails
+   *  Supabase Storage bucket). */
   thumbnail_url: string | null
+  /** S3 keys of the auto-generated MediaConvert frame captures (≤5).
+   *  Used by the thumbnail picker to render alternate auto-frame
+   *  candidates the staff can select from. Empty for YouTube imports
+   *  and any video that hasn't been transcoded. */
+  thumbnail_keys: string[]
   /** ISO date (YYYY-MM-DD) the sermon is for. Defaults to upload day. */
   video_date: string
   role: VideoRole

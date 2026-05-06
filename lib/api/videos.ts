@@ -15,9 +15,10 @@ const VIDEO_LIST_SELECT =
   'video_date,role,week_anchor_sunday,' +
   'created_at,updated_at,is_featured'
 
-export async function getVideos(): Promise<VideoListItem[]> {
+export async function getVideos(churchId?: string | null): Promise<VideoListItem[]> {
+  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
   return postgrest<VideoListItem[]>(
-    `/videos?select=${VIDEO_LIST_SELECT}&order=video_date.desc`,
+    `/videos?select=${VIDEO_LIST_SELECT}${churchFilter}&order=video_date.desc`,
   )
 }
 

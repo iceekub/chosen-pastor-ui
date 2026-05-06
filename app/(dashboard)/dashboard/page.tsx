@@ -19,7 +19,7 @@ const GARDEN_ACTIVE: ReadonlySet<GardenStatus> = new Set([
 export default async function DashboardPage() {
   const user = await verifySession()
 
-  const videos = await getVideos().catch(() => [])
+  const videos = await getVideos(user.church_id).catch(() => [])
 
   // Gather all gardens across videos
   const allGardens: GardenListItem[] = []

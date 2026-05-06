@@ -18,8 +18,8 @@ interface SermonGardens {
 }
 
 export default async function GardenPage() {
-  await verifySession()
-  const videos = await getVideos().catch(() => [])
+  const user = await verifySession()
+  const videos = await getVideos(user.church_id).catch(() => [])
 
   // Fetch gardens for each video that might have them
   const sermonGardens: SermonGardens[] = []

@@ -32,11 +32,11 @@ const ACTIVE_STATUSES: ReadonlySet<VideoStatus> = new Set([
 
 
 export default async function SermonsPage() {
-  await verifySession()
+  const user = await verifySession()
   let videos: Awaited<ReturnType<typeof getVideos>> = []
   let videoError: string | null = null
   try {
-    videos = await getVideos()
+    videos = await getVideos(user.church_id)
   } catch (e) {
     videoError = e instanceof Error ? e.message : String(e)
   }

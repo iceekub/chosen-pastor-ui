@@ -100,10 +100,10 @@ export function ImageUpload({
             className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain p-2' : 'object-cover'}`}
           />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-2">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
             <UploadIcon />
-            <p className="text-xs leading-tight" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)', textAlign: 'center' }}>
-              Click to upload
+            <p className="text-xs" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
+              Upload
             </p>
           </div>
         )}

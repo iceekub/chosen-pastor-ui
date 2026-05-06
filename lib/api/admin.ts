@@ -40,6 +40,18 @@ export async function inviteToChurch(payload: {
   })
 }
 
+/** Returns a map of church_id → parishioner count for all churches. */
+export async function getParishionerCounts(): Promise<Record<string, number>> {
+  const rows = await postgrest<Array<{ church_id: string | null }>>(
+    '/profiles?role=eq.parishioner&select=church_id',
+  )
+  const counts: Record<string, number> = {}
+  for (const row of rows) {
+    if (row.church_id) counts[row.church_id] = (counts[row.church_id] ?? 0) + 1
+  }
+  return counts
+}
+
 export interface ChurchListItem {
   id: string
   name: string

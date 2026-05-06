@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/dal'
-import { listAllChurches, type ChurchListItem } from '@/lib/api/admin'
+import { listAllChurches, getParishionerCounts, type ChurchListItem } from '@/lib/api/admin'
 import { ChurchRowActions } from '@/components/church-row-actions'
 
 const TIMEZONE_LABELS: Record<string, string> = {
@@ -20,10 +20,13 @@ function formatDate(iso: string | null) {
 
 export default async function ChurchesPage() {
   await requireAdmin()
-  const churches = await listAllChurches()
+  const [churches, parishionerCounts] = await Promise.all([
+    listAllChurches(),
+    getParishionerCounts().catch((): Record<string, number> => ({})),
+  ])
 
   return (
-    <div className="px-8 py-8 max-w-6xl mx-auto">
+    <div className="px-8 py-8 max-w-7xl mx-auto">
       <div className="mb-6 anim-fadeUp">
         <h1 className="page-title">Churches</h1>
         <p className="text-sm mt-1" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
@@ -45,7 +48,7 @@ export default async function ChurchesPage() {
           <table className="w-full text-sm" style={{ fontFamily: 'var(--font-mulish)' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(200,182,155,0.25)' }}>
-                {['Church', 'Location', 'Timezone', 'Contact', 'Added', ''].map((h) => (
+                {['Church', 'ID', 'Location', 'Timezone', 'Members', 'Added', ''].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3 text-left text-xs font-semibold"
@@ -66,7 +69,9 @@ export default async function ChurchesPage() {
                 >
                   <td className="px-5 py-4">
                     <p className="font-semibold" style={{ color: '#2C1E0F' }}>{church.name}</p>
-                    <p className="text-xs mt-0.5 font-mono" style={{ color: '#C5B49A' }}>{church.id.slice(0, 8)}…</p>
+                  </td>
+                  <td className="px-5 py-4">
+                    <p className="text-xs font-mono select-all" style={{ color: '#8A7060' }}>{church.id}</p>
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap" style={{ color: '#6A5040' }}>
                     {[church.city, church.state].filter(Boolean).join(', ') || '—'}
@@ -74,8 +79,8 @@ export default async function ChurchesPage() {
                   <td className="px-5 py-4 whitespace-nowrap" style={{ color: '#6A5040' }}>
                     {church.timezone ? (TIMEZONE_LABELS[church.timezone] ?? church.timezone) : '—'}
                   </td>
-                  <td className="px-5 py-4" style={{ color: '#6A5040' }}>
-                    {church.contact_email ?? '—'}
+                  <td className="px-5 py-4 text-center" style={{ color: '#6A5040' }}>
+                    {parishionerCounts[church.id] ?? 0}
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap" style={{ color: '#A09080' }}>
                     {formatDate(church.created_at)}

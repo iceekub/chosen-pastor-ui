@@ -147,10 +147,15 @@ function UploadItemCard({
           {/* Sermon date */}
           <div>
             <FieldLabel>Sermon date</FieldLabel>
+            {/* Uncontrolled — avoids React setting the `value` attribute during
+                re-renders, which causes Chrome's native calendar picker to
+                immediately dismiss. Guard onClick to stop any accidental bubbling
+                up to the drop-zone click handler. */}
             <input
               type="date"
-              value={item.serviceDate}
-              onChange={e => onUpdate(item.id, { serviceDate: e.target.value })}
+              defaultValue={item.serviceDate}
+              onChange={e => { if (e.target.value) onUpdate(item.id, { serviceDate: e.target.value }) }}
+              onClick={e => e.stopPropagation()}
               disabled={busy || done}
               className="input-warm w-full"
             />

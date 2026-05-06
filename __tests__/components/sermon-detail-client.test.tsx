@@ -105,15 +105,15 @@ describe('SermonDetailClient — transcript', () => {
 })
 
 describe('SermonDetailClient — generate gardens', () => {
-  it('shows generate button when ready and no gardens', () => {
-    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={[]} />)
+  it('shows generate button when ready, primary, and no gardens', () => {
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
     expect(screen.getByRole('button', { name: 'Generate Gardens' })).toBeInTheDocument()
   })
 
   it('does not show generate button when gardens already exist', () => {
     render(
       <SermonDetailClient
-        initialVideo={makeVideo({ status: 'ready' })}
+        initialVideo={makeVideo({ status: 'ready', role: 'primary' })}
         initialGardens={[makeGarden()]}
       />
     )
@@ -121,7 +121,7 @@ describe('SermonDetailClient — generate gardens', () => {
   })
 
   it('does not show generate button when video is not ready', () => {
-    render(<SermonDetailClient initialVideo={makeVideo({ status: 'processing' })} initialGardens={[]} />)
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'processing', role: 'primary' })} initialGardens={[]} />)
     expect(screen.queryByText('Generate Gardens')).not.toBeInTheDocument()
   })
 
@@ -131,7 +131,7 @@ describe('SermonDetailClient — generate gardens', () => {
       json: async () => [makeGarden({ status: 'generating' })],
     })
 
-    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={[]} />)
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Generate Gardens' }))
 
     await waitFor(() => {
@@ -148,7 +148,7 @@ describe('SermonDetailClient — generate gardens', () => {
       json: async () => [makeGarden({ status: 'ready' })],
     })
 
-    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={[]} />)
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
     fireEvent.change(screen.getByPlaceholderText(/specific focus areas/i), {
       target: { value: 'Focus on grace' },
     })
@@ -167,12 +167,72 @@ describe('SermonDetailClient — generate gardens', () => {
       json: async () => ({ error: 'Backend unavailable' }),
     })
 
-    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={[]} />)
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Generate Gardens' }))
 
     await waitFor(() => {
       expect(screen.getByText('Backend unavailable')).toBeInTheDocument()
     })
+  })
+})
+
+describe('SermonDetailClient — ignored video override', () => {
+  // week_anchor_sunday = 2026-04-26; Saturday = 2026-05-02.
+  // Tests mock Date to a day inside that week so overrideRangeLabel is non-null.
+
+  beforeEach(() => {
+    // Freeze "today" to 2026-04-28 (Tuesday inside the factory's garden week)
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-04-28T10:00:00'))
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('shows supplementary video notice when video is ready but not primary', () => {
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'ignored' })} initialGardens={[]} />)
+    expect(screen.getByText(/supplementary video/i)).toBeInTheDocument()
+  })
+
+  it('does not show the Generate Gardens form for an ignored video', () => {
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'ignored' })} initialGardens={[]} />)
+    expect(screen.queryByRole('button', { name: 'Generate Gardens' })).not.toBeInTheDocument()
+  })
+
+  it('shows begin regeneration button with date range', () => {
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'ignored' })} initialGardens={[]} />)
+    // Tomorrow = Wed Apr 29; Saturday = Sat May 2 (within fake-timer week)
+    expect(screen.getByRole('button', { name: /begin regeneration/i })).toBeInTheDocument()
+  })
+
+  it('shows the primary sermon link when weekPrimary is provided', () => {
+    const primary = { ...makeVideo({ id: 'primary-1', video_date: '2026-04-26', role: 'primary' }) }
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ status: 'ready', role: 'ignored' })}
+        initialGardens={[]}
+        weekPrimary={primary}
+      />
+    )
+    expect(screen.getByRole('link', { name: /sermon from/i })).toBeInTheDocument()
+  })
+
+  it('sends force: true when the begin regeneration button is clicked', () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [makeGarden({ status: 'generating' })],
+    })
+
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'ignored' })} initialGardens={[]} />)
+    fireEvent.click(screen.getByRole('button', { name: /begin regeneration/i }))
+
+    // fetch() is invoked synchronously before the first await in
+    // handleGenerateGardens, so we can assert without waitFor
+    // (which would hang with vi.useFakeTimers active).
+    const call = mockFetch.mock.calls[0]
+    expect(call).toBeDefined()
+    const body = JSON.parse(call[1].body)
+    expect(body.force).toBe(true)
   })
 })
 
@@ -225,9 +285,9 @@ describe('SermonDetailClient — stale handling (removed)', () => {
     expect(screen.queryByRole('button', { name: 'Regenerate Gardens' })).not.toBeInTheDocument()
   })
 
-  it('placeholder that previously tested force=true', async () => {
-    // force=true regeneration was removed alongside the Stale UI.
-    // The generate flow no longer sends force at all.
+  it('primary generate flow does not send force', async () => {
+    // The regular Generate Gardens flow (primary video) should never
+    // send force — only the ignored-video override path does.
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [makeGarden({ status: 'generating' })],

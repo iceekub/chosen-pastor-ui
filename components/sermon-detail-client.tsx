@@ -3,14 +3,17 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useNotifications } from '@/lib/notifications'
+import { ThumbnailPicker } from '@/components/thumbnail-picker'
 import type {
   GardenListItem,
   GardenStatus,
   Video,
+  VideoListItem,
   VideoStatus,
 } from '@/lib/api/types'
 import {
   formatGardenDateLong,
+  formatGardenDateShort,
   toISODate,
 } from '@/lib/dates'
 
@@ -36,11 +39,14 @@ const GARDEN_STATUS: Record<GardenStatus, { label: string; color: string; bg: st
 interface Props {
   initialVideo: Video
   initialGardens: GardenListItem[]
+  /** The week's primary video — passed for the supplementary-video notice. */
+  weekPrimary?: VideoListItem | null
 }
 
 export function SermonDetailClient({
   initialVideo,
   initialGardens,
+  weekPrimary,
 }: Props) {
   const { addNotification } = useNotifications()
   const [video, setVideo] = useState(initialVideo)
@@ -61,6 +67,24 @@ export function SermonDetailClient({
     d.setDate(d.getDate() + 1)
     return toISODate(d)
   }, [video.week_anchor_sunday])
+
+  // Saturday of the garden week (week_anchor_sunday + 6).
+  const weekSaturday = useMemo(() => {
+    const d = new Date(`${video.week_anchor_sunday}T00:00:00`)
+    d.setDate(d.getDate() + 6)
+    return d
+  }, [video.week_anchor_sunday])
+
+  // "Wed, May 6 – Sat, May 9" label for the override link.
+  const overrideRangeLabel = useMemo(() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(0, 0, 0, 0)
+    const fmt = (d: Date) =>
+      d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    if (tomorrow > weekSaturday) return null   // week already over
+    return `${fmt(tomorrow)} – ${fmt(weekSaturday)}`
+  }, [weekSaturday])
 
   // "Active" = the row is moving through the pipeline and we should
   // be polling for status / thumbnail updates. Includes the long
@@ -128,7 +152,7 @@ export function SermonDetailClient({
     return () => clearTimeout(timeout)
   }, [gardensGenerating, generating, video.id])
 
-  const handleGenerateGardens = useCallback(async () => {
+  const handleGenerateGardens = useCallback(async (force = false) => {
     setGenerating(true)
     setGenError(null)
     try {
@@ -138,6 +162,7 @@ export function SermonDetailClient({
         body: JSON.stringify({
           week_starts_at: weekStartsAt,
           ...(instructions ? { instructions } : {}),
+          ...(force ? { force: true } : {}),
         }),
       })
       if (!res.ok) {
@@ -187,6 +212,9 @@ export function SermonDetailClient({
           {s.label}
         </span>
       </div>
+
+      {/* Thumbnail picker — auto-frame candidates + custom upload */}
+      <ThumbnailPicker video={video} />
 
       {/* Primary notifier — shown when this sermon is driving the week's
           garden generation. Read-only; role assignment is managed elsewhere. */}
@@ -274,8 +302,8 @@ export function SermonDetailClient({
         </div>
       )}
 
-      {/* Generate Gardens — visible when ready and no gardens exist yet. */}
-      {isReady && gardens.length === 0 && !generating && !gardensGenerating && (
+      {/* Generate Gardens — primary video, no gardens yet. */}
+      {isReady && isPrimary && gardens.length === 0 && !generating && !gardensGenerating && (
         <div className="surface px-6 py-6 mb-6 anim-fadeUp" style={{ animationDelay: '0.12s' }}>
           <p className="section-label mb-3">Generate Gardens</p>
           <p className="text-sm mb-4" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
@@ -311,12 +339,56 @@ export function SermonDetailClient({
             </p>
           )}
           <button
-            onClick={handleGenerateGardens}
-            disabled={!isPrimary}
-            className="btn-gold px-5 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => handleGenerateGardens()}
+            className="btn-gold px-5 py-2.5 text-sm"
           >
             Generate Gardens
           </button>
+        </div>
+      )}
+
+      {/* Supplementary/ignored video — offer to override this week's gardens.
+          Only shown while the week is still active (overrideRangeLabel is
+          null once Saturday has passed). */}
+      {isReady && !isPrimary && overrideRangeLabel && !generating && !gardensGenerating && (
+        <div className="surface px-6 py-5 mb-6 anim-fadeUp" style={{ animationDelay: '0.12s' }}>
+          {genError && (
+            <p
+              className="text-sm rounded-lg px-3 py-2 mb-3"
+              style={{
+                color: '#8B3A3A',
+                background: 'rgba(139,58,58,0.08)',
+                border: '1px solid rgba(139,58,58,0.2)',
+                fontFamily: 'var(--font-mulish)',
+              }}
+            >
+              {genError}
+            </p>
+          )}
+          <p className="text-sm leading-relaxed" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+            This is a supplementary video. Gardens for this week are currently based on the{' '}
+            {weekPrimary ? (
+              <Link
+                href={`/sermons/${weekPrimary.id}`}
+                className="underline"
+                style={{ color: '#8A7060' }}
+              >
+                sermon from {formatGardenDateShort(weekPrimary.video_date)}
+              </Link>
+            ) : (
+              'this week\'s primary sermon'
+            )}
+            {'. '}
+            To replace the remaining gardens from {overrideRangeLabel} with this video, you can{' '}
+            <button
+              onClick={() => handleGenerateGardens(true)}
+              className="underline"
+              style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
+              begin regeneration
+            </button>
+            {' '}now.
+          </p>
         </div>
       )}
 

@@ -67,6 +67,7 @@ export function makeVideo(overrides: Partial<Video> = {}): Video {
     youtube_url: null,
     s3_key: null,
     thumbnail_url: null,
+    thumbnail_keys: [],
     // Sunday 2026-04-26 anchors to the same week as the makeGarden
     // factory's 2026-04-27 (Mon) — keeps cross-fixture tests
     // consistent. Sunday-dated → eligible to be primary.

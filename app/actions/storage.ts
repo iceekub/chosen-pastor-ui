@@ -167,6 +167,37 @@ export async function uploadVideoThumbnailAction(
   }
 }
 
+/**
+ * Pick one of the auto-generated MediaConvert frame captures as
+ * the official thumbnail. Pure metadata change — no data is copied
+ * between buckets; we just update videos.thumbnail_url to point at
+ * a different (public, already-existing) S3 URL.
+ *
+ * The caller passes the chosen URL (constructed client-side from
+ * `video.thumbnail_keys` via `lib/thumbnails.ts:thumbnailKeyToUrl`).
+ * We trust it because RLS on the videos table already gates writes
+ * to staff-of-this-church anyway — there's nothing the URL can be
+ * abused into beyond what staff can already do via PostgREST direct.
+ */
+export async function pickAutoFrameAction(
+  videoId: string,
+  url: string,
+): Promise<UploadResult> {
+  const user = await verifySession()
+  if (!user.church_id) return { error: 'No church associated with your account.' }
+  if (!url) return { error: 'Missing thumbnail URL.' }
+
+  try {
+    await postgrest(`/videos?id=eq.${videoId}`, {
+      method: 'PATCH',
+      body: { thumbnail_url: url },
+    })
+    return { success: true, url }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Pick failed' }
+  }
+}
+
 /* ── Pastor avatar ────────────────────────────────────────── */
 
 /**

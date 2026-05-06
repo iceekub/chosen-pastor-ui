@@ -2,7 +2,7 @@ import 'server-only'
 
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
-import { getSession } from './session'
+import { getSession, getEmulatedChurch } from './session'
 import type { SessionUser, UserRole } from './api/types'
 
 /** Roles that are allowed to access the pastor UI. */
@@ -18,6 +18,16 @@ export const verifySession = cache(async (): Promise<SessionUser> => {
   const session = await getSession()
   if (!session) redirect('/login')
   if (!PASTOR_UI_ROLES.includes(session.user.role)) redirect('/unauthorized')
+
+  // Super-admin church emulation: override church_id/church_name from cookie
+  // so the entire dashboard reads data for the emulated church.
+  if (session.user.role === 'super_admin') {
+    const emulated = await getEmulatedChurch()
+    if (emulated) {
+      return { ...session.user, church_id: emulated.id, church_name: emulated.name }
+    }
+  }
+
   return session.user
 })
 

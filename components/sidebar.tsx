@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logoutAction } from '@/app/actions/auth'
+import { clearChurchSwitchAction } from '@/app/actions/admin'
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: HomeIcon },
@@ -21,9 +22,11 @@ interface SidebarProps {
   churchName: string
   role: string
   logoUrl?: string | null
+  /** Set when a super_admin is emulating a different church */
+  emulatedChurchName?: string | null
 }
 
-export function Sidebar({ userName, churchName, role, logoUrl }: SidebarProps) {
+export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchName }: SidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -65,6 +68,27 @@ export function Sidebar({ userName, churchName, role, logoUrl }: SidebarProps) {
       </div>
 
       <div className="mx-5 mb-4" style={{ height: '1px', background: '#3E2810' }} />
+
+      {/* Emulation banner */}
+      {emulatedChurchName && (
+        <div className="mx-3 mb-3 rounded-xl px-3 py-2.5" style={{ background: 'rgba(184,135,74,0.15)', border: '1px solid rgba(184,135,74,0.3)' }}>
+          <p className="text-[10px] font-semibold mb-0.5" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Viewing as
+          </p>
+          <p className="text-xs font-semibold leading-tight mb-1.5" style={{ color: '#F0E4D0', fontFamily: 'var(--font-mulish)' }}>
+            {emulatedChurchName}
+          </p>
+          <form action={clearChurchSwitchAction}>
+            <button
+              type="submit"
+              className="text-[10px] font-semibold underline"
+              style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
+              Exit to my view
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 px-3 space-y-0.5">

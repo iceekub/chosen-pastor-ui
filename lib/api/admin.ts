@@ -23,6 +23,23 @@ export async function createChurch(payload: {
   })
 }
 
+/**
+ * Super-admin invite: send a magic-link invite to a staff member for a
+ * specific church. Passes church_id explicitly so the pastor-invite edge
+ * function can associate the new account correctly, regardless of the
+ * caller's own church context.
+ */
+export async function inviteToChurch(payload: {
+  church_id: string
+  email: string
+  name: string
+}): Promise<void> {
+  await edgeFunction<void>('pastor-invite', {
+    method: 'POST',
+    body: { ...payload, role: 'staff' },
+  })
+}
+
 export interface ChurchListItem {
   id: string
   name: string

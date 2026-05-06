@@ -6,7 +6,10 @@ vi.mock('next/navigation', () => ({
     throw new Error(`NEXT_REDIRECT:${url}`)
   }),
 }))
-vi.mock('@/lib/session', () => ({ getSession: vi.fn() }))
+vi.mock('@/lib/session', () => ({
+  getSession: vi.fn(),
+  getEmulatedChurch: vi.fn().mockResolvedValue(null),
+}))
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { redirect } from 'next/navigation'

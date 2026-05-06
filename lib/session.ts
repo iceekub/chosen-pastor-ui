@@ -61,3 +61,38 @@ export async function deleteSession(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
 }
+
+/* ── Church emulation (super_admin only) ───────────────────────────────────── */
+
+const EMULATE_COOKIE = 'chosen_emulated_church'
+
+export interface EmulatedChurch {
+  id: string
+  name: string
+}
+
+export async function getEmulatedChurch(): Promise<EmulatedChurch | null> {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get(EMULATE_COOKIE)?.value
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as EmulatedChurch
+  } catch {
+    return null
+  }
+}
+
+export async function setEmulatedChurch(church: EmulatedChurch): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(EMULATE_COOKIE, JSON.stringify(church), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  })
+}
+
+export async function clearEmulatedChurch(): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.delete(EMULATE_COOKIE)
+}

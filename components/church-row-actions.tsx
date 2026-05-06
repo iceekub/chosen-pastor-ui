@@ -54,7 +54,16 @@ export function ChurchRowActions({ churchId, churchName }: Props) {
       <dialog
         ref={dialogRef}
         className="rounded-2xl p-0 shadow-2xl backdrop:bg-black/40"
-        style={{ border: 'none', maxWidth: 420, width: '90vw' }}
+        style={{
+          border: 'none',
+          maxWidth: 420,
+          width: '90vw',
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          margin: 0,
+        }}
         onClick={(e) => { if (e.target === dialogRef.current) closeModal() }}
       >
         <div className="px-6 py-5" style={{ background: '#FDFAF5' }}>

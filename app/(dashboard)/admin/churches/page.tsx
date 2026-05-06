@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/dal'
 import { listAllChurches, getParishionerCounts, type ChurchListItem } from '@/lib/api/admin'
 import { ChurchRowActions } from '@/components/church-row-actions'
+import { CopyButton } from '@/components/copy-button'
 
 const TIMEZONE_LABELS: Record<string, string> = {
   'America/New_York': 'Eastern',
@@ -71,7 +72,7 @@ export default async function ChurchesPage() {
                     <p className="font-semibold" style={{ color: '#2C1E0F' }}>{church.name}</p>
                   </td>
                   <td className="px-5 py-4">
-                    <p className="text-xs font-mono select-all" style={{ color: '#8A7060' }}>{church.id}</p>
+                    <CopyButton value={church.id} />
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap" style={{ color: '#6A5040' }}>
                     {[church.city, church.state].filter(Boolean).join(', ') || '—'}

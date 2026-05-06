@@ -16,14 +16,12 @@ export async function saveChurchAction(
   }
 
   try {
+    // name, city, state, timezone are locked — only Chosen team can update
+    // them via the super admin panel. We only allow alias, email, phone.
     await updateChurch(user.church_id, {
-      name:          get('church_name') ?? undefined,
       alias:         get('church_alias'),
-      city:          get('church_city'),
-      state:         get('church_state'),
       contact_email: get('church_email'),
       contact_phone: get('church_phone'),
-      timezone:      get('timezone'),
     })
     return { success: true }
   } catch (err) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 
 import {
   pickAutoFrameAction,
@@ -33,6 +33,7 @@ export function ThumbnailPicker({ video }: Props) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [pickedUrl, setPickedUrl] = useState<string | null>(video.thumbnail_url)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const candidates = video.thumbnail_keys
     .map((key) => ({ key, url: thumbnailKeyToUrl(key) }))
@@ -51,14 +52,24 @@ export function ThumbnailPicker({ video }: Props) {
     })
   }
 
-  async function handleUpload(formData: FormData) {
+  async function handleUpload(file: File) {
     setError(null)
+    const formData = new FormData()
+    formData.append('file', file)
     const result = await uploadVideoThumbnailAction(video.id, formData)
     if (result.error) {
       setError(result.error)
       return
     }
     if (result.url) setPickedUrl(result.url)
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Reset so the same file can be re-selected if needed
+    e.target.value = ''
+    startTransition(() => handleUpload(file))
   }
 
   // Auto-frame URL the picker doesn't already render as a candidate.
@@ -143,31 +154,22 @@ export function ThumbnailPicker({ video }: Props) {
         </p>
       )}
 
-      <form action={handleUpload}>
-        <label
-          className="block text-xs mb-2"
-          style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}
-        >
-          Or upload your own (JPEG / PNG / WebP / GIF, &le;10 MB)
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            type="file"
-            name="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            required
-            className="text-xs"
-            style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
-          />
-          <button
-            type="submit"
-            disabled={pending}
-            className="btn-gold px-4 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Upload
-          </button>
-        </div>
-      </form>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={pending}
+        className="text-xs underline disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+      >
+        {pending ? 'Uploading…' : 'Upload your own'}
+      </button>
 
       {error && (
         <p

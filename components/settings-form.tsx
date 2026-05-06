@@ -82,6 +82,44 @@ function SaveButton({ pending }: { pending: boolean }) {
   )
 }
 
+/* ── Locked read-only field ── */
+
+const TIMEZONE_LABELS: Record<string, string> = {
+  'America/New_York': 'Eastern Time',
+  'America/Chicago': 'Central Time',
+  'America/Denver': 'Mountain Time',
+  'America/Phoenix': 'Mountain Time — Phoenix',
+  'America/Los_Angeles': 'Pacific Time',
+  'America/Anchorage': 'Alaska Time',
+  'Pacific/Honolulu': 'Hawaii Time',
+}
+
+function LockedField({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div>
+      {fieldLabel(label)}
+      <div
+        className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+        style={{
+          background: 'rgba(200,182,155,0.08)',
+          border: '1px solid rgba(200,182,155,0.2)',
+          fontFamily: 'var(--font-mulish)',
+        }}
+      >
+        <svg className="w-3.5 h-3.5 shrink-0 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+        <p className="text-sm" style={{ color: value ? '#4A3828' : '#C5B49A' }}>
+          {value || '—'}
+        </p>
+      </div>
+      <p className="text-xs mt-1" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
+        Contact Chosen to update.
+      </p>
+    </div>
+  )
+}
+
 /* ── Church info form ── */
 
 function ChurchForm({ church }: { church: ChurchRead | null }) {
@@ -91,22 +129,20 @@ function ChurchForm({ church }: { church: ChurchRead | null }) {
     <form action={action} className="surface px-6 py-6 space-y-4 anim-fadeUp" style={{ animationDelay: '0s' }}>
       {sectionLabel('Church')}
 
-      <div>
-        {fieldLabel('Church name')}
-        <input name="church_name" type="text" defaultValue={church?.name ?? ''} placeholder="Grace Community Church" className="input-warm w-full" />
-      </div>
+      {/* Locked fields — managed by Chosen team */}
+      <LockedField label="Church name" value={church?.name} />
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          {fieldLabel('City')}
-          <input name="church_city" type="text" defaultValue={church?.city ?? ''} placeholder="Nashville" className="input-warm w-full" />
-        </div>
-        <div>
-          {fieldLabel('State')}
-          <input name="church_state" type="text" defaultValue={church?.state ?? ''} placeholder="TN" maxLength={2} className="input-warm w-full uppercase" />
-        </div>
+        <LockedField label="City" value={church?.city} />
+        <LockedField label="State" value={church?.state} />
       </div>
 
+      <LockedField
+        label="Timezone"
+        value={church?.timezone ? (TIMEZONE_LABELS[church.timezone] ?? church.timezone) : null}
+      />
+
+      {/* Editable fields */}
       <div>
         {fieldLabel('Short name / alias')}
         <input name="church_alias" type="text" defaultValue={church?.alias ?? ''} placeholder="e.g. SBC, GCC" className="input-warm w-full" />
@@ -123,19 +159,6 @@ function ChurchForm({ church }: { church: ChurchRead | null }) {
       <div>
         {fieldLabel('Contact phone')}
         <input name="church_phone" type="tel" defaultValue={church?.contact_phone ?? ''} placeholder="(615) 000-0000" className="input-warm w-full" />
-      </div>
-
-      <div>
-        {fieldLabel('Timezone')}
-        <select name="timezone" defaultValue={church?.timezone ?? 'America/New_York'} className="input-warm w-full">
-          <option value="America/New_York">Eastern Time</option>
-          <option value="America/Chicago">Central Time</option>
-          <option value="America/Denver">Mountain Time</option>
-          <option value="America/Phoenix">Mountain Time — Phoenix</option>
-          <option value="America/Los_Angeles">Pacific Time</option>
-          <option value="America/Anchorage">Alaska Time</option>
-          <option value="Pacific/Honolulu">Hawaii Time</option>
-        </select>
       </div>
 
       <Feedback state={state} />

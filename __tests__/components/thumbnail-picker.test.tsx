@@ -103,8 +103,8 @@ describe('ThumbnailPicker — empty thumbnail_keys', () => {
 
     expect(screen.queryByAltText('Frame option')).not.toBeInTheDocument()
     expect(screen.getByText(/no auto-generated frames/i)).toBeInTheDocument()
-    // Upload form is still there.
-    expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
+    // Upload link is still there.
+    expect(screen.getByRole('button', { name: 'Upload your own' })).toBeInTheDocument()
   })
 })
 

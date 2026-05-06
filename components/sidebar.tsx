@@ -12,7 +12,8 @@ const NAV = [
 ]
 
 const ADMIN_NAV = [
-  { href: '/admin', label: 'Admin', icon: AdminIcon },
+  { href: '/admin', label: 'Add a Church', icon: AdminIcon },
+  { href: '/admin/churches', label: 'Churches', icon: PeopleIcon },
 ]
 
 interface SidebarProps {
@@ -98,15 +99,23 @@ export function Sidebar({ userName, churchName, role, logoUrl }: SidebarProps) {
               <span className="section-label" style={{ color: '#4A3828' }}>Super Admin</span>
             </div>
             {ADMIN_NAV.map(({ href, label, icon: Icon }) => {
-              const active = pathname.startsWith(href)
+              const active = pathname === href
               return (
                 <Link
                   key={href}
                   href={href}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
-                  style={{ color: active ? '#F0E4D0' : '#C0A888' }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150"
+                  style={{
+                    fontFamily: 'var(--font-mulish)',
+                    fontWeight: active ? 600 : 500,
+                    color: active ? '#F0E4D0' : '#C0A888',
+                    background: active
+                      ? 'linear-gradient(90deg, rgba(184,135,74,0.22) 0%, rgba(184,135,74,0.06) 100%)'
+                      : 'transparent',
+                    borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                  }}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#B8874A' : 'inherit' } as React.CSSProperties} />
                   {label}
                 </Link>
               )

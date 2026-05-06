@@ -1,4 +1,4 @@
-import { edgeFunction } from './client'
+import { edgeFunction, postgrest } from './client'
 import type { Church } from './types'
 
 /**
@@ -14,12 +14,30 @@ export async function createChurch(payload: {
   contact_email?: string
   contact_phone?: string
   timezone?: string
+  admin_email?: string
   pastors?: Array<{ name: string }>
 }): Promise<Church> {
   return edgeFunction<Church>('churches-onboard', {
     method: 'POST',
     body: payload,
   })
+}
+
+export interface ChurchListItem {
+  id: string
+  name: string
+  city: string | null
+  state: string | null
+  timezone: string | null
+  contact_email: string | null
+  created_at: string | null
+}
+
+/** Super-admin only: list every church. */
+export async function listAllChurches(): Promise<ChurchListItem[]> {
+  return postgrest<ChurchListItem[]>(
+    '/churches?select=id,name,city,state,timezone,contact_email,created_at&order=created_at.desc',
+  )
 }
 
 // Note: the old `switchToChurch` flow doesn't exist anymore. A

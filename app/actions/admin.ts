@@ -13,10 +13,12 @@ export async function createChurchAction(
 
   const city = (formData.get('city') as string) || undefined
   const state = (formData.get('state') as string) || undefined
+  const timezone = (formData.get('timezone') as string) || undefined
   const contact_email = (formData.get('contact_email') as string) || undefined
+  const admin_email = (formData.get('admin_email') as string) || undefined
 
   try {
-    const church = await createChurch({ name, city, state, contact_email })
+    const church = await createChurch({ name, city, state, timezone, contact_email, admin_email })
     return { success: true, name: church.name }
   } catch {
     return { error: 'Failed to create church.' }

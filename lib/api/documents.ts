@@ -3,14 +3,14 @@ import type { Document, Tag } from './types'
 
 // ─── Reads (PostgREST) ─────────────────────────────────────────────────────
 
-export async function getDocuments(): Promise<Document[]> {
-  return postgrest<Document[]>(
-    '/documents?select=*&order=created_at.desc',
-  )
+export async function getDocuments(churchId?: string | null): Promise<Document[]> {
+  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  return postgrest<Document[]>(`/documents?select=*${churchFilter}&order=created_at.desc`)
 }
 
-export async function getTags(): Promise<Tag[]> {
-  return postgrest<Tag[]>('/tags?select=*&order=name.asc')
+export async function getTags(churchId?: string | null): Promise<Tag[]> {
+  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  return postgrest<Tag[]>(`/tags?select=*${churchFilter}&order=name.asc`)
 }
 
 // ─── Writes ────────────────────────────────────────────────────────────────

@@ -3,8 +3,8 @@ import { verifySession } from '@/lib/dal'
 import { DocumentUploadForm } from '@/components/document-upload-form'
 
 export default async function DocumentsPage() {
-  await verifySession()
-  const documents = await getDocuments().catch(() => [])
+  const user = await verifySession()
+  const documents = await getDocuments(user.church_id).catch(() => [])
 
   return (
     <div className="px-8 py-8 max-w-4xl mx-auto">

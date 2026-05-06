@@ -12,7 +12,7 @@ export default async function SettingsPage() {
     user.church_id ? getChurchAssets(user.church_id) : null,
     getBibleVersions().catch(() => []),
     listStaff(user.church_id).catch(() => []),
-    listPastors().catch(() => []),
+    listPastors(user.church_id).catch(() => []),
   ])
 
   // Merge asset URLs (from PostgREST) onto the church record (from ragserv),

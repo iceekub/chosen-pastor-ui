@@ -5,8 +5,9 @@ import type { Pastor } from './types'
  * List all pastors for the caller's church (RLS-scoped).
  * Ordered by display_order ascending.
  */
-export async function listPastors(): Promise<Pastor[]> {
-  return postgrest<Pastor[]>('/pastors?order=display_order.asc,name.asc&select=*')
+export async function listPastors(churchId?: string | null): Promise<Pastor[]> {
+  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  return postgrest<Pastor[]>(`/pastors?order=display_order.asc,name.asc${churchFilter}&select=*`)
 }
 
 export interface PastorCreate {

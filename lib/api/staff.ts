@@ -34,6 +34,7 @@ export async function inviteStaff(payload: {
   email: string
   name: string
   role: 'staff'
+  church_id?: string
 }): Promise<void> {
   await edgeFunction<{ user: unknown }>('pastor-invite', {
     method: 'POST',

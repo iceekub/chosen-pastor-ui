@@ -58,6 +58,8 @@ export function SermonDetailClient({
   const [genError, setGenError] = useState<string | null>(null)
   const [instructions, setInstructions] = useState('')
   const [showTranscript, setShowTranscript] = useState(false)
+  const [showManualGenerate, setShowManualGenerate] = useState(false)
+  const [showRegenerate, setShowRegenerate] = useState(false)
 
   // Garden generation always runs for this video's week — the
   // backend gates it on this video being primary for that week.
@@ -102,6 +104,9 @@ export function SermonDetailClient({
   const hasError = video.status === 'error'
   const gardensGenerating = gardens.some((g) => g.status === 'pending' || g.status === 'generating')
   const isPrimary = video.role === 'primary'
+  // Primary is ready but no garden rows exist yet — auto-gen task is queued
+  // or about to start. Poll until placeholder rows appear.
+  const awaitingGardens = isReady && isPrimary && gardens.length === 0 && !generating
 
   // Poll video status while the row is in any non-terminal state.
   // 15s — short enough that the thumbnail / status badge appears
@@ -151,6 +156,21 @@ export function SermonDetailClient({
     }, delay)
     return () => clearTimeout(timeout)
   }, [gardensGenerating, generating, video.id])
+
+  // Poll for the first garden rows to appear after auto-gen queues them.
+  useEffect(() => {
+    if (!awaitingGardens) return
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/videos/${video.id}/gardens`)
+        if (res.ok) {
+          const updated: GardenListItem[] = await res.json()
+          if (updated.length > 0) setGardens(updated)
+        }
+      } catch { /* ignore */ }
+    }, 5_000)
+    return () => clearInterval(interval)
+  }, [awaitingGardens, video.id])
 
   const handleGenerateGardens = useCallback(async (force = false) => {
     setGenerating(true)
@@ -302,48 +322,50 @@ export function SermonDetailClient({
         </div>
       )}
 
-      {/* Generate Gardens — primary video, no gardens yet. */}
-      {isReady && isPrimary && gardens.length === 0 && !generating && !gardensGenerating && (
-        <div className="surface px-6 py-6 mb-6 anim-fadeUp" style={{ animationDelay: '0.12s' }}>
-          <p className="section-label mb-3">Generate Gardens</p>
-          <p className="text-sm mb-4" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-            Six daily devotional gardens (Monday–Saturday) for the week of{' '}
-            <strong style={{ color: '#2C1E0F' }}>{formatGardenDateLong(weekStartsAt)}</strong>.
-          </p>
-          <div className="mb-4">
-            <label
-              className="block text-sm font-medium mb-1"
-              style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
-            >
-              Instructions <span style={{ color: '#C5B49A' }}>(optional)</span>
-            </label>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              rows={3}
-              className="input-warm w-full"
-              placeholder="Any specific focus areas or themes for the daily gardens..."
-            />
-          </div>
-          {genError && (
-            <p
-              className="text-sm rounded-lg px-3 py-2 mb-3"
-              style={{
-                color: '#8B3A3A',
-                background: 'rgba(139,58,58,0.08)',
-                border: '1px solid rgba(139,58,58,0.2)',
-                fontFamily: 'var(--font-mulish)',
-              }}
-            >
-              {genError}
+      {/* Primary video — awaiting auto-generated gardens */}
+      {awaitingGardens && (
+        <div className="surface px-6 py-5 mb-6 anim-fadeUp" style={{ animationDelay: '0.12s' }}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-3 h-3 rounded-full animate-pulse shrink-0" style={{ background: '#B8874A' }} />
+            <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}>
+              Gardens are generating automatically…
             </p>
-          )}
+          </div>
+          <p className="text-xs mb-3" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+            Six daily devotional gardens will appear here once generation completes.
+          </p>
           <button
-            onClick={() => handleGenerateGardens()}
-            className="btn-gold px-5 py-2.5 text-sm"
+            type="button"
+            onClick={() => setShowManualGenerate(v => !v)}
+            className="text-xs underline"
+            style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
           >
-            Generate Gardens
+            {showManualGenerate ? 'Hide' : 'Generate with custom instructions instead'}
           </button>
+          {showManualGenerate && (
+            <div className="mt-4 pt-4" style={{ borderTop: '1px solid #EAD9C4' }}>
+              <div className="mb-3">
+                <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}>
+                  Instructions <span style={{ color: '#C5B49A' }}>(optional)</span>
+                </label>
+                <textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  rows={3}
+                  className="input-warm w-full"
+                  placeholder="Any specific focus areas or themes for the daily gardens..."
+                />
+              </div>
+              {genError && (
+                <p className="text-sm rounded-lg px-3 py-2 mb-3" style={{ color: '#8B3A3A', background: 'rgba(139,58,58,0.08)', border: '1px solid rgba(139,58,58,0.2)', fontFamily: 'var(--font-mulish)' }}>
+                  {genError}
+                </p>
+              )}
+              <button onClick={() => handleGenerateGardens()} className="btn-gold px-5 py-2.5 text-sm">
+                Generate Gardens
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -449,6 +471,44 @@ export function SermonDetailClient({
                 )
               })}
           </div>
+
+          {/* Regenerate — for custom instructions or recovery */}
+          {isReady && isPrimary && !generating && (
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => setShowRegenerate(v => !v)}
+                className="text-xs underline"
+                style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              >
+                {showRegenerate ? 'Hide' : 'Regenerate with custom instructions'}
+              </button>
+              {showRegenerate && (
+                <div className="mt-3 surface px-5 py-4">
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}>
+                      Instructions <span style={{ color: '#C5B49A' }}>(optional)</span>
+                    </label>
+                    <textarea
+                      value={instructions}
+                      onChange={(e) => setInstructions(e.target.value)}
+                      rows={3}
+                      className="input-warm w-full"
+                      placeholder="Any specific focus areas or themes for the daily gardens..."
+                    />
+                  </div>
+                  {genError && (
+                    <p className="text-sm rounded-lg px-3 py-2 mb-3" style={{ color: '#8B3A3A', background: 'rgba(139,58,58,0.08)', border: '1px solid rgba(139,58,58,0.2)', fontFamily: 'var(--font-mulish)' }}>
+                      {genError}
+                    </p>
+                  )}
+                  <button onClick={() => handleGenerateGardens(true)} className="btn-gold px-5 py-2.5 text-sm">
+                    Regenerate Gardens
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </>

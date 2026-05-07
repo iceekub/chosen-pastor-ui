@@ -15,7 +15,7 @@ export default async function UploadPage() {
           Upload sermon.
         </h1>
         <p className="text-sm mt-1" style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}>
-          Videos are uploaded directly to S3 and processed automatically.
+          Videos are uploaded directly to S3 and processed automatically. Sunday sermons will have daily gardens generated as soon as processing completes.
         </p>
       </div>
       <div className="surface p-6 anim-fadeUp" style={{ animationDelay: '0.1s' }}>

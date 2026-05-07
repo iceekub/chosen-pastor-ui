@@ -105,33 +105,39 @@ describe('SermonDetailClient — transcript', () => {
 })
 
 describe('SermonDetailClient — generate gardens', () => {
-  it('shows generate button when ready, primary, and no gardens', () => {
+  it('shows auto-generating status when ready, primary, and no gardens', () => {
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
-    expect(screen.getByRole('button', { name: 'Generate Gardens' })).toBeInTheDocument()
+    expect(screen.getByText('Gardens are generating automatically…')).toBeInTheDocument()
   })
 
-  it('does not show generate button when gardens already exist', () => {
+  it('does not show auto-generating status when gardens already exist', () => {
     render(
       <SermonDetailClient
         initialVideo={makeVideo({ status: 'ready', role: 'primary' })}
         initialGardens={[makeGarden()]}
       />
     )
-    expect(screen.queryByText('Generate Gardens')).not.toBeInTheDocument()
+    expect(screen.queryByText('Gardens are generating automatically…')).not.toBeInTheDocument()
   })
 
-  it('does not show generate button when video is not ready', () => {
+  it('does not show auto-generating status when video is not ready', () => {
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'processing', role: 'primary' })} initialGardens={[]} />)
-    expect(screen.queryByText('Generate Gardens')).not.toBeInTheDocument()
+    expect(screen.queryByText('Gardens are generating automatically…')).not.toBeInTheDocument()
   })
 
-  it('shows generating state and calls fetch on click', async () => {
+  it('shows manual generate form when custom instructions link is clicked', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => [makeGarden({ status: 'generating' })],
     })
 
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
+    fireEvent.click(screen.getByText('Generate with custom instructions instead'))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Generate Gardens' })).toBeInTheDocument()
+    })
+
     fireEvent.click(screen.getByRole('button', { name: 'Generate Gardens' }))
 
     await waitFor(() => {
@@ -149,6 +155,12 @@ describe('SermonDetailClient — generate gardens', () => {
     })
 
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
+    fireEvent.click(screen.getByText('Generate with custom instructions instead'))
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/specific focus areas/i)).toBeInTheDocument()
+    })
+
     fireEvent.change(screen.getByPlaceholderText(/specific focus areas/i), {
       target: { value: 'Focus on grace' },
     })
@@ -168,6 +180,12 @@ describe('SermonDetailClient — generate gardens', () => {
     })
 
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready', role: 'primary' })} initialGardens={[]} />)
+    fireEvent.click(screen.getByText('Generate with custom instructions instead'))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Generate Gardens' })).toBeInTheDocument()
+    })
+
     fireEvent.click(screen.getByRole('button', { name: 'Generate Gardens' }))
 
     await waitFor(() => {
@@ -286,8 +304,8 @@ describe('SermonDetailClient — stale handling (removed)', () => {
   })
 
   it('primary generate flow does not send force', async () => {
-    // The regular Generate Gardens flow (primary video) should never
-    // send force — only the ignored-video override path does.
+    // The manual Generate Gardens form (primary video, custom instructions)
+    // should never send force — only the ignored-video override path does.
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [makeGarden({ status: 'generating' })],
@@ -299,6 +317,12 @@ describe('SermonDetailClient — stale handling (removed)', () => {
         initialGardens={[]}
       />
     )
+    fireEvent.click(screen.getByText('Generate with custom instructions instead'))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Generate Gardens' })).toBeInTheDocument()
+    })
+
     fireEvent.click(screen.getByRole('button', { name: 'Generate Gardens' }))
 
     await waitFor(() => {

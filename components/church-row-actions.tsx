@@ -50,7 +50,7 @@ export function ChurchRowActions({ churchId, churchName }: Props) {
         </button>
       </div>
 
-      {/* Native dialog modal */}
+      {/* Invite modal */}
       <dialog
         ref={dialogRef}
         className="rounded-2xl p-0 shadow-2xl backdrop:bg-black/40"

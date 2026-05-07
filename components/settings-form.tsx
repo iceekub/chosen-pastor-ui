@@ -4,6 +4,7 @@ import { useActionState, useState, useEffect } from 'react'
 import { saveChurchAction, saveBibleTranslationAction } from '@/app/actions/settings'
 import { uploadChurchLogoAction, uploadChurchAltLogoAction, uploadChurchImageAction } from '@/app/actions/storage'
 import { InviteStaffForm } from '@/components/invite-staff-form'
+import { TeamSection } from '@/components/team-section'
 import { ImageUpload } from '@/components/image-upload'
 import { PastorsSection } from '@/components/pastors-section'
 import type { SessionUser, Pastor } from '@/lib/api/types'
@@ -284,28 +285,14 @@ export function SettingsForm({ user, church, bibleVersions, team, pastors }: Pro
         {sectionLabel('Team')}
         <InviteStaffForm />
 
-        <div className="mt-6">
-          <p className="text-xs font-semibold mb-3" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            Members
-          </p>
-          <ul className="divide-y" style={{ borderColor: 'rgba(200,182,155,0.3)' }}>
-            {team.map((person) => (
-              <li key={person.id} className="py-3 flex items-center justify-between">
-                <p className="text-sm font-medium" style={{ color: '#2C1E0F', fontFamily: 'var(--font-mulish)' }}>
-                  {person.name}
-                </p>
-                {person.id === user.id && (
-                  <span
-                    className="text-xs font-semibold rounded-full px-2.5 py-0.5"
-                    style={{ background: 'rgba(184,135,74,0.1)', color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
-                  >
-                    You
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {team.length > 0 && (
+          <div className="mt-6">
+            <p className="text-xs font-semibold mb-3" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Members
+            </p>
+            <TeamSection team={team} currentUserId={user.id} />
+          </div>
+        )}
       </div>
 
     </div>

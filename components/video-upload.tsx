@@ -219,7 +219,7 @@ function UploadItemCard({
         )}
         {done && item.videoRole === 'primary' && (
           <p className="text-xs" style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)', fontWeight: 600 }}>
-            Set as primary — ready to generate gardens once processing completes.
+            Set as primary — gardens will generate automatically once processing completes.
           </p>
         )}
         {done && item.videoId && (
@@ -393,7 +393,7 @@ export function VideoUpload() {
           {allDone ? (
             <>
               <p className="text-sm" style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)' }}>
-                {doneItems.length} sermon{doneItems.length !== 1 ? 's' : ''} uploaded — processing in the background.
+                {doneItems.length} sermon{doneItems.length !== 1 ? 's' : ''} uploaded — gardens will generate automatically once processing completes.
               </p>
               <button type="button" onClick={resetAll} className="text-sm font-semibold" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}>
                 Upload more

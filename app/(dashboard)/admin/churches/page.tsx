@@ -21,12 +21,9 @@ function formatDate(iso: string | null) {
 
 export default async function ChurchesPage() {
   await requireAdmin()
-  // TODO: wire up Supabase token refresh — the access token in the session
-  // cookie expires after 1 hour, after which PostgREST calls return 401.
-  // Until then, fall back to an empty list rather than crashing.
   const [churches, parishionerCounts] = await Promise.all([
-    listAllChurches().catch((): ChurchListItem[] => []),
-    getParishionerCounts().catch((): Record<string, number> => ({})),
+    listAllChurches(),
+    getParishionerCounts(),
   ])
 
   return (

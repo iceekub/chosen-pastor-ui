@@ -138,11 +138,14 @@ export async function uploadGardenMediaCardAction(
 /* ── Video thumbnail ──────────────────────────────────────── */
 
 /**
+ * Custom-thumbnail upload override (when the auto-pick is bad).
  * videoId is pre-bound at call site via .bind():
  *   const action = uploadVideoThumbnailAction.bind(null, video.id)
  *
- * Requires a `video-thumbnails` Supabase Storage bucket (public-read,
- * staff-write scoped to church_id prefix).
+ * Backed by the `video-thumbnails` Supabase Storage bucket
+ * (public-read, staff-write scoped to church_id prefix). Bucket +
+ * RLS are added in
+ * backend/supabase/migrations/20260506000001_video_thumbnails_bucket.sql.
  */
 export async function uploadVideoThumbnailAction(
   videoId: string,

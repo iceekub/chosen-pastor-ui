@@ -106,7 +106,7 @@ describe('POST /api/videos/[id]/generate-gardens', () => {
       instructions: 'Focus on grace',
     })
     await POST(req, ctx)
-    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', VALID_MONDAY, 'Focus on grace')
+    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', VALID_MONDAY, 'Focus on grace', undefined)
   })
 
   it('passes undefined for instructions when not provided', async () => {
@@ -114,7 +114,15 @@ describe('POST /api/videos/[id]/generate-gardens', () => {
     mockGenerateGardens.mockResolvedValue(fakeGardens)
     const { req, ctx } = makePostRequest('abc', { week_starts_at: VALID_MONDAY })
     await POST(req, ctx)
-    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', VALID_MONDAY, undefined)
+    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', VALID_MONDAY, undefined, undefined)
+  })
+
+  it('forwards force=true to generateGardens', async () => {
+    mockGetSession.mockResolvedValue(validSession)
+    mockGenerateGardens.mockResolvedValue(fakeGardens)
+    const { req, ctx } = makePostRequest('abc', { week_starts_at: VALID_MONDAY, force: true })
+    await POST(req, ctx)
+    expect(mockGenerateGardens).toHaveBeenCalledWith('abc', VALID_MONDAY, undefined, true)
   })
 
   it('returns 502 when generateGardens throws', async () => {

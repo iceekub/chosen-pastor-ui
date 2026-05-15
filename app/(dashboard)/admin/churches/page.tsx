@@ -23,7 +23,7 @@ export default async function ChurchesPage() {
   await requireAdmin()
   const [churches, parishionerCounts] = await Promise.all([
     listAllChurches(),
-    getParishionerCounts().catch((): Record<string, number> => ({})),
+    getParishionerCounts(),
   ])
 
   return (

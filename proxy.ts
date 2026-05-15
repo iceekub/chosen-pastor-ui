@@ -130,7 +130,12 @@ export async function proxy(request: NextRequest) {
     .setExpirationTime('7d')
     .sign(secret)
 
-  const response = NextResponse.next()
+  // Update the request cookie so server components see the new access token
+  // immediately via cookies() — without this, getSession() would still read
+  // the old (expired) token from the incoming request even though the browser
+  // will receive the refreshed one in the response.
+  request.cookies.set(COOKIE_NAME, newCookieValue)
+  const response = NextResponse.next({ request })
   response.cookies.set(COOKIE_NAME, newCookieValue, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

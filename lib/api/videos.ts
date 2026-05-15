@@ -109,6 +109,7 @@ export async function generateGardens(
   videoId: string,
   weekStartsAt: string,
   instructions?: string,
+  force?: boolean,
 ): Promise<GardenListItem[]> {
   // weekStartsAt: ISO date for a Monday (YYYY-MM-DD). Ragserv validates
   // that it's actually a Monday and rejects with 422 otherwise; we
@@ -119,6 +120,7 @@ export async function generateGardens(
       video_id: videoId,
       week_starts_at: weekStartsAt,
       ...(instructions ? { instructions } : {}),
+      ...(force ? { force: true } : {}),
     },
   })
 }

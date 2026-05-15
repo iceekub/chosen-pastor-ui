@@ -217,11 +217,6 @@ function UploadItemCard({
             {item.error}
           </p>
         )}
-        {done && item.videoRole === 'primary' && (
-          <p className="text-xs" style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)', fontWeight: 600 }}>
-            Set as primary — gardens will generate automatically once processing completes.
-          </p>
-        )}
         {done && item.videoId && (
           <Link href={`/sermons/${item.videoId}`} className="text-xs font-semibold" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}>
             View sermon →

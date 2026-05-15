@@ -18,9 +18,10 @@ export async function POST(
 
   const { id } = await params
   const body = await request.json().catch(() => ({}))
-  const { week_starts_at, instructions } = body as {
+  const { week_starts_at, instructions, force } = body as {
     week_starts_at?: string
     instructions?: string
+    force?: boolean
   }
 
   if (!week_starts_at) {
@@ -31,7 +32,7 @@ export async function POST(
   }
 
   try {
-    const gardens = await generateGardens(id, week_starts_at, instructions)
+    const gardens = await generateGardens(id, week_starts_at, instructions, force)
     return NextResponse.json(gardens, { status: 202 })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to generate gardens'

@@ -22,8 +22,8 @@ import {
 const STATUS_DISPLAY: Record<VideoStatus, { label: string; color: string; bg: string }> = {
   pending_upload:   { label: 'Pending Upload',  color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   downloading:      { label: 'Downloading',     color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
-  transcoding:      { label: 'Transcoding',     color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
-  transcode_failed: { label: 'Transcode Failed', color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+  transcoding:      { label: 'Processing',      color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  transcode_failed: { label: 'Error',           color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
   uploaded:         { label: 'Uploaded',        color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
   processing:       { label: 'Processing',      color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
   ready:            { label: 'Ready',           color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },

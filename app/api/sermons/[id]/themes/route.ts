@@ -1,16 +1,26 @@
 /**
  * Route handler for tagging a sermon with themes.
  *
- * - POST    { theme_id }              → tag the video with the theme
- * - DELETE  ?theme_id=<uuid>          → remove that tag
+ * - POST    { theme_id }                       → video-level tag
+ * - POST    { theme_id, clip_id }              → clip-scoped tag
+ *                                                (auto-fills confidence
+ *                                                from the matching LLM
+ *                                                suggestion)
+ * - DELETE  ?theme_id=<uuid>                   → remove all tags for that theme
+ * - DELETE  ?theme_id=<uuid>&clip_id=<uuid>    → remove just one clip's tag
  *
- * Both proxy to PostgREST. RLS gates writes to staff/pastor in the
+ * All proxy to PostgREST. RLS gates writes to staff/pastor in the
  * row's church.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { tagVideoWithTheme, untagVideoFromTheme } from '@/lib/api/themes'
+import {
+  tagVideoClipWithTheme,
+  tagVideoWithTheme,
+  untagVideoClipFromTheme,
+  untagVideoFromTheme,
+} from '@/lib/api/themes'
 
 export async function POST(
   request: NextRequest,
@@ -20,11 +30,16 @@ export async function POST(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const { theme_id } = (await request.json()) as { theme_id?: string }
+  const { theme_id, clip_id } = (await request.json()) as {
+    theme_id?: string
+    clip_id?: string
+  }
   if (!theme_id) return NextResponse.json({ error: 'theme_id required' }, { status: 400 })
 
   try {
-    const row = await tagVideoWithTheme(id, theme_id)
+    const row = clip_id
+      ? await tagVideoClipWithTheme(id, theme_id, clip_id)
+      : await tagVideoWithTheme(id, theme_id)
     return NextResponse.json(row)
   } catch (err) {
     return NextResponse.json(
@@ -43,10 +58,15 @@ export async function DELETE(
 
   const { id } = await params
   const theme_id = request.nextUrl.searchParams.get('theme_id')
+  const clip_id = request.nextUrl.searchParams.get('clip_id')
   if (!theme_id) return NextResponse.json({ error: 'theme_id required' }, { status: 400 })
 
   try {
-    await untagVideoFromTheme(id, theme_id)
+    if (clip_id) {
+      await untagVideoClipFromTheme(id, theme_id, clip_id)
+    } else {
+      await untagVideoFromTheme(id, theme_id)
+    }
     return new NextResponse(null, { status: 204 })
   } catch (err) {
     return NextResponse.json(

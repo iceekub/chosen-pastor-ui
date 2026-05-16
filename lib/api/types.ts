@@ -283,13 +283,22 @@ export interface Theme {
 export interface VideoTheme {
   video_id: string
   theme_id: string
-  // Set when the tag is clip-scoped (promoted from an LLM clip
-  // suggestion). NULL for legacy/manual video-level tags.
+  // Set when the tag is clip-scoped (auto-promoted by ragserv from
+  // a clip suggestion, or staff manually attached to a clip). NULL
+  // for legacy/manual video-level tags.
   clip_id: string | null
   // LLM score frozen at confirmation time; auto-filled by a
   // BEFORE-INSERT trigger when clip_id is set and confidence
-  // wasn't passed. NULL for video-level inserts.
+  // wasn't passed. NULL for manual video-level inserts.
   confidence: number | null
+  // Provenance:
+  //   - 'llm'    — ragserv auto-promoted this from a clip
+  //                suggestion. Re-running the suggester will
+  //                delete-and-replace these rows for the video.
+  //   - 'manual' — staff inserted via pastor-ui (the default
+  //                for PostgREST inserts that don't pass `source`).
+  //                Sticky across suggester re-runs.
+  source: 'llm' | 'manual'
   created_at: string
 }
 

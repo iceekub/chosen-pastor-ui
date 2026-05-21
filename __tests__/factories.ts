@@ -8,6 +8,7 @@ import type {
   GardenContent,
   GardenListItem,
   Video,
+  VideoDownloadAttempt,
   VideoListItem,
 } from '@/lib/api/types'
 
@@ -84,6 +85,28 @@ export function makeVideo(overrides: Partial<Video> = {}): Video {
     is_featured: false,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: null,
+    ...overrides,
+  }
+}
+
+export function makeDownloadAttempt(
+  overrides: Partial<VideoDownloadAttempt> = {},
+): VideoDownloadAttempt {
+  return {
+    id: 'a1',
+    video_id: 'v1',
+    attempt_number: 1,
+    url: 'https://www.youtube.com/watch?v=fake',
+    outcome: 'succeeded',
+    kind: null,
+    http_status: null,
+    error_message: null,
+    ip_family: 'ipv6',
+    egress_ip: '2600:1f1c:dead::1',
+    yt_dlp_version: '2026.05.01',
+    ecs_task_id: 'task-aaaa1111',
+    started_at: '2026-05-17T12:00:00Z',
+    finished_at: '2026-05-17T12:00:30Z',
     ...overrides,
   }
 }

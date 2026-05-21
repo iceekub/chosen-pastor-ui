@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default async function SermonDetailPage({ params }: Props) {
-  await verifySession()
+  const user = await verifySession()
   const { id } = await params
   const video = await getVideo(id).catch(() => null)
   if (!video) notFound()
@@ -24,6 +24,14 @@ export default async function SermonDetailPage({ params }: Props) {
     // primary video in the supplementary-video notice.
     getWeekPrimary(video.church_id, video.week_anchor_sunday).catch(() => null),
   ])
+
+  // `verifySession` only lets pastor/staff/super_admin into the dashboard
+  // already, so any user reaching this page qualifies. Kept as an explicit
+  // flag so the prop's intent is obvious at the call site (and so it's
+  // easy to tighten later if read-only roles join the dashboard).
+  const staffViewer = user.role === 'super_admin'
+    || user.role === 'pastor'
+    || user.role === 'staff'
 
   return (
     <div className="px-8 py-9 max-w-3xl mx-auto">
@@ -39,6 +47,7 @@ export default async function SermonDetailPage({ params }: Props) {
         initialVideo={video}
         initialGardens={gardens}
         weekPrimary={weekPrimary}
+        staffViewer={staffViewer}
       />
 
       <section

@@ -43,10 +43,15 @@ export function BulkImportFlow({ initialJob }: Props) {
   const [polling, setPolling] = useState(false)
   const pollTimer = useRef<number | null>(null)
 
-  // Poll whenever the job is in an active state. Stops automatically
-  // when the status moves to terminal or awaiting_review.
+  // Poll while the job is doing anything we want to surface live —
+  // including awaiting_review, so that duplicates landed by a parallel
+  // import (or any other server-side update to the items table) show
+  // up without the user having to refresh. Selection state lives in a
+  // local `useState<Set<string>>` inside ReviewView and is independent
+  // of `job.items`, so a poll-driven re-render won't clobber the
+  // checkboxes — only the badges/outcomes get refreshed.
   const shouldPoll =
-    ACTIVE_STATUSES.has(job.status) || job.status === 'awaiting_review' && false
+    ACTIVE_STATUSES.has(job.status) || job.status === 'awaiting_review'
 
   const refresh = useCallback(async () => {
     try {

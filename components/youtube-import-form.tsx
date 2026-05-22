@@ -7,11 +7,12 @@ import { toISODate } from '@/lib/dates'
 
 type ItemState = 'idle' | 'submitting' | 'ok' | 'error'
 
-// Accept the common YouTube + Facebook URL shapes the pastor will paste.
-// Surface-level validation only — yt-dlp accepts plenty more (Vimeo,
-// Twitch, etc.); the server-side download covers the long tail.
-const ACCEPTABLE_URL_RE =
-  /^https?:\/\/(www\.|m\.|web\.)?(youtube\.com|youtu\.be|facebook\.com|fb\.watch)\//i
+// Surface-level "looks like a URL" check only. yt-dlp handles 1000+
+// sites (YouTube, Facebook, Vimeo, Twitch, Instagram, TikTok, …) so
+// the client doesn't try to enumerate — server-side classification
+// (see Phase 1 of the yt-dlp resilience work) turns real "can't
+// extract this" failures into useful user-facing messages.
+const ACCEPTABLE_URL_RE = /^https?:\/\/\S+\.\S+/i
 
 export function YouTubeImportForm() {
   const router = useRouter()
@@ -56,13 +57,13 @@ export function YouTubeImportForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <FieldLabel>YouTube or Facebook URL</FieldLabel>
+        <FieldLabel>Video URL</FieldLabel>
         <input
           type="url"
           value={url}
           onChange={e => setUrl(e.target.value)}
           disabled={busy}
-          placeholder="https://www.youtube.com/watch?v=…"
+          placeholder="https://www.youtube.com/watch?v=…  (YouTube, Facebook, Vimeo, etc.)"
           className="input-warm w-full"
           inputMode="url"
           autoComplete="off"
@@ -73,7 +74,7 @@ export function YouTubeImportForm() {
             className="text-xs mt-1"
             style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
           >
-            Paste a full YouTube or Facebook video URL.
+            Paste a full video URL (must start with http:// or https://).
           </p>
         )}
       </div>

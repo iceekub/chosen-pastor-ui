@@ -407,5 +407,47 @@ export interface Theme {
 export interface VideoTheme {
   video_id: string
   theme_id: string
+  // Set when the tag is clip-scoped (auto-promoted by ragserv from
+  // a clip suggestion, or staff manually attached to a clip). NULL
+  // for legacy/manual video-level tags.
+  clip_id: string | null
+  // LLM score frozen at confirmation time; auto-filled by a
+  // BEFORE-INSERT trigger when clip_id is set and confidence
+  // wasn't passed. NULL for manual video-level inserts.
+  confidence: number | null
+  // Provenance:
+  //   - 'llm'    — ragserv auto-promoted this from a clip
+  //                suggestion. Re-running the suggester will
+  //                delete-and-replace these rows for the video.
+  //   - 'manual' — staff inserted via pastor-ui (the default
+  //                for PostgREST inserts that don't pass `source`).
+  //                Sticky across suggester re-runs.
+  source: 'llm' | 'manual'
   created_at: string
+}
+
+// ─── Clip-level theme suggestions (LLM, staff-only) ─────────────────────────
+//
+// Returned by ragserv `GET /videos/{id}/theme-suggestions`. The LLM
+// segments each sermon by topic shift and emits per-clip themes with
+// confidence. Pastor-UI surfaces these so staff can promote a clip's
+// suggested theme into a confirmed `video_themes` row (with clip_id).
+
+export interface ClipThemeSuggestion {
+  theme_id: string
+  theme_name: string
+  confidence: number
+}
+
+export interface ClipSuggestion {
+  clip_id: string
+  start_time: number
+  end_time: number
+  summary: string | null
+  suggested_at: string
+  // Sorted by confidence desc on the server side. Empty array is a
+  // possible value — the LLM emitted the clip but every theme fell
+  // below the confidence floor; staff can still inspect the clip
+  // span and tag it manually.
+  themes: ClipThemeSuggestion[]
 }

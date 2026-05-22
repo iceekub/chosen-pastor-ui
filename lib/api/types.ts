@@ -111,6 +111,130 @@ export interface VideoCreateResponse extends Video {
   presigned_upload_url: string
 }
 
+// ─── Video download attempts (yt-dlp audit log, staff-only) ────────────────
+//
+// One row per yt-dlp attempt for a YouTube/Facebook ingest. Lets staff
+// answer "why did this fail" and "are we being throttled" without
+// CloudWatch. RLS limits reads to the same-church staff plus
+// super-admins. See ragserv ``DownloadFailureKind`` for the kind values.
+
+export type DownloadFailureKind =
+  | 'RATE_LIMITED'
+  | 'IP_BLOCKED'
+  | 'GEO_BLOCKED'
+  | 'AUTH_REQUIRED'
+  | 'UNAVAILABLE'
+  | 'LIVESTREAM_NOT_READY'
+  | 'EXTRACTOR_BROKEN'
+  | 'NETWORK'
+  | 'DISK_FULL'
+  | 'OTHER'
+  | 'WORKER_RESTARTED'
+
+export interface VideoDownloadAttempt {
+  id: string
+  video_id: string
+  attempt_number: number
+  url: string
+  outcome: 'in_progress' | 'succeeded' | 'failed'
+  kind: DownloadFailureKind | null
+  http_status: number | null
+  error_message: string | null
+  ip_family: 'ipv4' | 'ipv6' | null
+  egress_ip: string | null
+  yt_dlp_version: string | null
+  ecs_task_id: string | null
+  started_at: string
+  finished_at: string | null
+}
+
+// ─── Bulk YouTube channel import ────────────────────────────────────
+
+/**
+ * Lifecycle of a bulk-import job. Mirrors ragserv's BulkImportJobStatus.
+ *
+ *   discovering        — yt-dlp listing the channel
+ *   discovery_failed   — terminal; see `discovery_error`
+ *   awaiting_review    — items inserted, staff to confirm
+ *   queued             — staff hit Start; orchestrator dispatched
+ *   running            — orchestrator mid-loop
+ *   stopped            — manual /stop or consecutive-failure threshold
+ *   completed          — orchestrator drained the queue
+ */
+export type BulkImportJobStatus =
+  | 'discovering'
+  | 'discovery_failed'
+  | 'awaiting_review'
+  | 'queued'
+  | 'running'
+  | 'stopped'
+  | 'completed'
+
+export type BulkImportItemOutcome =
+  | 'pending'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'skipped_duplicate'
+  | 'skipped_unselected'
+  | 'cancelled'
+
+export interface BulkImportJobItem {
+  id: string
+  job_id: string
+  position: number
+  youtube_video_id: string
+  youtube_url: string
+  title: string | null
+  duration_seconds: number | null
+  upload_date: string | null
+  week_anchor_sunday: string | null
+  is_recommended: boolean
+  is_selected: boolean
+  assigned_ip_family: 'ipv4' | 'ipv6' | null
+  outcome: BulkImportItemOutcome
+  video_id: string | null
+  existing_video_id: string | null
+  failure_kind: DownloadFailureKind | null
+  failure_message: string | null
+  started_at: string | null
+  finished_at: string | null
+}
+
+export interface BulkImportJob {
+  id: string
+  church_id: string
+  created_by: string | null
+  channel_url: string
+  normalized_channel_url: string
+  requested_count: number
+  fetch_multiplier: number
+  pacing_seconds: number
+  consecutive_failure_threshold: number
+  automatic: boolean
+  force: boolean
+  status: BulkImportJobStatus
+  discovery_error: string | null
+  consecutive_failures: number
+  created_at: string
+  updated_at: string
+}
+
+/** GET /bulk-imports/{id} returns this — job + items in one payload. */
+export interface BulkImportJobDetail extends BulkImportJob {
+  items: BulkImportJobItem[]
+}
+
+export interface BulkImportCreatePayload {
+  channel_url: string
+  requested_count?: number
+  fetch_multiplier?: number
+  pacing_seconds?: number
+  consecutive_failure_threshold?: number
+  automatic?: boolean
+  force?: boolean
+}
+
 // ─── Gardens ────────────────────────────────────────────────────────────────
 
 export type GardenStatus =

@@ -3,6 +3,7 @@ import type {
   Video,
   VideoListItem,
   VideoCreateResponse,
+  VideoDownloadAttempt,
   VideoRole,
   GardenListItem,
   Garden,
@@ -103,6 +104,53 @@ export async function completeUpload(videoId: string): Promise<Video> {
     method: 'POST',
     body: {},
   })
+}
+
+export async function createYouTubeVideo(
+  youtube_url: string,
+  title?: string,
+  videoDate?: string,
+  description?: string,
+): Promise<Video> {
+  // ragserv kicks off the Celery download immediately and returns a
+  // row with status='downloading'. Failures surface on the sermon
+  // detail page (with a "use direct upload" CTA) and in the
+  // staff-only diagnostics panel.
+  return ragserv<Video>('/videos/youtube', {
+    method: 'POST',
+    body: {
+      youtube_url,
+      ...(title ? { title } : {}),
+      ...(description ? { description } : {}),
+      ...(videoDate ? { video_date: videoDate } : {}),
+    },
+  })
+}
+
+export async function getVideoDownloadAttempts(
+  videoId: string,
+): Promise<VideoDownloadAttempt[]> {
+  // RLS limits to same-church staff + super-admins. Sorted ascending
+  // so the table reads top-to-bottom (attempt 1, 2, 3).
+  return postgrest<VideoDownloadAttempt[]>(
+    `/video_download_attempts?video_id=eq.${videoId}` +
+      `&select=*&order=attempt_number.asc`,
+  )
+}
+
+export async function rotateWorkerIp(): Promise<{
+  deployment_id: string
+  service: string
+}> {
+  // Force-redeploys the Celery worker ECS service. Cycles the
+  // task's ENI which gives us a new egress IP (and a fresh v6 from
+  // the subnet's /64). Rate-limited to one call per minute server-
+  // side; the button on the diagnostics page also confirm-gates
+  // before firing.
+  return ragserv<{ deployment_id: string; service: string }>(
+    '/infra/rotate-worker-ip',
+    { method: 'POST', body: {} },
+  )
 }
 
 export async function generateGardens(

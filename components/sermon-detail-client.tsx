@@ -8,6 +8,7 @@ import type {
   GardenListItem,
   GardenStatus,
   Video,
+  VideoDownloadAttempt,
   VideoListItem,
   VideoStatus,
 } from '@/lib/api/types'
@@ -41,12 +42,16 @@ interface Props {
   initialGardens: GardenListItem[]
   /** The week's primary video — passed for the supplementary-video notice. */
   weekPrimary?: VideoListItem | null
+  /** True when the viewer is staff (pastor/staff/super_admin). Gates the
+   *  download-attempts diagnostics panel for YouTube imports. */
+  staffViewer?: boolean
 }
 
 export function SermonDetailClient({
   initialVideo,
   initialGardens,
   weekPrimary,
+  staffViewer = false,
 }: Props) {
   const { addNotification } = useNotifications()
   const [video, setVideo] = useState(initialVideo)
@@ -294,7 +299,24 @@ export function SermonDetailClient({
               {video.error_message}
             </p>
           )}
+          {video.youtube_url && (
+            <p className="text-xs mt-2" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>
+              Try{' '}
+              <Link href="/sermons/upload" className="underline">
+                uploading the file directly
+              </Link>{' '}
+              instead.
+            </p>
+          )}
         </div>
+      )}
+
+      {/* YouTube import diagnostics — staff-only, only when this row
+          came from yt-dlp. Surfaces each attempt with its classified
+          kind, IP family, and egress IP so we can spot rate-limit /
+          IP-block patterns. */}
+      {staffViewer && video.youtube_url && (
+        <DownloadAttemptsPanel videoId={video.id} videoStatus={video.status} />
       )}
 
       {/* Transcript */}
@@ -512,5 +534,150 @@ export function SermonDetailClient({
         </div>
       )}
     </>
+  )
+}
+
+// ─── Diagnostics panel (staff-only, YouTube imports) ───────────────────────
+
+const OUTCOME_BADGE: Record<
+  VideoDownloadAttempt['outcome'],
+  { label: string; color: string; bg: string }
+> = {
+  in_progress: { label: 'In progress', color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
+  succeeded:   { label: 'Succeeded',   color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
+  failed:      { label: 'Failed',      color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+}
+
+function DownloadAttemptsPanel({
+  videoId,
+  videoStatus,
+}: {
+  videoId: string
+  videoStatus: VideoStatus
+}) {
+  const [attempts, setAttempts] = useState<VideoDownloadAttempt[] | null>(null)
+  const [expanded, setExpanded] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Poll while the download is active so staff see attempts land
+  // in real time. Stop polling on terminal states.
+  const stillDownloading =
+    videoStatus === 'downloading' || videoStatus === 'pending_upload'
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch(`/api/videos/${videoId}/download-attempts`)
+        if (!res.ok) throw new Error(`Request failed (${res.status})`)
+        const rows = (await res.json()) as VideoDownloadAttempt[]
+        if (!cancelled) setAttempts(rows)
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load')
+      }
+    }
+    load()
+    if (!stillDownloading) return
+    const id = setInterval(load, 5000)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
+  }, [videoId, stillDownloading])
+
+  // Don't render anything when there's nothing to show — keeps the page
+  // tidy for YouTube imports that succeeded on the first attempt with
+  // staff not interested in the diagnostics.
+  if (attempts !== null && attempts.length === 0 && !error) return null
+
+  return (
+    <div
+      className="surface mb-6 anim-fadeUp"
+      style={{ animationDelay: '0.1s' }}
+    >
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full px-6 py-4 flex items-center justify-between text-left"
+      >
+        <span
+          className="text-sm font-semibold"
+          style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
+        >
+          Download diagnostics
+          {attempts !== null && (
+            <span
+              className="ml-2 text-xs font-normal"
+              style={{ color: '#8A7060' }}
+            >
+              ({attempts.length} attempt{attempts.length === 1 ? '' : 's'})
+            </span>
+          )}
+        </span>
+        <span
+          className="text-xs"
+          style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+        >
+          {expanded ? 'Hide' : 'Show'}
+        </span>
+      </button>
+      {expanded && (
+        <div className="px-6 pb-5">
+          {error && (
+            <p
+              className="text-xs mb-3"
+              style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
+            >
+              {error}
+            </p>
+          )}
+          {attempts === null && !error && (
+            <p
+              className="text-xs"
+              style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}
+            >
+              Loading…
+            </p>
+          )}
+          {attempts && attempts.length > 0 && (
+            <table className="w-full text-xs" style={{ fontFamily: 'var(--font-mulish)' }}>
+              <thead style={{ color: '#8A7060' }}>
+                <tr className="text-left">
+                  <th className="py-2 pr-3 font-semibold">#</th>
+                  <th className="py-2 pr-3 font-semibold">Outcome</th>
+                  <th className="py-2 pr-3 font-semibold">Family</th>
+                  <th className="py-2 pr-3 font-semibold">Egress IP</th>
+                  <th className="py-2 pr-3 font-semibold">Kind</th>
+                  <th className="py-2 pr-3 font-semibold">HTTP</th>
+                  <th className="py-2 pr-3 font-semibold">yt-dlp</th>
+                </tr>
+              </thead>
+              <tbody style={{ color: '#4A3A2A' }}>
+                {attempts.map(a => {
+                  const badge = OUTCOME_BADGE[a.outcome]
+                  return (
+                    <tr key={a.id} style={{ borderTop: '1px solid #EAD9C4' }}>
+                      <td className="py-2 pr-3">{a.attempt_number}</td>
+                      <td className="py-2 pr-3">
+                        <span
+                          className="inline-block px-2 py-0.5 rounded text-xs"
+                          style={{ color: badge.color, background: badge.bg }}
+                        >
+                          {badge.label}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-3">{a.ip_family ?? '—'}</td>
+                      <td className="py-2 pr-3 font-mono">{a.egress_ip ?? '—'}</td>
+                      <td className="py-2 pr-3">{a.kind ?? '—'}</td>
+                      <td className="py-2 pr-3">{a.http_status ?? '—'}</td>
+                      <td className="py-2 pr-3 font-mono">{a.yt_dlp_version ?? '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
   )
 }

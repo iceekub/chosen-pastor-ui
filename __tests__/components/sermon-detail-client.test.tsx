@@ -15,6 +15,7 @@ import { SermonDetailClient } from '@/components/sermon-detail-client'
 import {
   makeVideo as makeVideoBase,
   makeGardenListItem,
+  makeDownloadAttempt,
 } from '../factories'
 
 // Reset fetch mock between tests
@@ -280,6 +281,117 @@ describe('SermonDetailClient — primary notifier', () => {
 })
 
 
+
+
+describe('SermonDetailClient — YouTube imports', () => {
+  it('shows the "upload the file directly" CTA on a YouTube import in error', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({
+          status: 'error',
+          youtube_url: 'https://www.youtube.com/watch?v=fake',
+          error_message: 'YouTube blocked the download.',
+        })}
+        initialGardens={[]}
+      />
+    )
+    const link = screen.getByRole('link', { name: /uploading the file directly/i })
+    expect(link).toHaveAttribute('href', '/sermons/upload')
+  })
+
+  it('does not show the YouTube CTA for non-YouTube errors', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({
+          status: 'error',
+          youtube_url: null,
+          error_message: 'Transcode failed',
+        })}
+        initialGardens={[]}
+      />
+    )
+    expect(
+      screen.queryByRole('link', { name: /uploading the file directly/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('fetches and renders the diagnostics panel for staff viewers', async () => {
+    const attempts = [
+      makeDownloadAttempt({
+        id: 'a1',
+        attempt_number: 1,
+        outcome: 'failed',
+        kind: 'RATE_LIMITED',
+        http_status: 429,
+        ip_family: 'ipv6',
+        egress_ip: '2600::1',
+      }),
+      makeDownloadAttempt({
+        id: 'a2',
+        attempt_number: 2,
+        outcome: 'succeeded',
+        kind: null,
+        ip_family: 'ipv4',
+        egress_ip: '54.0.0.1',
+      }),
+    ]
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => attempts,
+    })
+
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({
+          status: 'ready',
+          youtube_url: 'https://youtu.be/x',
+        })}
+        initialGardens={[]}
+        staffViewer
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText(/download diagnostics/i)).toBeInTheDocument()
+      // Both attempt rows visible after expand. Header is collapsed by
+      // default — click to expand.
+    })
+    fireEvent.click(screen.getByText(/download diagnostics/i))
+    await waitFor(() => {
+      expect(screen.getByText('RATE_LIMITED')).toBeInTheDocument()
+      expect(screen.getByText('429')).toBeInTheDocument()
+      expect(screen.getByText('2600::1')).toBeInTheDocument()
+    })
+
+    const calledUrls = mockFetch.mock.calls.map(c => c[0])
+    expect(calledUrls).toContain('/api/videos/vid-1/download-attempts')
+  })
+
+  it('does not render the diagnostics panel for non-staff viewers', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({
+          status: 'ready',
+          youtube_url: 'https://youtu.be/x',
+        })}
+        initialGardens={[]}
+        staffViewer={false}
+      />,
+    )
+    expect(screen.queryByText(/download diagnostics/i)).not.toBeInTheDocument()
+  })
+
+  it('does not render the diagnostics panel on non-YouTube videos', () => {
+    render(
+      <SermonDetailClient
+        initialVideo={makeVideo({ status: 'ready', youtube_url: null })}
+        initialGardens={[]}
+        staffViewer
+      />,
+    )
+    expect(screen.queryByText(/download diagnostics/i)).not.toBeInTheDocument()
+  })
+})
 
 
 describe('SermonDetailClient — stale handling (removed)', () => {

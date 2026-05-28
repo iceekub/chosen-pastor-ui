@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type {
   Garden,
   GardenCard,
@@ -313,6 +314,7 @@ const CARD_TYPES: { type: AddableCardType; label: string }[] = [
 /* ─── main component ──────────────────────────────────────── */
 
 export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
+  const router = useRouter()
   const [content, setContent] = useState<GardenContent>(normalizeContent(garden))
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editCard, setEditCard] = useState<GardenCard | null>(null)
@@ -341,6 +343,7 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+      router.refresh() // re-fetch Server Component so the page header reflects the new title
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed')
     } finally {

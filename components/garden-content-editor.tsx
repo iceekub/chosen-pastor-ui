@@ -433,7 +433,7 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
             disabled={saving}
             className="btn-gold text-xs px-4 py-2 shrink-0"
           >
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Saving…' : 'Update'}
           </button>
         </div>
       </div>

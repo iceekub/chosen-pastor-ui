@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type {
   Garden,
   GardenCard,
@@ -313,6 +314,7 @@ const CARD_TYPES: { type: AddableCardType; label: string }[] = [
 /* ─── main component ──────────────────────────────────────── */
 
 export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
+  const router = useRouter()
   const [content, setContent] = useState<GardenContent>(normalizeContent(garden))
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editCard, setEditCard] = useState<GardenCard | null>(null)
@@ -323,15 +325,17 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
-  async function persist(next: GardenContent) {
+  async function persist(next: GardenContent, topic?: string) {
     setSaving(true)
     setError(null)
     setSaved(false)
     try {
+      const body: Record<string, unknown> = { content_json: next }
+      if (topic !== undefined) body.topic = topic
       const res = await fetch(`/api/gardens/${garden.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content_json: next }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -339,6 +343,7 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+      router.refresh() // re-fetch Server Component so the page header reflects the new title
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed')
     } finally {

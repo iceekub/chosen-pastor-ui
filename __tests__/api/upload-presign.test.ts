@@ -75,13 +75,15 @@ describe('POST /api/upload/presign', () => {
 
     await POST(makeRequest({ title: 'Test Sermon', content_type: 'video/mp4' }))
 
-    // Args: title, description, video_type (undefined→default), video_date, content_type
+    // Args: title, description, video_type (undefined→default), video_date, content_type, church_id
+    // church_id is forwarded from verifySession so super_admin uploads land in the right church.
     expect(mockCreateVideo).toHaveBeenCalledWith(
       'Test Sermon',
       undefined,
       undefined,
       undefined,
       'video/mp4',
+      'c1',
     )
   })
 
@@ -102,6 +104,7 @@ describe('POST /api/upload/presign', () => {
       undefined,
       '2026-04-27',
       undefined,
+      'c1',
     )
   })
 })

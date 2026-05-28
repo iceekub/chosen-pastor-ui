@@ -11,12 +11,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/session'
+import { verifySession } from '@/lib/dal'
 import { createYouTubeVideo } from '@/lib/api/videos'
 
 export async function POST(request: NextRequest) {
-  const session = await getSession()
-  if (!session) {
+  let user: Awaited<ReturnType<typeof verifySession>>
+  try {
+    user = await verifySession()
+  } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -41,6 +43,7 @@ export async function POST(request: NextRequest) {
       title,
       video_date,
       description,
+      user.church_id ?? undefined,
     )
     return NextResponse.json({
       video_id: video.id,

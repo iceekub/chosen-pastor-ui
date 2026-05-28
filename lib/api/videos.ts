@@ -66,10 +66,13 @@ export async function createVideo(
   video_type = 'sermon',
   videoDate?: string,
   contentType?: string,
+  churchId?: string,
 ): Promise<VideoCreateResponse> {
   // videoDate is the sermon's calendar date (YYYY-MM-DD). Omit to
   // default to today server-side. Sunday-dated uploads auto-promote
   // to primary if the week has none — see the Primary Video feature.
+  // churchId is only honoured by ragserv when the caller is a super_admin
+  // (e.g. uploading while emulating a church in the pastor UI).
   return ragserv<VideoCreateResponse>('/videos', {
     method: 'POST',
     body: {
@@ -78,6 +81,7 @@ export async function createVideo(
       video_type,
       ...(videoDate ? { video_date: videoDate } : {}),
       ...(contentType ? { content_type: contentType } : {}),
+      ...(churchId ? { church_id: churchId } : {}),
     },
   })
 }
@@ -111,6 +115,7 @@ export async function createYouTubeVideo(
   title?: string,
   videoDate?: string,
   description?: string,
+  churchId?: string,
 ): Promise<Video> {
   // ragserv kicks off the Celery download immediately and returns a
   // row with status='downloading'. Failures surface on the sermon
@@ -123,6 +128,7 @@ export async function createYouTubeVideo(
       ...(title ? { title } : {}),
       ...(description ? { description } : {}),
       ...(videoDate ? { video_date: videoDate } : {}),
+      ...(churchId ? { church_id: churchId } : {}),
     },
   })
 }

@@ -71,11 +71,13 @@ describe('POST /api/videos/youtube', () => {
     const body = await res.json()
     expect(body).toMatchObject({ video_id: 'vid-xyz', status: 'downloading' })
 
+    // church_id forwarded from verifySession so super_admin uploads land in the right church.
     expect(mockCreate).toHaveBeenCalledWith(
       'https://youtu.be/x',
       'Override Title',
       '2026-05-17',
       undefined,
+      'c1',
     )
   })
 

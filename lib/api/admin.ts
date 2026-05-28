@@ -2,9 +2,20 @@ import { edgeFunction, postgrest } from './client'
 import type { Church } from './types'
 
 /**
+ * Result of a successful `churches-onboard` call: the new Church row
+ * with an optional `invite_warning` slot. The warning is populated
+ * when the church was created but the first-admin invite couldn't be
+ * sent (e.g. email already registered, SMTP transient failure).
+ * Super-admin can resend later via the existing invite-to-church
+ * flow, so this is informational, not fatal.
+ */
+export type OnboardedChurch = Church & { invite_warning?: string }
+
+/**
  * Super-admin only: onboard a new church. Goes through the
- * `churches-onboard` Edge Function which provisions a Ragie partition
- * and creates the row.
+ * `churches-onboard` Edge Function which provisions a Ragie partition,
+ * creates the row, and (when `admin_email` is set) sends the
+ * first-admin magic-link invite.
  */
 export async function createChurch(payload: {
   name: string
@@ -16,8 +27,8 @@ export async function createChurch(payload: {
   timezone?: string
   admin_email?: string
   pastors?: Array<{ name: string }>
-}): Promise<Church> {
-  return edgeFunction<Church>('churches-onboard', {
+}): Promise<OnboardedChurch> {
+  return edgeFunction<OnboardedChurch>('churches-onboard', {
     method: 'POST',
     body: payload,
   })

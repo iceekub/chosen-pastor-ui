@@ -77,6 +77,42 @@ describe('createChurchAction', () => {
     })
   })
 
+  it('forwards admin_email when provided', async () => {
+    mockCreateChurch.mockResolvedValue({
+      id: 'c1',
+      name: 'New Parish',
+    } as never)
+
+    await createChurchAction(
+      null,
+      buildForm({ admin_email: 'pastor@example.com' }),
+    )
+    expect(mockCreateChurch).toHaveBeenCalledWith(
+      expect.objectContaining({ admin_email: 'pastor@example.com' }),
+    )
+  })
+
+  it('threads invite_warning into the result as warning', async () => {
+    // Edge Function returns the church row with an invite_warning
+    // field when the church was created but the first-admin magic-
+    // link couldn't be sent.
+    mockCreateChurch.mockResolvedValue({
+      id: 'c1',
+      name: 'New Parish',
+      invite_warning: 'Invite to pastor@example.com failed: already registered',
+    } as never)
+
+    const result = await createChurchAction(
+      null,
+      buildForm({ admin_email: 'pastor@example.com' }),
+    )
+    expect(result).toEqual({
+      success: true,
+      name: 'New Parish',
+      warning: 'Invite to pastor@example.com failed: already registered',
+    })
+  })
+
   it('extracts the JSON `error` field when the Edge Function returns a structured failure', async () => {
     // Mirrors what `churches-onboard` returns on Ragie failure now
     // that partition provisioning is mandatory.

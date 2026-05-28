@@ -7,9 +7,9 @@ import { requireAdmin } from '@/lib/dal'
 import { setEmulatedChurch, clearEmulatedChurch } from '@/lib/session'
 
 export async function createChurchAction(
-  _prevState: { error?: string; success?: boolean; name?: string } | null,
+  _prevState: { error?: string; success?: boolean; name?: string; warning?: string } | null,
   formData: FormData,
-): Promise<{ error?: string; success?: boolean; name?: string }> {
+): Promise<{ error?: string; success?: boolean; name?: string; warning?: string }> {
   await requireAdmin()
   const name = formData.get('name') as string
   if (!name) return { error: 'Church name is required.' }
@@ -22,7 +22,15 @@ export async function createChurchAction(
 
   try {
     const church = await createChurch({ name, city, state, timezone, contact_email, admin_email })
-    return { success: true, name: church.name }
+    // `invite_warning` is set when the church was created but the
+    // first-admin invite couldn't be sent (e.g. email already
+    // registered). Pass it through so the form can show "created,
+    // but…" instead of just success.
+    return {
+      success: true,
+      name: church.name,
+      ...(church.invite_warning ? { warning: church.invite_warning } : {}),
+    }
   } catch (err) {
     // The churches-onboard Edge Function returns JSON like
     // `{"error": "..."}` on failure (e.g. Ragie partition couldn't

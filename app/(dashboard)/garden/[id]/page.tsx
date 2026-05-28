@@ -5,6 +5,7 @@ import { formatGardenDateLong } from '@/lib/dates'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { GardenContentEditor } from '@/components/garden-content-editor'
+import { GardenNameHeader } from '@/components/garden-name-header'
 import { uploadGardenMediaCardAction } from '@/app/actions/storage'
 import type { GardenStatus } from '@/lib/api/types'
 
@@ -66,12 +67,7 @@ export default async function GardenDetailPage({ params }: Props) {
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>
           <p className="section-label mb-2">{dateLabel}</p>
-          <h1
-            className="text-3xl leading-tight"
-            style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
-          >
-            {garden.content_json?.title ?? garden.topic}
-          </h1>
+          <GardenNameHeader garden={garden} />
         </div>
         <span
           className="shrink-0 text-xs font-semibold rounded-full px-3 py-1.5 mt-1"

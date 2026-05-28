@@ -23,7 +23,25 @@ export async function createChurchAction(
   try {
     const church = await createChurch({ name, city, state, timezone, contact_email, admin_email })
     return { success: true, name: church.name }
-  } catch {
+  } catch (err) {
+    // The churches-onboard Edge Function returns JSON like
+    // `{"error": "..."}` on failure (e.g. Ragie partition couldn't
+    // be provisioned — that path is now mandatory, so a half-built
+    // church can't be created silently). Surface the actual reason
+    // so super-admin knows whether to retry, fix env vars, etc.
+    if (err instanceof ApiError) {
+      let detail = err.message
+      try {
+        const parsed: unknown = JSON.parse(err.message)
+        if (parsed && typeof parsed === 'object' && 'error' in parsed) {
+          const e = (parsed as { error?: unknown }).error
+          if (typeof e === 'string' && e.trim()) detail = e
+        }
+      } catch {
+        /* err.message wasn't JSON; fall back to the raw text */
+      }
+      return { error: detail || 'Failed to create church.' }
+    }
     return { error: 'Failed to create church.' }
   }
 }

@@ -323,15 +323,17 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
-  async function persist(next: GardenContent) {
+  async function persist(next: GardenContent, topic?: string) {
     setSaving(true)
     setError(null)
     setSaved(false)
     try {
+      const body: Record<string, unknown> = { content_json: next }
+      if (topic !== undefined) body.topic = topic
       const res = await fetch(`/api/gardens/${garden.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content_json: next }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -411,6 +413,30 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
           Saved successfully
         </div>
       )}
+
+      {/* Garden name — editable title shown in the parishioner app */}
+      <div className="mb-6">
+        <p className="section-label mb-2">Garden Name</p>
+        <div className="flex items-center gap-2">
+          <input
+            className="input-warm flex-1"
+            style={inputStyle}
+            value={content.title ?? content.topic ?? ''}
+            placeholder="Garden title shown to parishioners"
+            onChange={e => setContent(prev => ({ ...prev, title: e.target.value }))}
+          />
+          <button
+            onClick={async () => {
+              const next = { ...content }
+              await persist(next, content.title ?? content.topic)
+            }}
+            disabled={saving}
+            className="btn-gold text-xs px-4 py-2 shrink-0"
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
 
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">

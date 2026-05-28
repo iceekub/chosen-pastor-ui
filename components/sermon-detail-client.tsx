@@ -66,6 +66,38 @@ export function SermonDetailClient({
   const [showManualGenerate, setShowManualGenerate] = useState(false)
   const [showRegenerate, setShowRegenerate] = useState(false)
 
+  // Inline editing — title and date
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState(video.title)
+  const [editingDate, setEditingDate] = useState(false)
+  const [dateDraft, setDateDraft] = useState(video.video_date)
+  const [metaSaving, setMetaSaving] = useState(false)
+  const [metaError, setMetaError] = useState<string | null>(null)
+
+  async function saveMeta(patch: { title?: string; video_date?: string }) {
+    setMetaSaving(true)
+    setMetaError(null)
+    try {
+      const res = await fetch(`/api/videos/${video.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to save')
+      }
+      const updated = await res.json()
+      setVideo(updated)
+      setTitleDraft(updated.title)
+      setDateDraft(updated.video_date)
+    } catch (err) {
+      setMetaError(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setMetaSaving(false)
+    }
+  }
+
   // Garden generation always runs for this video's week — the
   // backend gates it on this video being primary for that week.
   // Anchored at the video's week_anchor_sunday + 1 (Monday).
@@ -210,25 +242,101 @@ export function SermonDetailClient({
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>
           <p className="section-label mb-2">Sermon</p>
-          <h1
-            className="text-3xl leading-tight"
-            style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
-          >
-            {video.title}
-          </h1>
+
+          {/* Editable title */}
+          {editingTitle ? (
+            <div className="flex items-center gap-2 mb-1">
+              <input
+                autoFocus
+                className="input-warm text-2xl flex-1"
+                style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: '#2C1E0F' }}
+                value={titleDraft}
+                onChange={e => setTitleDraft(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') { saveMeta({ title: titleDraft }); setEditingTitle(false) }
+                  if (e.key === 'Escape') { setTitleDraft(video.title); setEditingTitle(false) }
+                }}
+              />
+              <button
+                onClick={() => { saveMeta({ title: titleDraft }); setEditingTitle(false) }}
+                disabled={metaSaving}
+                className="btn-gold text-xs px-3 py-1.5 shrink-0"
+              >Save</button>
+              <button
+                onClick={() => { setTitleDraft(video.title); setEditingTitle(false) }}
+                className="text-xs shrink-0"
+                style={{ color: '#9A8878', fontFamily: 'var(--font-mulish)' }}
+              >Cancel</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEditingTitle(true)}
+              className="text-left group block mb-1"
+              title="Click to edit title"
+            >
+              <h1
+                className="text-3xl leading-tight group-hover:opacity-70 transition-opacity"
+                style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
+              >
+                {video.title}
+                <span className="ml-2 text-sm opacity-0 group-hover:opacity-50 transition-opacity" style={{ fontStyle: 'normal', fontFamily: 'var(--font-mulish)' }}>✏</span>
+              </h1>
+            </button>
+          )}
+
           {video.description && (
             <p className="text-sm mt-1.5" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
               {video.description}
             </p>
           )}
-          <p className="text-xs mt-1" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
-            {formatGardenDateLong(video.video_date)}{' '}
-            <span style={{ color: '#D4C4A8' }}>
+
+          {/* Editable date */}
+          <div className="flex items-center gap-2 mt-1">
+            {editingDate ? (
+              <>
+                <input
+                  autoFocus
+                  type="date"
+                  className="input-warm text-xs"
+                  value={dateDraft}
+                  onChange={e => setDateDraft(e.target.value)}
+                  onClick={e => e.stopPropagation()}
+                />
+                <button
+                  onClick={() => { saveMeta({ video_date: dateDraft }); setEditingDate(false) }}
+                  disabled={metaSaving}
+                  className="btn-gold text-xs px-3 py-1.5 shrink-0"
+                >Save</button>
+                <button
+                  onClick={() => { setDateDraft(video.video_date); setEditingDate(false) }}
+                  className="text-xs shrink-0"
+                  style={{ color: '#9A8878', fontFamily: 'var(--font-mulish)' }}
+                >Cancel</button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingDate(true)}
+                className="group flex items-center gap-1"
+                title="Click to edit date"
+              >
+                <span className="text-xs group-hover:opacity-70 transition-opacity" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
+                  {formatGardenDateLong(video.video_date)}
+                  <span className="ml-1 opacity-0 group-hover:opacity-50 transition-opacity">✏</span>
+                </span>
+              </button>
+            )}
+            <span className="text-xs" style={{ color: '#D4C4A8', fontFamily: 'var(--font-mulish)' }}>
               · uploaded {new Date(video.created_at).toLocaleDateString('en-US', {
                 month: 'long', day: 'numeric', year: 'numeric',
               })}
             </span>
-          </p>
+          </div>
+
+          {metaError && (
+            <p className="text-xs mt-1" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>{metaError}</p>
+          )}
         </div>
         <span
           className="shrink-0 text-xs font-semibold rounded-full px-3 py-1.5 mt-1"

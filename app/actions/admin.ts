@@ -7,9 +7,9 @@ import { requireAdmin } from '@/lib/dal'
 import { setEmulatedChurch, clearEmulatedChurch } from '@/lib/session'
 
 export async function createChurchAction(
-  _prevState: { error?: string; success?: boolean; name?: string } | null,
+  _prevState: { error?: string; success?: boolean; name?: string; warning?: string } | null,
   formData: FormData,
-): Promise<{ error?: string; success?: boolean; name?: string }> {
+): Promise<{ error?: string; success?: boolean; name?: string; warning?: string }> {
   await requireAdmin()
   const name = formData.get('name') as string
   if (!name) return { error: 'Church name is required.' }
@@ -22,8 +22,34 @@ export async function createChurchAction(
 
   try {
     const church = await createChurch({ name, city, state, timezone, contact_email, admin_email })
-    return { success: true, name: church.name }
-  } catch {
+    // `invite_warning` is set when the church was created but the
+    // first-admin invite couldn't be sent (e.g. email already
+    // registered). Pass it through so the form can show "created,
+    // but…" instead of just success.
+    return {
+      success: true,
+      name: church.name,
+      ...(church.invite_warning ? { warning: church.invite_warning } : {}),
+    }
+  } catch (err) {
+    // The churches-onboard Edge Function returns JSON like
+    // `{"error": "..."}` on failure (e.g. Ragie partition couldn't
+    // be provisioned — that path is now mandatory, so a half-built
+    // church can't be created silently). Surface the actual reason
+    // so super-admin knows whether to retry, fix env vars, etc.
+    if (err instanceof ApiError) {
+      let detail = err.message
+      try {
+        const parsed: unknown = JSON.parse(err.message)
+        if (parsed && typeof parsed === 'object' && 'error' in parsed) {
+          const e = (parsed as { error?: unknown }).error
+          if (typeof e === 'string' && e.trim()) detail = e
+        }
+      } catch {
+        /* err.message wasn't JSON; fall back to the raw text */
+      }
+      return { error: detail || 'Failed to create church.' }
+    }
     return { error: 'Failed to create church.' }
   }
 }

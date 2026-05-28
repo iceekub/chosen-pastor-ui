@@ -86,12 +86,24 @@ export function CreateChurchForm() {
           {state.error}
         </p>
       )}
-      {state?.success && (
+      {state?.success && !state.warning && (
         <p
           className="text-sm rounded-lg px-3 py-2"
           style={{ color: '#3A7A5A', background: 'rgba(90,138,106,0.1)', border: '1px solid rgba(90,138,106,0.25)', fontFamily: 'var(--font-mulish)' }}
         >
           Church &quot;{state.name}&quot; created.
+        </p>
+      )}
+      {state?.success && state.warning && (
+        // Church succeeded but the first-admin invite didn't go out.
+        // Amber so it reads as "non-fatal, you may want to act" — not
+        // red (which is the failure path) and not green (everything
+        // worked).
+        <p
+          className="text-sm rounded-lg px-3 py-2"
+          style={{ color: '#8a6a2a', background: 'rgba(202,154,57,0.10)', border: '1px solid rgba(202,154,57,0.30)', fontFamily: 'var(--font-mulish)' }}
+        >
+          Church &quot;{state.name}&quot; created — but the first-admin invite didn&apos;t go out: {state.warning}
         </p>
       )}
 

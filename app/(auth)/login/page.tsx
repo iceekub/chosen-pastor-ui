@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { loginAction } from '@/app/actions/auth'
+import { PasswordInput } from '@/components/password-input'
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(loginAction, null)
@@ -91,7 +92,7 @@ export default function LoginPage() {
               >
                 Password
               </label>
-              <input id="password" name="password" type="password" autoComplete="current-password" required className="input-warm" placeholder="••••••••" />
+              <PasswordInput id="password" name="password" autoComplete="current-password" required placeholder="••••••••" />
             </div>
 
             {state?.error && (

@@ -55,7 +55,7 @@ export default async function SermonsPage() {
             className="text-4xl leading-tight"
             style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
           >
-            Sermons.
+            Services.
           </h1>
           <p className="text-sm mt-1" style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}>
             Your video library — uploaded, processed, and ready for your congregation.
@@ -84,10 +84,10 @@ export default async function SermonsPage() {
             className="text-2xl mb-3"
             style={{ fontFamily: 'var(--font-playfair)', color: '#C8B89A', fontStyle: 'italic' }}
           >
-            No sermons yet.
+            No services yet.
           </p>
           <p className="text-sm mb-6" style={{ color: '#9A8878', fontFamily: 'var(--font-mulish)' }}>
-            Upload your first sermon to get started.
+            Upload your first service to get started.
           </p>
           <Link href="/sermons/upload" className="btn-gold inline-block px-6 py-2.5 text-sm">
             Upload sermon

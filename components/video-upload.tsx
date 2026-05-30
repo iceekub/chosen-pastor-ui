@@ -139,14 +139,14 @@ function UploadItemCard({
             onChange={e => onUpdate(item.id, { title: e.target.value })}
             disabled={busy || done}
             className="input-warm w-full"
-            placeholder="Sunday Sermon"
+            placeholder="Sunday Service"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {/* Sermon date */}
+          {/* Service date */}
           <div>
-            <FieldLabel>Sermon date</FieldLabel>
+            <FieldLabel>Service date</FieldLabel>
             {/* Uncontrolled — avoids React setting the `value` attribute during
                 re-renders, which causes Chrome's native calendar picker to
                 immediately dismiss. Guard onClick to stop any accidental bubbling

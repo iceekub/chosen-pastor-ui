@@ -7,7 +7,7 @@ import { clearChurchSwitchAction } from '@/app/actions/admin'
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: HomeIcon },
-  { href: '/sermons',   label: 'Sermons',   icon: VideoIcon },
+  { href: '/sermons',   label: 'Services',   icon: VideoIcon },
   { href: '/garden',    label: 'Garden',    icon: GardenIcon },
   { href: '/settings',  label: 'Settings',  icon: SettingsIcon },
 ]
@@ -174,7 +174,7 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
 
         {/* Six Seeds mark + wordmark */}
         <div className="mt-5 px-3 flex justify-center items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 1024 1027" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.65, flexShrink: 0 }}>
+          <svg width="10" height="10" viewBox="0 0 1024 1027" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.65, flexShrink: 0 }}>
             <path d="M477.097 342.066L477.097 614.406L749.438 614.406C899.847 614.406 1021.78 492.475 1021.78 342.066L1021.78 331.172C1021.78 186.779 904.724 69.7257 760.331 69.7257L749.437 69.7257C599.028 69.7257 477.097 191.657 477.097 342.066Z" fill="#FEECD3"/>
             <path d="M-1.52588e-05 699.458L-1.52588e-05 372.65L326.809 372.65C507.3 372.65 653.617 518.967 653.617 699.458C653.617 879.95 507.3 1026.27 326.809 1026.27C146.317 1026.27 -1.52588e-05 879.95 -1.52588e-05 699.458Z" fill="#B5D2AD"/>
             <path d="M477.097 409.182C557.539 450.915 618.434 525.103 642.439 614.406H477.097V409.182Z" fill="#A1BF99"/>

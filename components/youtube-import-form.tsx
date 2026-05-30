@@ -97,7 +97,7 @@ export function YouTubeImportForm() {
           />
         </div>
         <div>
-          <FieldLabel>Sermon date</FieldLabel>
+          <FieldLabel>Service date</FieldLabel>
           <input
             type="date"
             defaultValue={serviceDate}
@@ -131,7 +131,7 @@ export function YouTubeImportForm() {
           className="text-xs"
           style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)' }}
         >
-          Import started — opening sermon page…
+          Import started — opening service page…
         </p>
       )}
 

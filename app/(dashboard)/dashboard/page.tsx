@@ -57,7 +57,7 @@ export default async function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-9">
         {[
-          { label: 'Sermons', value: videos.length, href: '/sermons', delay: '0.05s' },
+          { label: 'Services', value: videos.length, href: '/sermons', delay: '0.05s' },
           { label: 'Processing', value: processingVideos.length, href: '/sermons', delay: '0.12s', highlight: processingVideos.length > 0 },
           { label: 'Total Gardens', value: allGardens.length, href: '/garden', delay: '0.19s' },
         ].map(({ label, value, href, delay, highlight }) => (
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
         <p className="section-label mb-3">Quick actions</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { href: '/sermons/upload', title: 'Upload sermon', desc: 'Add a new video to the library' },
+            { href: '/sermons/upload', title: 'Upload service', desc: 'Add a new video to the library' },
             { href: '/garden',         title: 'View Gardens',   desc: 'Browse devotional gardens' },
           ].map(({ href, title, desc }, i) => (
             <Link

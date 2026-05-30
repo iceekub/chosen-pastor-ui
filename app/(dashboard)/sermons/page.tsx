@@ -65,7 +65,7 @@ export default async function SermonsPage() {
           href="/sermons/upload"
           className="btn-gold px-5 py-2.5 text-sm shrink-0"
         >
-          + Upload sermon
+          + Upload service
         </Link>
       </div>
 

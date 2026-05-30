@@ -15,7 +15,7 @@ export default async function BulkImportLandingPage() {
   return (
     <div className="px-8 py-9 max-w-2xl mx-auto">
       <div className="mb-8 anim-fadeUp">
-        <p className="section-label mb-2">Sermons</p>
+        <p className="section-label mb-2">Services</p>
         <h1
           className="text-4xl leading-tight"
           style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
@@ -40,7 +40,7 @@ export default async function BulkImportLandingPage() {
         className="text-xs mt-6 text-center"
         style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}
       >
-        Just one sermon to import?{' '}
+        Just one service to import?{' '}
         <Link href="/sermons/upload" className="underline">
           Use the single-URL form instead
         </Link>

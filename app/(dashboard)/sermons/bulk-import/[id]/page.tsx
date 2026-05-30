@@ -32,7 +32,7 @@ export default async function BulkImportDetailPage({
   return (
     <div className="px-8 py-9 max-w-4xl mx-auto">
       <div className="mb-6 anim-fadeUp">
-        <p className="section-label mb-2">Sermons</p>
+        <p className="section-label mb-2">Services</p>
         <h1
           className="text-3xl leading-tight"
           style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}

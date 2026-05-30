@@ -246,7 +246,7 @@ export function SermonDetailClient({
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>
-          <p className="section-label mb-2">Sermon</p>
+          <p className="section-label mb-2">Service</p>
 
           {/* Editable title */}
           {editingTitle ? (

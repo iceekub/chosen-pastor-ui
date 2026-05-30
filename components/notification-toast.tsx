@@ -20,7 +20,7 @@ const ICONS = {
 
 const MESSAGES = {
   video_ready: (title: string) => ({
-    heading: 'Sermon processed',
+    heading: 'Service processed',
     body: `"${title}" has been transcribed and is ready.`,
   }),
   gardens_ready: (title: string) => ({

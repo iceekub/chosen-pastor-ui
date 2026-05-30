@@ -41,7 +41,7 @@ export default async function GardenPage() {
           Garden.
         </h1>
         <p className="text-sm mt-1" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-          Review AI-generated daily devotional gardens from your sermons.
+          Review AI-generated daily devotional gardens from your services.
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export default async function GardenPage() {
           style={{ borderStyle: 'dashed' }}
         >
           <p className="text-sm" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-            Gardens will appear here once generated from your sermons.
+            Gardens will appear here once generated from your services.
           </p>
           <Link
             href="/sermons"

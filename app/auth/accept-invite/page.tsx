@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { PasswordInput } from '@/components/password-input'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
@@ -157,14 +158,12 @@ export default function AcceptInvitePage() {
               >
                 Password
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
                 placeholder="Min. 8 characters"
-                className="input-warm"
               />
             </div>
             <div>
@@ -174,14 +173,12 @@ export default function AcceptInvitePage() {
               >
                 Confirm password
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 minLength={8}
                 placeholder="••••••••"
-                className="input-warm"
               />
             </div>
 

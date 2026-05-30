@@ -69,6 +69,19 @@ export interface BibleVersion {
   label: string
 }
 
+/** Lightweight timezone fetch for server components. Returns null on error. */
+export async function getChurchTimezone(churchId: string): Promise<string | null> {
+  try {
+    const row = await postgrest<{ timezone: string | null }>(
+      `/churches?id=eq.${churchId}&select=timezone`,
+      { singleRow: true },
+    )
+    return row?.timezone ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function getChurch(churchId: string): Promise<ChurchRead> {
   return ragserv<ChurchRead>(`/churches/${churchId}`)
 }

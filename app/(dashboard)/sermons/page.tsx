@@ -9,8 +9,8 @@ import type { VideoStatus } from '@/lib/api/types'
 const STATUS: Record<VideoStatus, { label: string; color: string; bg: string }> = {
   pending_upload:   { label: 'Pending',           color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   downloading:      { label: 'Downloading',       color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
-  transcoding:      { label: 'Transcoding',       color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
-  transcode_failed: { label: 'Transcode Failed',  color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+  transcoding:      { label: 'Processing',        color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  transcode_failed: { label: 'Error',             color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
   uploaded:         { label: 'Uploaded',          color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
   processing:       { label: 'Processing',        color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
   ready:            { label: 'Ready',             color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
@@ -50,12 +50,11 @@ export default async function SermonsPage() {
       <SermonListAutoRefresh hasActive={hasActive} activeVideos={activeVideos} />
       <div className="flex items-end justify-between mb-8 anim-fadeUp">
         <div>
-          <p className="section-label mb-2">Content</p>
           <h1
             className="text-4xl leading-tight"
             style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
           >
-            Sermons.
+            Services.
           </h1>
           <p className="text-sm mt-1" style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}>
             Your video library — uploaded, processed, and ready for your congregation.
@@ -65,7 +64,7 @@ export default async function SermonsPage() {
           href="/sermons/upload"
           className="btn-gold px-5 py-2.5 text-sm shrink-0"
         >
-          + Upload sermon
+          + Upload service
         </Link>
       </div>
 
@@ -84,10 +83,10 @@ export default async function SermonsPage() {
             className="text-2xl mb-3"
             style={{ fontFamily: 'var(--font-playfair)', color: '#C8B89A', fontStyle: 'italic' }}
           >
-            No sermons yet.
+            No services yet.
           </p>
           <p className="text-sm mb-6" style={{ color: '#9A8878', fontFamily: 'var(--font-mulish)' }}>
-            Upload your first sermon to get started.
+            Upload your first service to get started.
           </p>
           <Link href="/sermons/upload" className="btn-gold inline-block px-6 py-2.5 text-sm">
             Upload sermon

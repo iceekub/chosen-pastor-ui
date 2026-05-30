@@ -7,7 +7,7 @@ import { clearChurchSwitchAction } from '@/app/actions/admin'
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: HomeIcon },
-  { href: '/sermons',   label: 'Sermons',   icon: VideoIcon },
+  { href: '/sermons',   label: 'Services',   icon: VideoIcon },
   { href: '/garden',    label: 'Garden',    icon: GardenIcon },
   { href: '/settings',  label: 'Settings',  icon: SettingsIcon },
 ]
@@ -56,33 +56,33 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
           <div className="min-w-0">
             <p
               className="text-sm font-semibold leading-tight truncate"
-              style={{ color: '#F0E4D0', fontFamily: 'var(--font-mulish)' }}
+              style={{ color: '#F2FAF2', fontFamily: 'var(--font-mulish)' }}
             >
               {churchName}
             </p>
-            <p className="text-xs truncate mt-0.5" style={{ color: '#9A8878' }}>
-              Church Portal
+            <p className="text-xs truncate mt-0.5" style={{ color: '#C8E4C0' }}>
+              Six Seeds
             </p>
           </div>
         </div>
       </div>
 
-      <div className="mx-5 mb-4" style={{ height: '1px', background: '#3E2810' }} />
+      <div className="mx-5 mb-4" style={{ height: '1px', background: 'rgba(79,113,71,0.35)' }} />
 
       {/* Emulation banner */}
       {emulatedChurchName && (
-        <div className="mx-3 mb-3 rounded-xl px-3 py-2.5" style={{ background: 'rgba(184,135,74,0.15)', border: '1px solid rgba(184,135,74,0.3)' }}>
-          <p className="text-[10px] font-semibold mb-0.5" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+        <div className="mx-3 mb-3 rounded-xl px-3 py-2.5" style={{ background: 'rgba(79,113,71,0.25)', border: '1px solid rgba(181,210,173,0.2)' }}>
+          <p className="text-[10px] font-semibold mb-0.5" style={{ color: '#B5D2AD', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             Viewing as
           </p>
-          <p className="text-xs font-semibold leading-tight mb-1.5" style={{ color: '#F0E4D0', fontFamily: 'var(--font-mulish)' }}>
+          <p className="text-xs font-semibold leading-tight mb-1.5" style={{ color: '#D4EDDA', fontFamily: 'var(--font-mulish)' }}>
             {emulatedChurchName}
           </p>
           <form action={clearChurchSwitchAction}>
             <button
               type="submit"
               className="text-[10px] font-semibold underline"
-              style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              style={{ color: '#B5D2AD', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
             >
               Exit to my view
             </button>
@@ -104,14 +104,14 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
               style={{
                 fontFamily: 'var(--font-mulish)',
                 fontWeight: active ? 600 : 500,
-                color: active ? '#F0E4D0' : '#C0A888',
+                color: active ? '#FEECD3' : '#A8C8B0',
                 background: active
-                  ? 'linear-gradient(90deg, rgba(184,135,74,0.22) 0%, rgba(184,135,74,0.06) 100%)'
+                  ? 'linear-gradient(90deg, rgba(181,210,173,0.2) 0%, rgba(181,210,173,0.05) 100%)'
                   : 'transparent',
-                borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                borderLeft: `2px solid ${active ? '#C8E4C0' : 'transparent'}`,
               }}
             >
-              <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#B8874A' : 'inherit' } as React.CSSProperties} />
+              <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#C8E4C0' : '#7AAE88' } as React.CSSProperties} />
               {label}
             </Link>
           )
@@ -120,7 +120,7 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
         {role === 'super_admin' && (
           <>
             <div className="pt-5 pb-2 px-3">
-              <span className="section-label" style={{ color: '#4A3828' }}>Super Admin</span>
+              <span className="section-label" style={{ color: '#7AAE88' }}>Super Admin</span>
             </div>
             {ADMIN_NAV.map(({ href, label, icon: Icon }) => {
               const active = pathname === href
@@ -132,14 +132,14 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
                   style={{
                     fontFamily: 'var(--font-mulish)',
                     fontWeight: active ? 600 : 500,
-                    color: active ? '#F0E4D0' : '#C0A888',
+                    color: active ? '#FEECD3' : '#A8C8B0',
                     background: active
-                      ? 'linear-gradient(90deg, rgba(184,135,74,0.22) 0%, rgba(184,135,74,0.06) 100%)'
+                      ? 'linear-gradient(90deg, rgba(181,210,173,0.2) 0%, rgba(181,210,173,0.05) 100%)'
                       : 'transparent',
-                    borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                    borderLeft: `2px solid ${active ? '#C8E4C0' : 'transparent'}`,
                   }}
                 >
-                  <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#B8874A' : 'inherit' } as React.CSSProperties} />
+                  <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#C8E4C0' : '#7AAE88' } as React.CSSProperties} />
                   {label}
                 </Link>
               )
@@ -149,15 +149,15 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
       </nav>
 
       {/* User + Logout */}
-      <div className="px-3 pb-4 pt-3" style={{ borderTop: '1px solid #3E2810' }}>
+      <div className="px-3 pb-4 pt-3" style={{ borderTop: '1px solid rgba(79,113,71,0.35)' }}>
         <div className="px-3 py-2 mb-0.5">
           <p
             className="text-xs font-semibold truncate"
-            style={{ color: '#E0CEB8', fontFamily: 'var(--font-mulish)' }}
+            style={{ color: '#E8F8E8', fontFamily: 'var(--font-mulish)' }}
           >
             {userName}
           </p>
-          <p className="text-xs capitalize truncate mt-0.5" style={{ color: '#9A8878' }}>
+          <p className="text-xs capitalize truncate mt-0.5" style={{ color: '#A8C8B0' }}>
             {role.replace('_', ' ')}
           </p>
         </div>
@@ -165,17 +165,28 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
           <button
             type="submit"
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors"
-            style={{ color: '#A89878', fontFamily: 'var(--font-mulish)', fontWeight: 500 }}
+            style={{ color: '#A8C8B0', fontFamily: 'var(--font-mulish)', fontWeight: 500 }}
           >
             <LogoutIcon className="w-4 h-4 shrink-0" />
             Sign out
           </button>
         </form>
 
-        {/* Chosen logo */}
-        <div className="mt-5 px-3 flex justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/chosen-logo.png" alt="Chosen" className="w-24 opacity-60" />
+        {/* Six Seeds mark + wordmark */}
+        <div className="mt-5 px-3 flex justify-center items-center gap-2">
+          <svg width="12" height="12" viewBox="0 0 1024 1027" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.65, flexShrink: 0 }}>
+            <path d="M477.097 342.066L477.097 614.406L749.438 614.406C899.847 614.406 1021.78 492.475 1021.78 342.066L1021.78 331.172C1021.78 186.779 904.724 69.7257 760.331 69.7257L749.437 69.7257C599.028 69.7257 477.097 191.657 477.097 342.066Z" fill="#FEECD3"/>
+            <path d="M-1.52588e-05 699.458L-1.52588e-05 372.65L326.809 372.65C507.3 372.65 653.617 518.967 653.617 699.458C653.617 879.95 507.3 1026.27 326.809 1026.27C146.317 1026.27 -1.52588e-05 879.95 -1.52588e-05 699.458Z" fill="#B5D2AD"/>
+            <path d="M477.097 409.182C557.539 450.915 618.434 525.103 642.439 614.406H477.097V409.182Z" fill="#A1BF99"/>
+            <path d="M785.316 181.002C786.527 180.259 787.958 179.934 789.342 180.149C790.73 180.363 791.962 181.093 792.785 182.177C793.608 183.261 793.98 184.643 793.814 186.038C793.649 187.429 792.952 188.722 791.91 189.69C788.321 193.023 784.712 196.4 781.144 199.775V199.776C731.249 247.15 662.638 317.424 636.004 345.61C622.698 359.691 612.483 369.938 605.163 377.468C601.508 381.228 598.567 384.321 596.332 386.868C594.11 389.4 592.528 391.457 591.646 393.14C591.301 393.799 590.954 394.159 590.648 394.356C590.353 394.545 590.027 394.626 589.636 394.614C588.771 394.588 587.701 394.12 586.361 393.392C585.12 392.717 583.644 391.816 582.251 391.293C580.835 390.761 579.191 390.491 577.67 391.398V391.4C576.451 392.123 575.106 392.57 573.776 392.555C572.442 392.54 571.229 392.074 570.336 391.251C569.443 390.428 568.88 389.256 568.757 387.928C568.633 386.603 568.974 385.225 569.597 383.951L569.825 383.43C570.833 380.81 569.826 378.135 569.08 375.995C568.226 373.546 567.672 371.706 568.563 370.031C578.271 360.261 585.822 352.001 592.668 344.417C599.544 336.799 605.696 329.881 612.619 322.782C661.163 273.116 714.1 227.093 772.68 188.989C776.86 186.282 781.093 183.602 785.316 181.002Z" fill="#B4926C"/>
+            <path d="M697.149 568.85C719.547 569.509 742.103 567.468 764.138 562.685C887.405 537.937 985.917 418.93 985.197 289.776C986.288 198.996 986.86 108.216 986.914 17.4365L986.903 1.12241e-05L969.488 0.0107549C964.754 0.00788677 960.02 0.00684951 955.285 0.00684993C869.24 0.00685877 783.194 0.47214 697.149 1.40336C557.279 0.0265991 430.898 116.074 418.779 251.565C417.387 264.314 416.887 277.004 417.241 289.776C417.576 301.424 417.92 313.071 418.272 324.719L431.344 324.719C431.696 313.071 432.039 301.424 432.374 289.776C432.732 277.68 433.88 265.764 435.834 253.885C454.619 127.66 573.336 29.6026 697.149 33.4698C782.125 34.3894 867.102 34.8538 952.079 34.8652C952.192 119.836 952.76 204.806 953.78 289.776C957.145 404.471 874.192 516.098 760.048 545.966C739.646 551.573 718.49 554.734 697.149 555.385C694.97 555.45 692.791 555.515 690.613 555.581L690.613 568.653C692.791 568.719 694.97 568.784 697.149 568.85Z" fill="#B4926C"/>
+            <path d="M52.2891 303.785C161.225 304.355 270.162 305.209 379.098 306.348C518.054 305.841 649.277 400.724 693.438 529.896C706.81 567.532 713.193 607.471 712.442 647.169C713.169 686.068 713.859 724.969 714.513 763.868C715.69 833.905 716.748 903.941 717.689 973.978L717.846 985.601L705.906 985.761C596.97 987.225 488.034 988.404 379.098 989.299C196.82 995.309 30.3441 830.686 34.8594 647.169C34.8594 538.233 35.1443 429.296 35.7139 320.36L35.628 303.872L52.2891 303.785ZM677.313 535.915C631.13 414.88 506.448 331.227 379.098 334.373C275.714 335.454 172.329 336.276 68.9454 336.844C69.4589 440.285 69.7188 543.727 69.7188 647.169C65.7686 811.808 213.219 961.111 379.098 958.656C476.292 959.455 573.486 960.484 670.681 961.736C642.043 924.922 629.773 910.245 611.66 889.702C543.006 812.084 469.556 738.567 391.272 669.31C385.726 664.405 380.106 659.485 374.413 654.554C373.143 653.452 372.286 651.919 372.075 650.233C371.865 648.548 372.312 646.857 373.326 645.521C374.341 644.184 375.85 643.3 377.529 643.051C379.209 642.801 380.916 643.215 382.318 644.143C388.645 648.339 394.889 652.557 401.047 656.794C487.949 716.71 567.655 787.311 637.797 866.636C655.142 886.306 678.947 911.463 694.656 935.334C695.459 878.179 696.339 821.023 697.3 763.868C697.953 724.969 698.644 686.068 699.37 647.169C698.665 608.993 691.185 571.159 677.313 535.915Z" fill="#4F7147"/>
+          </svg>
+          <span
+            style={{ color: 'rgba(200,228,192,0.65)', fontFamily: 'var(--font-bellota)', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}
+          >
+            Six Seeds
+          </span>
         </div>
       </div>
     </aside>

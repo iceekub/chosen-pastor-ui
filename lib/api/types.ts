@@ -66,6 +66,10 @@ export interface Video {
    *  auto-frame URL or to a custom upload in the video-thumbnails
    *  Supabase Storage bucket). */
   thumbnail_url: string | null
+  /** Stores the most recent custom-uploaded thumbnail URL separately
+   *  from thumbnail_url so it persists even after switching back to
+   *  an auto-generated frame. */
+  custom_thumbnail_url: string | null
   /** S3 keys of the auto-generated MediaConvert frame captures (≤5).
    *  Used by the thumbnail picker to render alternate auto-frame
    *  candidates the staff can select from. Empty for YouTube imports

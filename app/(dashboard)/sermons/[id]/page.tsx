@@ -40,7 +40,7 @@ export default async function SermonDetailPage({ params }: Props) {
         className="inline-flex items-center gap-1.5 text-xs mb-6 anim-fadeIn"
         style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', fontWeight: 500 }}
       >
-        &larr; Back to Sermons
+        &larr; Back to Services
       </Link>
 
       <SermonDetailClient

@@ -9,6 +9,7 @@
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html { height: 100%; }
+a[href], button:not(:disabled) { cursor: pointer !important; }
 
 body {
   font-family: var(--font-mulish), system-ui, sans-serif;
@@ -26,11 +27,13 @@ body {
 
 /* ─── Sidebar ─────────────────────────────────────────────────────────────── */
 .sidebar {
-  background-color: #2C1A0C;
+  background-color: #062d25;
   background-image:
-    radial-gradient(ellipse 90% 45% at 50% 0%, rgba(184,135,74,0.18) 0%, transparent 65%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E");
-  background-size: auto, 300px 300px;
+    linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)),
+    radial-gradient(ellipse 90% 45% at 50% 0%, rgba(79,113,71,0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 40% at 80% 90%, rgba(180,146,108,0.12) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.07'/%3E%3C/svg%3E");
+  background-size: auto, auto, auto, 300px 300px;
 }
 
 /* ─── Card / surface ──────────────────────────────────────────────────────── */
@@ -58,6 +61,48 @@ body {
 .btn-gold:hover  { filter: brightness(1.1); }
 .btn-gold:active { transform: scale(0.98); }
 .btn-gold:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+
+/* ─── Seed button (login page — glass style matching sixseeds.org) ─────────── */
+.btn-seed {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  color: #FEECD3;
+  font-family: var(--font-mulish);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 146, 108, 0.25);
+  cursor: pointer;
+  transition: border-color 0.3s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.btn-seed:hover  { border-color: rgba(180, 146, 108, 0.5); }
+.btn-seed:active { transform: scale(0.98); }
+.btn-seed:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ─── Dark input (login page on dark bg) ─────────────────────────────────── */
+.input-dark {
+  background-color: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: #FEECD3;
+  font-family: var(--font-mulish);
+  font-size: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.input-dark::placeholder { color: rgba(254,236,211,0.3); }
+.input-dark:focus {
+  border-color: rgba(79,113,71,0.7);
+  box-shadow: 0 0 0 3px rgba(79,113,71,0.15);
+}
 
 /* ─── Inputs ──────────────────────────────────────────────────────────────── */
 .input-warm {

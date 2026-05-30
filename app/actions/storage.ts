@@ -162,7 +162,7 @@ export async function uploadVideoThumbnailAction(
     const url = await uploadToStorage('video-thumbnails', path, file)
     await postgrest(`/videos?id=eq.${videoId}`, {
       method: 'PATCH',
-      body: { thumbnail_url: url },
+      body: { thumbnail_url: url, custom_thumbnail_url: url },
     })
     return { success: true, url }
   } catch (err) {

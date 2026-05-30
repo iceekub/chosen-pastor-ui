@@ -21,8 +21,8 @@ import {
 const STATUS_DISPLAY: Record<VideoStatus, { label: string; color: string; bg: string }> = {
   pending_upload:   { label: 'Pending Upload',  color: '#9A8878', bg: 'rgba(154,136,120,0.1)' },
   downloading:      { label: 'Downloading',     color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
-  transcoding:      { label: 'Transcoding',     color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
-  transcode_failed: { label: 'Transcode Failed', color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
+  transcoding:      { label: 'Processing',      color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
+  transcode_failed: { label: 'Error',           color: '#8B3A3A', bg: 'rgba(139,58,58,0.08)' },
   uploaded:         { label: 'Uploaded',        color: '#5878A8', bg: 'rgba(88,120,168,0.1)' },
   processing:       { label: 'Processing',      color: '#B8874A', bg: 'rgba(184,135,74,0.12)' },
   ready:            { label: 'Ready',           color: '#5A8A6A', bg: 'rgba(90,138,106,0.12)' },
@@ -113,6 +113,11 @@ export function SermonDetailClient({
     d.setDate(d.getDate() + 6)
     return d
   }, [video.week_anchor_sunday])
+
+  // "Mon, Jun 2 – Sat, Jun 7" label for the primary-video notice.
+  const weekRangeLabel = useMemo(() => (
+    `${formatGardenDateShort(weekStartsAt)} – ${formatGardenDateShort(toISODate(weekSaturday))}`
+  ), [weekStartsAt, weekSaturday])
 
   // "Wed, May 6 – Sat, May 9" label for the override link.
   const overrideRangeLabel = useMemo(() => {
@@ -241,7 +246,7 @@ export function SermonDetailClient({
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>
-          <p className="section-label mb-2">Sermon</p>
+          <p className="section-label mb-2">Service</p>
 
           {/* Editable title */}
           {editingTitle ? (
@@ -365,7 +370,7 @@ export function SermonDetailClient({
             style={{ background: '#5A8A6A' }}
           />
           <p className="text-sm" style={{ fontFamily: 'var(--font-mulish)', color: '#3A6A4A' }}>
-            This sermon is being used to generate this week&apos;s gardens.
+            This sermon is the primary source for gardens {weekRangeLabel}.
           </p>
         </div>
       )}
@@ -641,6 +646,8 @@ export function SermonDetailClient({
           )}
         </div>
       )}
+
+      {/* Archive sermon — tucked at the bottom; low-visibility by design */}
     </>
   )
 }

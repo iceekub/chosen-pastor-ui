@@ -9,15 +9,15 @@ export default async function UploadPage() {
   return (
     <div className="px-8 py-9 max-w-2xl mx-auto">
       <div className="mb-8 anim-fadeUp">
-        <p className="section-label mb-2">Sermons</p>
+        <p className="section-label mb-2">Services</p>
         <h1
           className="text-4xl leading-tight"
           style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
         >
-          Upload sermon.
+          Upload service.
         </h1>
         <p className="text-sm mt-1" style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}>
-          Upload a file directly, or paste a YouTube / Facebook URL we&apos;ll download for you. Sunday sermons get daily gardens generated as soon as processing completes.
+          Upload a file directly, or paste a YouTube / Facebook URL we&apos;ll download for you. Sunday services get daily gardens generated as soon as processing completes.
         </p>
       </div>
       <div className="surface p-6 anim-fadeUp" style={{ animationDelay: '0.1s' }}>

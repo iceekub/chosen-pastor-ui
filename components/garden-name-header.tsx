@@ -6,9 +6,10 @@ import type { Garden } from '@/lib/api/types'
 
 interface Props {
   garden: Garden
+  readOnly?: boolean
 }
 
-export function GardenNameHeader({ garden }: Props) {
+export function GardenNameHeader({ garden, readOnly = false }: Props) {
   const router = useRouter()
   const initialTitle = garden.content_json?.title ?? garden.topic ?? ''
   const [editing, setEditing] = useState(false)
@@ -50,6 +51,17 @@ export function GardenNameHeader({ garden }: Props) {
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter') { e.preventDefault(); save() }
     if (e.key === 'Escape') { setDraft(initialTitle); setEditing(false) }
+  }
+
+  if (readOnly) {
+    return (
+      <h1
+        className="text-3xl leading-tight"
+        style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
+      >
+        {draft}
+      </h1>
+    )
   }
 
   if (editing) {

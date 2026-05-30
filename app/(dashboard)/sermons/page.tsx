@@ -50,7 +50,6 @@ export default async function SermonsPage() {
       <SermonListAutoRefresh hasActive={hasActive} activeVideos={activeVideos} />
       <div className="flex items-end justify-between mb-8 anim-fadeUp">
         <div>
-          <p className="section-label mb-2">Content</p>
           <h1
             className="text-4xl leading-tight"
             style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}

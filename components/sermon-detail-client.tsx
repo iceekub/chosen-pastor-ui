@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useNotifications } from '@/lib/notifications'
 import { ThumbnailPicker } from '@/components/thumbnail-picker'
 import type {
@@ -55,7 +54,6 @@ export function SermonDetailClient({
   staffViewer = false,
 }: Props) {
   const { addNotification } = useNotifications()
-  const router = useRouter()
   const [video, setVideo] = useState(initialVideo)
   const [gardens, setGardens] = useState(initialGardens)
   // Track last-known video status so we can detect the → ready transition

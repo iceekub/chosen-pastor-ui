@@ -156,7 +156,7 @@ function Tile({
       style={{ borderColor: selected ? '#B8874A' : 'rgba(200,182,155,0.3)' }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt="" className="block w-full aspect-video object-cover" />
+      <img src={url} alt="Frame option" className="block w-full aspect-video object-cover" />
       {selected && (
         <span
           className="absolute top-1 right-1 text-[10px] font-semibold rounded-full px-1.5 py-0.5"

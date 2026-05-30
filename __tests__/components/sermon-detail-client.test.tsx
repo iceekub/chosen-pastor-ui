@@ -271,12 +271,12 @@ describe('SermonDetailClient — gardens list', () => {
 describe('SermonDetailClient — primary notifier', () => {
   it('shows the primary notifier when the video is primary', () => {
     render(<SermonDetailClient initialVideo={makeVideo({ role: 'primary' })} initialGardens={[]} />)
-    expect(screen.getByText(/being used to generate this week/i)).toBeInTheDocument()
+    expect(screen.getByText(/primary source for gardens/i)).toBeInTheDocument()
   })
 
   it('does not show the primary notifier when the video is not primary', () => {
     render(<SermonDetailClient initialVideo={makeVideo({ role: 'ignored' })} initialGardens={[]} />)
-    expect(screen.queryByText(/being used to generate this week/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/primary source for gardens/i)).not.toBeInTheDocument()
   })
 })
 

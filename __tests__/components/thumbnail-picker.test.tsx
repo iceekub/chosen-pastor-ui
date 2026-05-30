@@ -108,30 +108,34 @@ describe('ThumbnailPicker — empty thumbnail_keys', () => {
   })
 })
 
-describe('ThumbnailPicker — custom upload preview', () => {
-  it('shows a current-custom-thumbnail strip when thumbnail_url is not an auto-frame', () => {
+describe('ThumbnailPicker — custom upload tile', () => {
+  it('shows the custom upload section and selected tile when custom_thumbnail_url is set', () => {
     const customUrl = 'https://abc.supabase.co/storage/v1/object/public/video-thumbnails/c1/v1/thumbnail.jpg'
     const video = makeVideo({
       id: 'v1',
       thumbnail_keys: KEYS,
       thumbnail_url: customUrl,
+      custom_thumbnail_url: customUrl,
     })
     render(<ThumbnailPicker video={video} />)
 
-    const preview = screen.getByAltText('Current custom thumbnail') as HTMLImageElement
-    expect(preview.src).toBe(customUrl)
-    // None of the auto-frames are marked selected since the custom URL
-    // doesn't match any candidate.
-    expect(screen.queryByText('Selected')).not.toBeInTheDocument()
+    // Section label is visible
+    expect(screen.getByText('Custom upload')).toBeInTheDocument()
+    // The custom tile is marked selected
+    expect(screen.getByText('Selected')).toBeInTheDocument()
+    // Upload button label changes to reflect a custom already exists
+    expect(screen.getByRole('button', { name: 'Replace custom upload' })).toBeInTheDocument()
   })
 
-  it('hides the custom-preview strip when thumbnail_url IS an auto-frame', () => {
+  it('hides the custom upload section when custom_thumbnail_url is null', () => {
     const video = makeVideo({
       id: 'v1',
       thumbnail_keys: KEYS,
       thumbnail_url: URLS[2],
+      custom_thumbnail_url: null,
     })
     render(<ThumbnailPicker video={video} />)
-    expect(screen.queryByAltText('Current custom thumbnail')).not.toBeInTheDocument()
+    expect(screen.queryByText('Custom upload')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upload your own' })).toBeInTheDocument()
   })
 })

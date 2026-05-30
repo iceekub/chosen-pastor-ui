@@ -115,11 +115,7 @@ function VerseEdit({ card, onChange }: { card: VerseGardenCard; onChange: (c: Ve
 
 function TextEdit({ card, onChange }: { card: TextGardenCard; onChange: (c: TextGardenCard) => void }) {
   return (
-    <div className="space-y-3">
-      <Field label="Content">
-        <textarea className="input-warm resize-y w-full" style={inputStyle} rows={4} value={card.content} onChange={e => onChange({ ...card, content: e.target.value })} />
-      </Field>
-    </div>
+    <textarea className="input-warm resize-y w-full" style={inputStyle} rows={4} value={card.content} onChange={e => onChange({ ...card, content: e.target.value })} />
   )
 }
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useNotifications } from '@/lib/notifications'
 import { ThumbnailPicker } from '@/components/thumbnail-picker'
 import type {
@@ -54,6 +55,7 @@ export function SermonDetailClient({
   staffViewer = false,
 }: Props) {
   const { addNotification } = useNotifications()
+  const router = useRouter()
   const [video, setVideo] = useState(initialVideo)
   const [gardens, setGardens] = useState(initialGardens)
   // Track last-known video status so we can detect the → ready transition
@@ -113,6 +115,11 @@ export function SermonDetailClient({
     d.setDate(d.getDate() + 6)
     return d
   }, [video.week_anchor_sunday])
+
+  // "Mon, Jun 2 – Sat, Jun 7" label for the primary-video notice.
+  const weekRangeLabel = useMemo(() => (
+    `${formatGardenDateShort(weekStartsAt)} – ${formatGardenDateShort(toISODate(weekSaturday))}`
+  ), [weekStartsAt, weekSaturday])
 
   // "Wed, May 6 – Sat, May 9" label for the override link.
   const overrideRangeLabel = useMemo(() => {
@@ -365,7 +372,7 @@ export function SermonDetailClient({
             style={{ background: '#5A8A6A' }}
           />
           <p className="text-sm" style={{ fontFamily: 'var(--font-mulish)', color: '#3A6A4A' }}>
-            This sermon is being used to generate this week&apos;s gardens.
+            This sermon is the primary source for gardens {weekRangeLabel}.
           </p>
         </div>
       )}
@@ -641,6 +648,8 @@ export function SermonDetailClient({
           )}
         </div>
       )}
+
+      {/* Archive sermon — tucked at the bottom; low-visibility by design */}
     </>
   )
 }

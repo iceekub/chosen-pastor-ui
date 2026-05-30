@@ -1,8 +1,9 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { loginWithCredentials, logoutSupabase } from '@/lib/api/auth'
-import { ApiError } from '@/lib/api/client'
+import { ApiError, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/api/client'
 import { deleteSession, getSession, setSession } from '@/lib/session'
 
 export async function loginAction(
@@ -30,6 +31,28 @@ export async function loginAction(
   }
 
   redirect('/dashboard')
+}
+
+export async function forgotPasswordAction(
+  _prevState: { error?: string; success?: boolean } | null,
+  formData: FormData,
+): Promise<{ error?: string; success?: boolean }> {
+  const email = (formData.get('email') as string | null)?.trim()
+  if (!email) return { error: 'Email is required.' }
+
+  const headersList = await headers()
+  const host = headersList.get('host') ?? 'localhost:3000'
+  const proto = headersList.get('x-forwarded-proto') ?? 'http'
+  const redirectTo = `${proto}://${host}/auth/reset-password`
+
+  await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
+    body: JSON.stringify({ email, redirect_to: redirectTo }),
+  })
+
+  // Always succeed to prevent email enumeration.
+  return { success: true }
 }
 
 export async function logoutAction(): Promise<void> {

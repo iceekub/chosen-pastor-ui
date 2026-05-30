@@ -21,7 +21,7 @@ const secret = new TextEncoder().encode(
   process.env.SESSION_SECRET ?? 'dev-secret-replace-in-production',
 )
 
-const PUBLIC_PATHS = ['/login', '/unauthorized']
+const PUBLIC_PATHS = ['/login', '/unauthorized', '/forgot-password', '/auth/reset-password']
 
 /** Decode a JWT payload without verifying the signature (we trust Supabase). */
 function getJwtExp(token: string): number | null {

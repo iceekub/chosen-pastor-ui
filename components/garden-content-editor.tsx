@@ -22,6 +22,8 @@ interface Props {
   garden: Garden
   /** Pre-bound upload action passed from the server component */
   mediaCardUploadBase?: MediaCardUploadBase
+  /** When true the garden is live — all editing controls are hidden. */
+  readOnly?: boolean
 }
 
 /* ─── helpers ─────────────────────────────────────────────── */
@@ -313,7 +315,7 @@ const CARD_TYPES: { type: AddableCardType; label: string }[] = [
 
 /* ─── main component ──────────────────────────────────────── */
 
-export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
+export function GardenContentEditor({ garden, mediaCardUploadBase, readOnly = false }: Props) {
   const router = useRouter()
   const [content, setContent] = useState<GardenContent>(normalizeContent(garden))
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -406,6 +408,12 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
 
   return (
     <div>
+      {readOnly && (
+        <div className="rounded-xl px-4 py-3 text-sm mb-5 flex items-center gap-2.5" style={{ background: 'rgba(90,138,106,0.07)', border: '1px solid rgba(90,138,106,0.22)', color: '#3A6A4A', fontFamily: 'var(--font-mulish)' }}>
+          <span style={{ fontSize: 16 }}>🔒</span>
+          <span>This garden is live and cannot be edited.</span>
+        </div>
+      )}
       {error && (
         <div className="rounded-xl px-4 py-3 text-sm mb-5" style={{ background: 'rgba(139,58,58,0.08)', border: '1px solid rgba(139,58,58,0.2)', color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>
           {error}
@@ -420,29 +428,31 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">
           <p className="section-label">Cards</p>
-          <div className="relative">
-            <button
-              onClick={() => setShowAddMenu(v => !v)}
-              className="text-xs font-semibold transition-colors"
-              style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
-            >
-              + Add card
-            </button>
-            {showAddMenu && (
-              <div className="absolute right-0 top-6 z-20 rounded-xl shadow-lg overflow-hidden" style={{ background: '#FDF8F2', border: '1px solid #EAD9C4', minWidth: 180 }}>
-                {CARD_TYPES.map(({ type, label }) => (
-                  <button
-                    key={type}
-                    onClick={() => addCard(type)}
-                    className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-[rgba(184,135,74,0.08)]"
-                    style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {!readOnly && (
+            <div className="relative">
+              <button
+                onClick={() => setShowAddMenu(v => !v)}
+                className="text-xs font-semibold transition-colors"
+                style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}
+              >
+                + Add card
+              </button>
+              {showAddMenu && (
+                <div className="absolute right-0 top-6 z-20 rounded-xl shadow-lg overflow-hidden" style={{ background: '#FDF8F2', border: '1px solid #EAD9C4', minWidth: 180 }}>
+                  {CARD_TYPES.map(({ type, label }) => (
+                    <button
+                      key={type}
+                      onClick={() => addCard(type)}
+                      className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-[rgba(184,135,74,0.08)]"
+                      style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {content.cards.length === 0 && (
@@ -462,20 +472,22 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
             {/* Card header */}
             <div className="flex items-center justify-between px-5 py-2.5" style={{ background: 'rgba(230,218,200,0.3)', borderBottom: '1px solid #EAD9C4' }}>
               <span className="section-label" style={{ color: '#C5B49A' }}>{cardLabel(card)}</span>
-              <div className="flex gap-3">
-                {editingIndex !== index ? (
-                  <>
-                    <button onClick={() => startEdit(index)} className="text-xs font-semibold transition-colors" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}>
-                      Edit
-                    </button>
-                    <button onClick={() => removeCard(index)} className="text-xs font-semibold transition-colors" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>
-                      Remove
-                    </button>
-                  </>
-                ) : (
-                  <span className="text-xs" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>Editing…</span>
-                )}
-              </div>
+              {!readOnly && (
+                <div className="flex gap-3">
+                  {editingIndex !== index ? (
+                    <>
+                      <button onClick={() => startEdit(index)} className="text-xs font-semibold transition-colors" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)' }}>
+                        Edit
+                      </button>
+                      <button onClick={() => removeCard(index)} className="text-xs font-semibold transition-colors" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>
+                        Remove
+                      </button>
+                    </>
+                  ) : (
+                    <span className="text-xs" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>Editing…</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Card body */}
@@ -510,7 +522,7 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
         <div className="surface overflow-hidden">
           <div className="flex items-center justify-between px-5 py-2.5" style={{ background: 'rgba(230,218,200,0.3)', borderBottom: '1px solid #EAD9C4' }}>
             <span className="section-label" style={{ color: '#C5B49A' }}>Reflection</span>
-            {!editingFinal ? (
+            {!readOnly && (!editingFinal ? (
               <button
                 onClick={() => { setEditingFinal(true); setEditFinalCard(content.final_reflection ?? { id: 'final', type: 'reflection_final', tag: 'Reflection', content: '', placeholder: '' }) }}
                 className="text-xs font-semibold transition-colors"
@@ -520,7 +532,7 @@ export function GardenContentEditor({ garden, mediaCardUploadBase }: Props) {
               </button>
             ) : (
               <span className="text-xs" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>Editing…</span>
-            )}
+            ))}
           </div>
           <div className="px-5 py-4">
             {editingFinal && editFinalCard ? (

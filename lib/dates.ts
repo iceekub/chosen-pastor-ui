@@ -66,6 +66,18 @@ export function isMondayISO(iso: string): boolean {
 }
 
 /**
+ * Today's date in the given IANA timezone, as YYYY-MM-DD.
+ * Used to freeze garden editing once a garden's date has arrived in
+ * the church's local timezone (12:01 am = start of that day).
+ * Falls back to America/Chicago when tz is absent.
+ */
+export function todayInTimezone(tz: string | null | undefined): string {
+  const zone = tz || 'America/Chicago'
+  // en-CA locale formats as YYYY-MM-DD natively.
+  return new Intl.DateTimeFormat('en-CA', { timeZone: zone }).format(new Date())
+}
+
+/**
  * Mirror of ragserv's ``week_anchor_sunday(d)``: the Sunday of the
  * Sun-Sat span containing ``iso``. Returns the input unchanged when
  * ``iso`` already names a Sunday.

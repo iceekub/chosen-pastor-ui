@@ -1,7 +1,8 @@
 import { getGarden } from '@/lib/api/garden'
 import { getVideo } from '@/lib/api/videos'
 import { verifySession } from '@/lib/dal'
-import { formatGardenDateLong } from '@/lib/dates'
+import { formatGardenDateLong, todayInTimezone } from '@/lib/dates'
+import { getChurchTimezone } from '@/lib/api/churches'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { GardenContentEditor } from '@/components/garden-content-editor'
@@ -20,7 +21,7 @@ const STATUS: Record<GardenStatus, { label: string; color: string; bg: string }>
 interface Props { params: Promise<{ id: string }> }
 
 export default async function GardenDetailPage({ params }: Props) {
-  await verifySession()
+  const user = await verifySession()
   const { id } = await params
   const garden = await getGarden(id).catch(() => null)
   if (!garden) notFound()
@@ -29,6 +30,14 @@ export default async function GardenDetailPage({ params }: Props) {
   // linking back to it. Soft-fail — if the video is missing the notifier
   // is simply omitted rather than breaking the page.
   const sourceVideo = await getVideo(garden.video_id).catch(() => null)
+
+  // Freeze editing once the garden's date has arrived in the church's
+  // local timezone (garden is live for parishioners from 12:01 am onward).
+  const churchTimezone = user.church_id
+    ? await getChurchTimezone(user.church_id)
+    : null
+  const todayISO = todayInTimezone(churchTimezone)
+  const isFrozen = garden.garden_date <= todayISO
 
   const s = STATUS[garden.status] ?? STATUS.pending
   const dateLabel = formatGardenDateLong(garden.garden_date)
@@ -67,7 +76,7 @@ export default async function GardenDetailPage({ params }: Props) {
       <div className="flex items-start justify-between gap-4 mb-7 anim-fadeUp">
         <div>
           <p className="section-label mb-2">{dateLabel}</p>
-          <GardenNameHeader garden={garden} />
+          <GardenNameHeader garden={garden} readOnly={isFrozen} />
         </div>
         <span
           className="shrink-0 text-xs font-semibold rounded-full px-3 py-1.5 mt-1"
@@ -102,14 +111,14 @@ export default async function GardenDetailPage({ params }: Props) {
       {/* Editable content — shown when garden is ready or has content */}
       {(garden.status === 'ready' || garden.content_json) && (
         <div className="anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-          <GardenContentEditor garden={garden} mediaCardUploadBase={mediaCardUploadBase} />
+          <GardenContentEditor garden={garden} mediaCardUploadBase={mediaCardUploadBase} readOnly={isFrozen} />
         </div>
       )}
 
       {/* Empty state for pending gardens with no content yet */}
       {garden.status === 'pending' && !garden.content_json && (
         <div className="anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-          <GardenContentEditor garden={garden} mediaCardUploadBase={mediaCardUploadBase} />
+          <GardenContentEditor garden={garden} mediaCardUploadBase={mediaCardUploadBase} readOnly={isFrozen} />
         </div>
       )}
     </div>

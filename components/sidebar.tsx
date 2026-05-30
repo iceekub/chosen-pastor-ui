@@ -56,33 +56,33 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
           <div className="min-w-0">
             <p
               className="text-sm font-semibold leading-tight truncate"
-              style={{ color: '#F0E4D0', fontFamily: 'var(--font-mulish)' }}
+              style={{ color: '#F2FAF2', fontFamily: 'var(--font-mulish)' }}
             >
               {churchName}
             </p>
-            <p className="text-xs truncate mt-0.5" style={{ color: '#9A8878' }}>
-              Church Portal
+            <p className="text-xs truncate mt-0.5" style={{ color: '#C8E4C0' }}>
+              Six Seeds
             </p>
           </div>
         </div>
       </div>
 
-      <div className="mx-5 mb-4" style={{ height: '1px', background: '#3E2810' }} />
+      <div className="mx-5 mb-4" style={{ height: '1px', background: 'rgba(79,113,71,0.35)' }} />
 
       {/* Emulation banner */}
       {emulatedChurchName && (
-        <div className="mx-3 mb-3 rounded-xl px-3 py-2.5" style={{ background: 'rgba(184,135,74,0.15)', border: '1px solid rgba(184,135,74,0.3)' }}>
-          <p className="text-[10px] font-semibold mb-0.5" style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+        <div className="mx-3 mb-3 rounded-xl px-3 py-2.5" style={{ background: 'rgba(79,113,71,0.25)', border: '1px solid rgba(181,210,173,0.2)' }}>
+          <p className="text-[10px] font-semibold mb-0.5" style={{ color: '#B5D2AD', fontFamily: 'var(--font-mulish)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             Viewing as
           </p>
-          <p className="text-xs font-semibold leading-tight mb-1.5" style={{ color: '#F0E4D0', fontFamily: 'var(--font-mulish)' }}>
+          <p className="text-xs font-semibold leading-tight mb-1.5" style={{ color: '#D4EDDA', fontFamily: 'var(--font-mulish)' }}>
             {emulatedChurchName}
           </p>
           <form action={clearChurchSwitchAction}>
             <button
               type="submit"
               className="text-[10px] font-semibold underline"
-              style={{ color: '#B8874A', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              style={{ color: '#B5D2AD', fontFamily: 'var(--font-mulish)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
             >
               Exit to my view
             </button>
@@ -104,14 +104,14 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
               style={{
                 fontFamily: 'var(--font-mulish)',
                 fontWeight: active ? 600 : 500,
-                color: active ? '#F0E4D0' : '#C0A888',
+                color: active ? '#FEECD3' : '#A8C8B0',
                 background: active
-                  ? 'linear-gradient(90deg, rgba(184,135,74,0.22) 0%, rgba(184,135,74,0.06) 100%)'
+                  ? 'linear-gradient(90deg, rgba(181,210,173,0.2) 0%, rgba(181,210,173,0.05) 100%)'
                   : 'transparent',
-                borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                borderLeft: `2px solid ${active ? '#C8E4C0' : 'transparent'}`,
               }}
             >
-              <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#B8874A' : 'inherit' } as React.CSSProperties} />
+              <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#C8E4C0' : '#7AAE88' } as React.CSSProperties} />
               {label}
             </Link>
           )
@@ -120,7 +120,7 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
         {role === 'super_admin' && (
           <>
             <div className="pt-5 pb-2 px-3">
-              <span className="section-label" style={{ color: '#4A3828' }}>Super Admin</span>
+              <span className="section-label" style={{ color: '#7AAE88' }}>Super Admin</span>
             </div>
             {ADMIN_NAV.map(({ href, label, icon: Icon }) => {
               const active = pathname === href
@@ -132,14 +132,14 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
                   style={{
                     fontFamily: 'var(--font-mulish)',
                     fontWeight: active ? 600 : 500,
-                    color: active ? '#F0E4D0' : '#C0A888',
+                    color: active ? '#FEECD3' : '#A8C8B0',
                     background: active
-                      ? 'linear-gradient(90deg, rgba(184,135,74,0.22) 0%, rgba(184,135,74,0.06) 100%)'
+                      ? 'linear-gradient(90deg, rgba(181,210,173,0.2) 0%, rgba(181,210,173,0.05) 100%)'
                       : 'transparent',
-                    borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                    borderLeft: `2px solid ${active ? '#C8E4C0' : 'transparent'}`,
                   }}
                 >
-                  <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#B8874A' : 'inherit' } as React.CSSProperties} />
+                  <Icon className="w-4 h-4 shrink-0" style={{ color: active ? '#C8E4C0' : '#7AAE88' } as React.CSSProperties} />
                   {label}
                 </Link>
               )
@@ -149,15 +149,15 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
       </nav>
 
       {/* User + Logout */}
-      <div className="px-3 pb-4 pt-3" style={{ borderTop: '1px solid #3E2810' }}>
+      <div className="px-3 pb-4 pt-3" style={{ borderTop: '1px solid rgba(79,113,71,0.35)' }}>
         <div className="px-3 py-2 mb-0.5">
           <p
             className="text-xs font-semibold truncate"
-            style={{ color: '#E0CEB8', fontFamily: 'var(--font-mulish)' }}
+            style={{ color: '#E8F8E8', fontFamily: 'var(--font-mulish)' }}
           >
             {userName}
           </p>
-          <p className="text-xs capitalize truncate mt-0.5" style={{ color: '#9A8878' }}>
+          <p className="text-xs capitalize truncate mt-0.5" style={{ color: '#A8C8B0' }}>
             {role.replace('_', ' ')}
           </p>
         </div>
@@ -165,17 +165,20 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
           <button
             type="submit"
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors"
-            style={{ color: '#A89878', fontFamily: 'var(--font-mulish)', fontWeight: 500 }}
+            style={{ color: '#A8C8B0', fontFamily: 'var(--font-mulish)', fontWeight: 500 }}
           >
             <LogoutIcon className="w-4 h-4 shrink-0" />
             Sign out
           </button>
         </form>
 
-        {/* Chosen logo */}
+        {/* Six Seeds wordmark */}
         <div className="mt-5 px-3 flex justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/chosen-logo.png" alt="Chosen" className="w-24 opacity-60" />
+          <span
+            style={{ color: 'rgba(200,228,192,0.65)', fontFamily: 'var(--font-bellota)', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.18em', textTransform: 'uppercase' }}
+          >
+            Six Seeds
+          </span>
         </div>
       </div>
     </aside>

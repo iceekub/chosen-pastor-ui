@@ -55,13 +55,10 @@ export function Sidebar({ userName, churchName, role, logoUrl, emulatedChurchNam
           </div>
           <div className="min-w-0">
             <p
-              className="text-sm font-semibold leading-tight truncate"
+              className="text-sm font-semibold leading-tight line-clamp-3"
               style={{ color: '#F2FAF2', fontFamily: 'var(--font-mulish)' }}
             >
               {churchName}
-            </p>
-            <p className="text-xs truncate mt-0.5" style={{ color: '#C8E4C0' }}>
-              Six Seeds
             </p>
           </div>
         </div>

@@ -6,7 +6,7 @@ import type { SessionUser } from './types'
  * Includes super_admin, pastor (legacy), and staff roles.
  */
 export async function listStaff(churchId?: string | null): Promise<SessionUser[]> {
-  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  const churchFilter = churchId ? `&church_id=eq.${encodeURIComponent(churchId)}` : ''
   const rows = await postgrest<
     Array<{
       id: string

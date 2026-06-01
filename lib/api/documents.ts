@@ -4,12 +4,12 @@ import type { Document, Tag } from './types'
 // ─── Reads (PostgREST) ─────────────────────────────────────────────────────
 
 export async function getDocuments(churchId?: string | null): Promise<Document[]> {
-  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  const churchFilter = churchId ? `&church_id=eq.${encodeURIComponent(churchId)}` : ''
   return postgrest<Document[]>(`/documents?select=*${churchFilter}&order=created_at.desc`)
 }
 
 export async function getTags(churchId?: string | null): Promise<Tag[]> {
-  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  const churchFilter = churchId ? `&church_id=eq.${encodeURIComponent(churchId)}` : ''
   return postgrest<Tag[]>(`/tags?select=*${churchFilter}&order=name.asc`)
 }
 
@@ -27,7 +27,7 @@ export async function createDocument(
 }
 
 export async function deleteDocument(id: string): Promise<void> {
-  await postgrest(`/documents?id=eq.${id}`, { method: 'DELETE' })
+  await postgrest(`/documents?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 /** Tags are simple — managed directly via PostgREST (RLS scopes by church). */

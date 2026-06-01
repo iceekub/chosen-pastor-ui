@@ -2,7 +2,7 @@ import { postgrest } from './client'
 import type { Garden, UpdateGardenRequest } from './types'
 
 export async function getGarden(id: string): Promise<Garden> {
-  return postgrest<Garden>(`/gardens?id=eq.${id}&select=*`, { singleRow: true })
+  return postgrest<Garden>(`/gardens?id=eq.${encodeURIComponent(id)}&select=*`, { singleRow: true })
 }
 
 /**
@@ -13,7 +13,7 @@ export async function updateGarden(
   id: string,
   data: UpdateGardenRequest,
 ): Promise<Garden> {
-  return postgrest<Garden>(`/gardens?id=eq.${id}`, {
+  return postgrest<Garden>(`/gardens?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: data,
     returnRows: true,

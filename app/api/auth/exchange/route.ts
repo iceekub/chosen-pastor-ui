@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   const u = await userRes.json()
 
   const profRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${u.id}&select=id,name,role,church_id,church:churches(name)`,
+    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(u.id)}&select=id,name,role,church_id,church:churches(name)`,
     {
       headers: {
         apikey: SUPABASE_ANON_KEY,

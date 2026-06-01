@@ -38,7 +38,7 @@ export async function loginWithCredentials(
 
   // Load the corresponding profile row + church name to populate SessionUser.
   const profRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${tok.user.id}&select=id,name,role,church_id,church:churches(name)`,
+    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(tok.user.id)}&select=id,name,role,church_id,church:churches(name)`,
     {
       cache: 'no-store',
       headers: {

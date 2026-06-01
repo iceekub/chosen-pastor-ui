@@ -5,15 +5,30 @@ import { cookies } from 'next/headers'
 import type { SessionUser } from './api/types'
 
 const COOKIE_NAME = 'chosen_session'
-const secret = new TextEncoder().encode(
-  process.env.SESSION_SECRET ?? 'dev-secret-replace-in-production',
-)
+
+// Resolve the session-signing key lazily so a missing secret fails the
+// first request (clear runtime error) rather than silently signing
+// cookies with a public default. In production an unset SESSION_SECRET
+// is fatal — otherwise anyone could forge a session.
+let cachedSecret: Uint8Array | null = null
+function sessionSecret(): Uint8Array {
+  if (cachedSecret) return cachedSecret
+  const configured = process.env.SESSION_SECRET
+  if (!configured && process.env.NODE_ENV === 'production') {
+    throw new Error('SESSION_SECRET must be set in production')
+  }
+  cachedSecret = new TextEncoder().encode(
+    configured ?? 'dev-secret-replace-in-production',
+  )
+  return cachedSecret
+}
 
 /**
  * What we store in the session cookie. The Supabase tokens are kept
  * server-side (httpOnly cookie) and forwarded to PostgREST + ragserv
- * via the Authorization header. Refresh isn't wired yet — sessions
- * live the lifetime of the access token (1h by default).
+ * via the Authorization header. The access token (1h by default) is
+ * transparently refreshed in proxy.ts before it expires, so the
+ * session lives as long as the refresh token stays valid.
  */
 export interface Session {
   user: SessionUser
@@ -26,12 +41,12 @@ export async function encrypt(payload: Session): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(secret)
+    .sign(sessionSecret())
 }
 
 export async function decrypt(token: string): Promise<Session | null> {
   try {
-    const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] })
+    const { payload } = await jwtVerify(token, sessionSecret(), { algorithms: ['HS256'] })
     return payload as unknown as Session
   } catch {
     return null

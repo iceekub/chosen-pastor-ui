@@ -22,7 +22,7 @@ export async function updateTheme(
   id: string,
   patch: { name?: string; image_url?: string | null; display_order?: number },
 ): Promise<Theme> {
-  return postgrest<Theme>(`/themes?id=eq.${id}`, {
+  return postgrest<Theme>(`/themes?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: patch,
     returnRows: true,
@@ -31,7 +31,7 @@ export async function updateTheme(
 }
 
 export async function deleteTheme(id: string): Promise<void> {
-  await postgrest(`/themes?id=eq.${id}`, { method: 'DELETE' })
+  await postgrest(`/themes?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 // ─── video_themes (many-to-many tagging) ──────────────────────────────────
@@ -46,7 +46,7 @@ export async function listThemesForVideo(video_id: string): Promise<Theme[]> {
   // lives at `GET /videos/{id}/theme-suggestions` for staff or at
   // `GET /videos?theme_id=…` for the parishioner browse flow.)
   const rows = await postgrest<{ theme: Theme }[]>(
-    `/video_themes?video_id=eq.${video_id}&select=theme:themes(*)`,
+    `/video_themes?video_id=eq.${encodeURIComponent(video_id)}&select=theme:themes(*)`,
   )
   const seen = new Set<string>()
   return rows
@@ -95,7 +95,7 @@ export async function untagVideoFromTheme(
   // rows for this (video, theme). If you want to untag a single
   // clip's theme, pass a clip_id filter on top.
   await postgrest(
-    `/video_themes?video_id=eq.${video_id}&theme_id=eq.${theme_id}`,
+    `/video_themes?video_id=eq.${encodeURIComponent(video_id)}&theme_id=eq.${encodeURIComponent(theme_id)}`,
     { method: 'DELETE' },
   )
 }
@@ -106,7 +106,7 @@ export async function untagVideoClipFromTheme(
   clip_id: string,
 ): Promise<void> {
   await postgrest(
-    `/video_themes?video_id=eq.${video_id}&theme_id=eq.${theme_id}&clip_id=eq.${clip_id}`,
+    `/video_themes?video_id=eq.${encodeURIComponent(video_id)}&theme_id=eq.${encodeURIComponent(theme_id)}&clip_id=eq.${encodeURIComponent(clip_id)}`,
     { method: 'DELETE' },
   )
 }

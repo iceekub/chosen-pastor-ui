@@ -17,11 +17,29 @@ import { SignJWT, jwtVerify } from 'jose'
 const COOKIE_NAME = 'chosen_session'
 const REFRESH_THRESHOLD_SECONDS = 5 * 60 // refresh if < 5 min remaining
 
-const secret = new TextEncoder().encode(
-  process.env.SESSION_SECRET ?? 'dev-secret-replace-in-production',
-)
+// Resolve lazily and fail hard in production if unset — a missing secret
+// must not fall back to a public default (forgeable sessions). Mirrors
+// lib/session.ts; kept inline because proxy.ts must stay self-contained.
+let cachedSecret: Uint8Array | null = null
+function sessionSecret(): Uint8Array {
+  if (cachedSecret) return cachedSecret
+  const configured = process.env.SESSION_SECRET
+  if (!configured && process.env.NODE_ENV === 'production') {
+    throw new Error('SESSION_SECRET must be set in production')
+  }
+  cachedSecret = new TextEncoder().encode(
+    configured ?? 'dev-secret-replace-in-production',
+  )
+  return cachedSecret
+}
 
-const PUBLIC_PATHS = ['/login', '/unauthorized', '/forgot-password', '/auth/reset-password']
+const PUBLIC_PATHS = [
+  '/login',
+  '/unauthorized',
+  '/forgot-password',
+  '/auth/reset-password',
+  '/auth/accept-invite',
+]
 
 /** Decode a JWT payload without verifying the signature (we trust Supabase). */
 function getJwtExp(token: string): number | null {
@@ -78,21 +96,21 @@ export async function proxy(request: NextRequest) {
 
   // No session cookie → redirect to login.
   if (!cookieValue) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('next', pathname)
-    return NextResponse.redirect(loginUrl)
+    // Note: no post-login return-to is wired (login always lands on
+    // /dashboard), so we don't append a `next` param.
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Decrypt our session cookie.
   let session: Record<string, unknown>
   try {
-    const { payload } = await jwtVerify(cookieValue, secret, { algorithms: ['HS256'] })
+    const { payload } = await jwtVerify(cookieValue, sessionSecret(), { algorithms: ['HS256'] })
     session = payload as Record<string, unknown>
   } catch {
     // Invalid / expired session cookie → redirect to login.
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('next', pathname)
-    return NextResponse.redirect(loginUrl)
+    // Note: no post-login return-to is wired (login always lands on
+    // /dashboard), so we don't append a `next` param.
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   const accessToken = session.accessToken as string | undefined
@@ -128,7 +146,7 @@ export async function proxy(request: NextRequest) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(secret)
+    .sign(sessionSecret())
 
   // Update the request cookie so server components see the new access token
   // immediately via cookies() — without this, getSession() would still read

@@ -51,15 +51,20 @@ describe('proxy — public paths', () => {
     expect(res.status).not.toBe(302)
     expect(res.status).not.toBe(307)
   })
+
+  it('allows /auth/accept-invite through (magic-link landing, no session yet)', async () => {
+    const res = await proxy(makeRequest('/auth/accept-invite'))
+    expect(res.status).not.toBe(302)
+    expect(res.status).not.toBe(307)
+  })
 })
 
 describe('proxy — unauthenticated requests', () => {
-  it('redirects /dashboard to /login with next param', async () => {
+  it('redirects /dashboard to /login', async () => {
     const res = await proxy(makeRequest('/dashboard', 'not.a.valid.jwt'))
     expect(res.status).toBe(307)
     const location = new URL(res.headers.get('location')!)
     expect(location.pathname).toBe('/login')
-    expect(location.searchParams.get('next')).toBe('/dashboard')
   })
 
   it('redirects /sermons to /login', async () => {
@@ -67,7 +72,6 @@ describe('proxy — unauthenticated requests', () => {
     expect(res.status).toBe(307)
     const location = new URL(res.headers.get('location')!)
     expect(location.pathname).toBe('/login')
-    expect(location.searchParams.get('next')).toBe('/sermons')
   })
 
   it('redirects /api/upload/presign to /login when no cookie present', async () => {

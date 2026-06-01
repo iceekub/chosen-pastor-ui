@@ -6,7 +6,7 @@ import type { Pastor } from './types'
  * Ordered by display_order ascending.
  */
 export async function listPastors(churchId?: string | null): Promise<Pastor[]> {
-  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  const churchFilter = churchId ? `&church_id=eq.${encodeURIComponent(churchId)}` : ''
   return postgrest<Pastor[]>(`/pastors?order=display_order.asc,name.asc${churchFilter}&select=*`)
 }
 
@@ -46,7 +46,7 @@ export async function updatePastor(
   id: string,
   data: PastorUpdate,
 ): Promise<Pastor> {
-  const rows = await postgrest<Pastor[]>(`/pastors?id=eq.${id}`, {
+  const rows = await postgrest<Pastor[]>(`/pastors?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: data,
     returnRows: true,
@@ -55,5 +55,5 @@ export async function updatePastor(
 }
 
 export async function deletePastor(id: string): Promise<void> {
-  await postgrest(`/pastors?id=eq.${id}`, { method: 'DELETE' })
+  await postgrest(`/pastors?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' })
 }

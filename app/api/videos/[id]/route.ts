@@ -43,7 +43,7 @@ export async function PATCH(
   try {
     // Title — plain PostgREST PATCH (no pipeline side-effects).
     if (body.title !== undefined) {
-      await postgrest(`/videos?id=eq.${id}`, {
+      await postgrest(`/videos?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH',
         body: { title: body.title },
       })

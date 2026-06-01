@@ -17,14 +17,14 @@ const VIDEO_LIST_SELECT =
   'created_at,updated_at,is_featured'
 
 export async function getVideos(churchId?: string | null): Promise<VideoListItem[]> {
-  const churchFilter = churchId ? `&church_id=eq.${churchId}` : ''
+  const churchFilter = churchId ? `&church_id=eq.${encodeURIComponent(churchId)}` : ''
   return postgrest<VideoListItem[]>(
     `/videos?select=${VIDEO_LIST_SELECT}${churchFilter}&order=video_date.desc`,
   )
 }
 
 export async function getVideo(id: string): Promise<Video> {
-  return postgrest<Video>(`/videos?id=eq.${id}&select=*`, { singleRow: true })
+  return postgrest<Video>(`/videos?id=eq.${encodeURIComponent(id)}&select=*`, { singleRow: true })
 }
 
 /** Sermon detail with embedded gardens (single round-trip via PostgREST embedding). */
@@ -32,14 +32,14 @@ export async function getVideoWithGardens(id: string): Promise<Video & {
   gardens: Pick<Garden, 'id' | 'garden_date' | 'topic' | 'content_json' | 'status' | 'is_stale'>[]
 }> {
   return postgrest(
-    `/videos?id=eq.${id}&select=*,gardens(id,garden_date,topic,content_json,status,is_stale)`,
+    `/videos?id=eq.${encodeURIComponent(id)}&select=*,gardens(id,garden_date,topic,content_json,status,is_stale)`,
     { singleRow: true },
   )
 }
 
 export async function getVideoGardens(videoId: string): Promise<GardenListItem[]> {
   return postgrest<GardenListItem[]>(
-    `/gardens?video_id=eq.${videoId}&select=id,video_id,church_id,garden_date,topic,content_json,status,is_stale,is_featured,error_message,created_at,updated_at&order=garden_date.asc`,
+    `/gardens?video_id=eq.${encodeURIComponent(videoId)}&select=id,video_id,church_id,garden_date,topic,content_json,status,is_stale,is_featured,error_message,created_at,updated_at&order=garden_date.asc`,
   )
 }
 
@@ -49,8 +49,8 @@ export async function getWeekPrimary(
   churchId: string, anchorSundayISO: string,
 ): Promise<VideoListItem | null> {
   const rows = await postgrest<VideoListItem[]>(
-    `/videos?church_id=eq.${churchId}` +
-      `&week_anchor_sunday=eq.${anchorSundayISO}` +
+    `/videos?church_id=eq.${encodeURIComponent(churchId)}` +
+      `&week_anchor_sunday=eq.${encodeURIComponent(anchorSundayISO)}` +
       `&role=eq.primary` +
       `&select=${VIDEO_LIST_SELECT}` +
       `&limit=1`,
@@ -139,7 +139,7 @@ export async function getVideoDownloadAttempts(
   // RLS limits to same-church staff + super-admins. Sorted ascending
   // so the table reads top-to-bottom (attempt 1, 2, 3).
   return postgrest<VideoDownloadAttempt[]>(
-    `/video_download_attempts?video_id=eq.${videoId}` +
+    `/video_download_attempts?video_id=eq.${encodeURIComponent(videoId)}` +
       `&select=*&order=attempt_number.asc`,
   )
 }

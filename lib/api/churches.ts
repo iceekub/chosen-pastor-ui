@@ -21,7 +21,7 @@ export async function getChurchLogoUrl(
 ): Promise<string | null> {
   try {
     const row = await postgrest<{ logo_url: string | null }>(
-      `/churches?id=eq.${churchId}&select=logo_url`,
+      `/churches?id=eq.${encodeURIComponent(churchId)}&select=logo_url`,
       { singleRow: true },
     )
     return row?.logo_url ?? null
@@ -45,7 +45,7 @@ export async function getChurchAssets(
 ): Promise<ChurchAssets> {
   try {
     return await postgrest<ChurchAssets>(
-      `/churches?id=eq.${churchId}&select=logo_url,alt_logo_url,image_url`,
+      `/churches?id=eq.${encodeURIComponent(churchId)}&select=logo_url,alt_logo_url,image_url`,
       { singleRow: true },
     )
   } catch {
@@ -73,7 +73,7 @@ export interface BibleVersion {
 export async function getChurchTimezone(churchId: string): Promise<string | null> {
   try {
     const row = await postgrest<{ timezone: string | null }>(
-      `/churches?id=eq.${churchId}&select=timezone`,
+      `/churches?id=eq.${encodeURIComponent(churchId)}&select=timezone`,
       { singleRow: true },
     )
     return row?.timezone ?? null

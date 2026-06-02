@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { PasswordInput } from '@/components/password-input'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -11,7 +11,7 @@ const supabaseClient = createClient(
   { auth: { detectSessionInUrl: true } },
 )
 
-export default function AcceptInvitePage() {
+function AcceptInviteForm() {
   const router = useRouter()
   const search = useSearchParams()
   const [email, setEmail] = useState<string | null>(null)
@@ -201,6 +201,24 @@ export default function AcceptInvitePage() {
         <Footer />
       </div>
     </div>
+  )
+}
+
+// useSearchParams() forces this client page into a CSR bailout, which
+// `next build` rejects unless it sits under a Suspense boundary. The fallback
+// reuses the page background so there's no flash before hydration.
+export default function AcceptInvitePage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className="min-h-screen"
+          style={{ background: 'linear-gradient(160deg, #F2E8D8 0%, #E8D5BA 40%, #DEC8A8 100%)' }}
+        />
+      }
+    >
+      <AcceptInviteForm />
+    </Suspense>
   )
 }
 

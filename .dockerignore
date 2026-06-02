@@ -1,0 +1,24 @@
+# Rebuilt inside the image — never copy the host's versions in.
+node_modules
+.next
+
+# Secrets / local env. CRITICAL: keep .env* out of the build context so a
+# local .env.local can't shadow the NEXT_PUBLIC_* --build-args.
+.env
+.env.*
+
+# VCS / tooling / tests — not needed to build or run.
+.git
+.github
+.claude
+__tests__
+*.log
+.DS_Store
+tsconfig.tsbuildinfo
+
+# Stale lockfile from a previous package manager; the build uses package-lock.json.
+pnpm-lock.yaml
+
+# This file and the container recipe itself.
+Dockerfile
+.dockerignore

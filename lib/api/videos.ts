@@ -19,7 +19,7 @@ const VIDEO_LIST_SELECT =
 export async function getVideos(churchId?: string | null): Promise<VideoListItem[]> {
   const churchFilter = churchId ? `&church_id=eq.${encodeURIComponent(churchId)}` : ''
   return postgrest<VideoListItem[]>(
-    `/videos?select=${VIDEO_LIST_SELECT}${churchFilter}&order=video_date.desc`,
+    `/videos?select=${VIDEO_LIST_SELECT}${churchFilter}&order=video_date.desc,created_at.desc`,
   )
 }
 

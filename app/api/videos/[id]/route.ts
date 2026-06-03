@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
 import { deleteVideo, getVideo, setVideoRole } from '@/lib/api/videos'
-import { ApiError, postgrest } from '@/lib/api/client'
+import { apiErrorResponse, postgrest } from '@/lib/api/client'
 
 export async function GET(
   _request: NextRequest,
@@ -76,10 +76,7 @@ export async function DELETE(
     await deleteVideo(id)
     return new NextResponse(null, { status: 204 })
   } catch (err) {
-    if (err instanceof ApiError) {
-      return NextResponse.json({ error: err.message }, { status: err.status })
-    }
-    const message = err instanceof Error ? err.message : 'Failed to delete video'
-    return NextResponse.json({ error: message }, { status: 502 })
+    const { status, body } = apiErrorResponse(err, 'Failed to delete video')
+    return NextResponse.json(body, { status })
   }
 }

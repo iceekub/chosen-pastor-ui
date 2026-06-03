@@ -123,13 +123,6 @@ export async function setVideoRole(
   })
 }
 
-export async function completeUpload(videoId: string): Promise<Video> {
-  return ragserv<Video>(`/videos/${videoId}/upload-complete`, {
-    method: 'POST',
-    body: {},
-  })
-}
-
 export async function createYouTubeVideo(
   youtube_url: string,
   title?: string,

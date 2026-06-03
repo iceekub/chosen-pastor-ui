@@ -63,13 +63,11 @@ function UploadItemCard({
   index,
   onUpdate,
   onRemove,
-  uploading,
 }: {
   item: UploadItem
   index: number
   onUpdate: (id: string, patch: Partial<UploadItem>) => void
   onRemove: (id: string) => void
-  uploading: boolean
 }) {
   const thumbInputRef = useRef<HTMLInputElement>(null)
   const busy = item.state !== 'idle' && item.state !== 'error'
@@ -295,6 +293,13 @@ export function VideoUpload() {
           })
       if (!presignRes.ok) {
         const err = await presignRes.json().catch(() => ({}))
+        // A retry that 409s with not_pending_upload means the *original*
+        // upload actually landed (we just never saw the success response) —
+        // the video has already moved into processing. Treat it as done.
+        if (presignRes.status === 409 && err.code === 'not_pending_upload') {
+          update({ state: 'done' })
+          return
+        }
         throw new Error(err.error || 'Failed to get upload URL')
       }
       const { presigned_upload_url, video_id, role } = await presignRes.json()
@@ -393,7 +398,6 @@ export function VideoUpload() {
               index={index}
               onUpdate={updateItem}
               onRemove={removeItem}
-              uploading={uploading}
             />
           ))}
         </div>

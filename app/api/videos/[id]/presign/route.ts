@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
 import { reissueUploadUrl } from '@/lib/api/videos'
-import { ApiError } from '@/lib/api/client'
+import { apiErrorResponse } from '@/lib/api/client'
 
 export async function POST(
   request: NextRequest,
@@ -37,12 +37,9 @@ export async function POST(
       role: data.role,
     })
   } catch (err) {
-    // Forward ragserv's status (e.g. 409 not_pending_upload, 404) so the
-    // client can distinguish "already processing" from a transient failure.
-    if (err instanceof ApiError) {
-      return NextResponse.json({ error: err.message }, { status: err.status })
-    }
-    const message = err instanceof Error ? err.message : 'Failed to re-issue upload URL'
-    return NextResponse.json({ error: message }, { status: 502 })
+    // Forward ragserv's status + code so the client can distinguish
+    // "already processing" (409 not_pending_upload) from a transient failure.
+    const { status, body } = apiErrorResponse(err, 'Failed to re-issue upload URL')
+    return NextResponse.json(body, { status })
   }
 }

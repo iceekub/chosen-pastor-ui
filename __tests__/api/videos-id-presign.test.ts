@@ -56,6 +56,22 @@ describe('POST /api/videos/[id]/presign', () => {
     expect((await POST(req, ctx)).status).toBe(409)
   })
 
+  it("extracts ragserv's structured error code for the client", async () => {
+    mockGetSession.mockResolvedValue(validSession)
+    mockReissue.mockRejectedValue(
+      new ApiError(
+        409,
+        JSON.stringify({ detail: { code: 'not_pending_upload', message: 'already processing' } }),
+      ),
+    )
+    const { req, ctx } = makeRequest('v1')
+    const res = await POST(req, ctx)
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.code).toBe('not_pending_upload')
+    expect(body.error).toBe('already processing')
+  })
+
   it('returns 502 on an unexpected error', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockReissue.mockRejectedValue(new Error('boom'))

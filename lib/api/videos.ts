@@ -19,7 +19,7 @@ const VIDEO_LIST_SELECT =
 export async function getVideos(churchId?: string | null): Promise<VideoListItem[]> {
   const churchFilter = churchId ? `&church_id=eq.${encodeURIComponent(churchId)}` : ''
   return postgrest<VideoListItem[]>(
-    `/videos?select=${VIDEO_LIST_SELECT}${churchFilter}&order=video_date.desc`,
+    `/videos?select=${VIDEO_LIST_SELECT}${churchFilter}&order=video_date.desc,created_at.desc`,
   )
 }
 
@@ -86,6 +86,26 @@ export async function createVideo(
   })
 }
 
+export async function reissueUploadUrl(
+  videoId: string,
+  contentType?: string,
+): Promise<VideoCreateResponse> {
+  // Retry path: mint a fresh presigned URL for an existing video whose
+  // first upload never completed (network error / expired URL). Re-signs
+  // the SAME originals key, so the PUT overwrites in place — no duplicate
+  // row. ragserv 409s if the video has moved past pending_upload.
+  return ragserv<VideoCreateResponse>(`/videos/${videoId}/presign`, {
+    method: 'POST',
+    body: { ...(contentType ? { content_type: contentType } : {}) },
+  })
+}
+
+export async function deleteVideo(videoId: string): Promise<void> {
+  // Remove an incomplete/failed upload (ragserv allows pending_upload |
+  // error | transcode_failed) and its S3 objects. 204 on success.
+  await ragserv<void>(`/videos/${videoId}`, { method: 'DELETE' })
+}
+
 export async function setVideoRole(
   videoId: string, role?: VideoRole, videoDate?: string,
 ): Promise<Video> {
@@ -100,13 +120,6 @@ export async function setVideoRole(
       ...(role ? { role } : {}),
       ...(videoDate ? { video_date: videoDate } : {}),
     },
-  })
-}
-
-export async function completeUpload(videoId: string): Promise<Video> {
-  return ragserv<Video>(`/videos/${videoId}/upload-complete`, {
-    method: 'POST',
-    body: {},
   })
 }
 

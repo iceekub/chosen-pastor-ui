@@ -7,8 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { getVideo, setVideoRole } from '@/lib/api/videos'
-import { postgrest } from '@/lib/api/client'
+import { deleteVideo, getVideo, setVideoRole } from '@/lib/api/videos'
+import { apiErrorResponse, postgrest } from '@/lib/api/client'
 
 export async function GET(
   _request: NextRequest,
@@ -58,5 +58,25 @@ export async function PATCH(
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to update video'
     return NextResponse.json({ error: message }, { status: 502 })
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { id } = await params
+
+  try {
+    // ragserv only allows deleting incomplete/failed uploads (pending_upload
+    // | error | transcode_failed); a published video 409s.
+    await deleteVideo(id)
+    return new NextResponse(null, { status: 204 })
+  } catch (err) {
+    const { status, body } = apiErrorResponse(err, 'Failed to delete video')
+    return NextResponse.json(body, { status })
   }
 }

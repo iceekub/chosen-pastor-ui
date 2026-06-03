@@ -160,3 +160,56 @@ describe('VideoUpload — success state', () => {
     expect(screen.getByText(/drag & drop video files here/i)).toBeInTheDocument()
   })
 })
+
+describe('VideoUpload — retry', () => {
+  it('retry hits the per-video re-presign endpoint, not create (no duplicate row)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ presigned_upload_url: 'https://s3.example.com', video_id: 'abc', role: 'primary' }),
+    })
+    global.fetch = fetchMock
+    mockXHR(false) // S3 PUT fails on every attempt — we only care which endpoint is hit
+
+    render(<VideoUpload />)
+    await userEvent.upload(getFileInput(), makeVideoFile())
+
+    // First attempt: creates the row via /api/upload/presign, then S3 fails.
+    await userEvent.click(screen.getByRole('button', { name: /^upload/i }))
+    await waitFor(() =>
+      expect(screen.getByText(/network error during upload/i)).toBeInTheDocument()
+    )
+    expect(fetchMock).toHaveBeenCalledWith('/api/upload/presign', expect.anything())
+
+    fetchMock.mockClear()
+
+    // Retry: must re-issue a URL for the existing video, NOT create a new one.
+    await userEvent.click(screen.getByRole('button', { name: /^upload/i }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    expect(fetchMock).toHaveBeenCalledWith('/api/videos/abc/presign', expect.anything())
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/upload/presign', expect.anything())
+  })
+
+  it('retry that 409s as already-processing flips the card to done', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) =>
+      url === '/api/upload/presign'
+        ? Promise.resolve({ ok: true, json: async () => ({ presigned_upload_url: 'https://s3.example.com', video_id: 'abc', role: 'primary' }) })
+        : Promise.resolve({ ok: false, status: 409, json: async () => ({ code: 'not_pending_upload', error: 'already processing' }) }),
+    )
+    global.fetch = fetchMock
+    mockXHR(false) // first S3 PUT "fails" — the client never saw the success
+
+    render(<VideoUpload />)
+    await userEvent.upload(getFileInput(), makeVideoFile())
+
+    await userEvent.click(screen.getByRole('button', { name: /^upload/i }))
+    await waitFor(() =>
+      expect(screen.getByText(/network error during upload/i)).toBeInTheDocument()
+    )
+
+    // Retry → 409 not_pending_upload → treated as done, not an error.
+    await userEvent.click(screen.getByRole('button', { name: /^upload/i }))
+    await waitFor(() =>
+      expect(screen.getByText(/1 sermon uploaded/i)).toBeInTheDocument()
+    )
+  })
+})

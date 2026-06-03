@@ -69,22 +69,55 @@ export function SermonListAutoRefresh({
 
   useEffect(() => {
     if (!hasActive) return
-    const id = setInterval(async () => {
+
+    async function poll() {
+      let anyChanged = false
       for (const video of activeVideosRef.current) {
         try {
           const res = await fetch(`/api/videos/${video.id}`)
           if (!res.ok) continue
           const updated: { status: VideoStatus } = await res.json()
           const prev = knownStatuses.current[video.id]
-          if (prev !== undefined && prev !== 'ready' && updated.status === 'ready') {
-            addNotification({ type: 'video_ready', title: video.title, videoId: video.id })
+          if (prev !== undefined && prev !== updated.status) {
+            anyChanged = true
+            if (prev !== 'ready' && updated.status === 'ready') {
+              addNotification({ type: 'video_ready', title: video.title, videoId: video.id })
+            }
+            knownStatuses.current[video.id] = updated.status
           }
-          knownStatuses.current[video.id] = updated.status
         } catch { /* ignore poll errors */ }
       }
-      router.refresh()
-    }, intervalMs)
-    return () => clearInterval(id)
+      if (anyChanged) router.refresh()
+    }
+
+    let intervalId: ReturnType<typeof setInterval> | null = null
+
+    function start() {
+      intervalId = setInterval(poll, intervalMs)
+    }
+
+    function stop() {
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+        intervalId = null
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        stop()
+      } else {
+        poll()
+        start()
+      }
+    }
+
+    start()
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [hasActive, intervalMs, router, addNotification])
 
   return null

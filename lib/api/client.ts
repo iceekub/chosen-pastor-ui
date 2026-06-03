@@ -32,6 +32,36 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Normalize a thrown ragserv/PostgREST error into an HTTP response shape for
+ * Next route handlers. Pulls ragserv's structured `{detail: {code, message}}`
+ * (FastAPI HTTPException) into a flat `{code, error}` so the client can branch
+ * on `code` (e.g. distinguish "already processing" from a transient failure);
+ * falls back to 502 for non-API errors.
+ */
+export function apiErrorResponse(
+  err: unknown,
+  fallback: string,
+): { status: number; body: { code?: string; error: string } } {
+  if (err instanceof ApiError) {
+    let code: string | undefined
+    let message = err.message
+    try {
+      const detail = JSON.parse(err.message)?.detail
+      if (detail && typeof detail === 'object' && typeof detail.code === 'string') {
+        code = detail.code
+        if (typeof detail.message === 'string') message = detail.message
+      } else if (typeof detail === 'string') {
+        message = detail
+      }
+    } catch {
+      // Body wasn't JSON — keep the raw message.
+    }
+    return { status: err.status, body: { code, error: message } }
+  }
+  return { status: 502, body: { error: err instanceof Error ? err.message : fallback } }
+}
+
 type FetchInit = Omit<RequestInit, 'body'> & { body?: unknown }
 
 async function authedFetch(

@@ -69,7 +69,7 @@ export function SermonDetailClient({
   const [showRegenerate, setShowRegenerate] = useState(false)
 
   // Re-upload state — for a stuck pending_upload row the user navigated away from
-  const [reuploadState, setReuploadState] = useState<'idle' | 'uploading' | 'error'>('idle')
+  const [reuploadState, setReuploadState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle')
   const [reuploadProgress, setReuploadProgress] = useState(0)
   const [reuploadError, setReuploadError] = useState<string | null>(null)
   const reuploadFileInputRef = useRef<HTMLInputElement>(null)
@@ -132,6 +132,7 @@ export function SermonDetailClient({
       await uploadToS3(presigned_upload_url, file, file.type || 'video/mp4', (pct) =>
         setReuploadProgress(pct)
       )
+      setReuploadState('done')
       router.refresh()
     } catch (err) {
       setReuploadState('error')
@@ -195,7 +196,8 @@ export function SermonDetailClient({
   // and no thumbnail until the user manually refreshed.
   const isPendingUpload = video.status === 'pending_upload'
   const videoIsActive =
-    video.status === 'downloading'
+    video.status === 'pending_upload'
+    || video.status === 'downloading'
     || video.status === 'transcoding'
     || video.status === 'uploaded'
     || video.status === 'processing'
@@ -446,7 +448,7 @@ export function SermonDetailClient({
                 Upload incomplete
               </p>
               <p className="text-xs mt-0.5" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-                The file never reached storage. Re-upload it to continue processing, or delete this record.
+                The file never reached storage. Re-upload it to continue processing, or discard it.
               </p>
             </div>
           </div>
@@ -461,46 +463,54 @@ export function SermonDetailClient({
               e.target.value = ''
             }}
           />
-          {reuploadState === 'uploading' && (
-            <div className="mb-3">
-              <div className="flex justify-between text-xs mb-1" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-                <span>Uploading…</span><span>{reuploadProgress}%</span>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(200,182,155,0.3)' }}>
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${reuploadProgress}%`, background: '#B8874A' }}
-                />
-              </div>
-            </div>
-          )}
-          {reuploadError && (
-            <p className="text-xs mb-3 rounded px-2 py-1.5" style={{ color: '#8B3A3A', background: 'rgba(139,58,58,0.08)', border: '1px solid rgba(139,58,58,0.2)', fontFamily: 'var(--font-mulish)' }}>
-              {reuploadError}
+          {reuploadState === 'done' ? (
+            <p className="text-xs" style={{ color: '#5A8A6A', fontFamily: 'var(--font-mulish)' }}>
+              Uploaded — processing will begin shortly. This page will update automatically.
             </p>
+          ) : (
+            <>
+              {reuploadState === 'uploading' && (
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs mb-1" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+                    <span>Uploading…</span><span>{reuploadProgress}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(200,182,155,0.3)' }}>
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${reuploadProgress}%`, background: '#B8874A' }}
+                    />
+                  </div>
+                </div>
+              )}
+              {reuploadError && (
+                <p className="text-xs mb-3 rounded px-2 py-1.5" style={{ color: '#8B3A3A', background: 'rgba(139,58,58,0.08)', border: '1px solid rgba(139,58,58,0.2)', fontFamily: 'var(--font-mulish)' }}>
+                  {reuploadError}
+                </p>
+              )}
+              {deleteError && (
+                <p className="text-xs mb-3" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>{deleteError}</p>
+              )}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => reuploadFileInputRef.current?.click()}
+                  disabled={reuploadState === 'uploading'}
+                  className="btn-gold px-4 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {reuploadState === 'uploading' ? 'Uploading…' : 'Re-upload file'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting || reuploadState === 'uploading'}
+                  className="text-xs font-semibold px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
+                >
+                  {deleting ? 'Discarding…' : 'Discard'}
+                </button>
+              </div>
+            </>
           )}
-          {deleteError && (
-            <p className="text-xs mb-3" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>{deleteError}</p>
-          )}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => reuploadFileInputRef.current?.click()}
-              disabled={reuploadState === 'uploading'}
-              className="btn-gold px-4 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {reuploadState === 'uploading' ? 'Uploading…' : 'Re-upload file'}
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={deleting || reuploadState === 'uploading'}
-              className="text-xs font-semibold px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
-            >
-              {deleting ? 'Discarding…' : 'Discard'}
-            </button>
-          </div>
         </div>
       )}
 

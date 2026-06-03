@@ -489,7 +489,7 @@ export function SermonDetailClient({
               disabled={reuploadState === 'uploading'}
               className="btn-gold px-4 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {reuploadState === 'uploading' ? 'Uploading…' : 'Upload file'}
+              {reuploadState === 'uploading' ? 'Uploading…' : 'Re-upload file'}
             </button>
             <button
               type="button"
@@ -498,7 +498,7 @@ export function SermonDetailClient({
               className="text-xs font-semibold px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
             >
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? 'Discarding…' : 'Discard'}
             </button>
           </div>
         </div>

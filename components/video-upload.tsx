@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { toISODate } from '@/lib/dates'
 import { uploadVideoThumbnailAction } from '@/app/actions/storage'
+import { uploadToS3 } from '@/lib/upload'
 
 type ItemState = 'idle' | 'requesting' | 'uploading' | 'done' | 'error'
 
@@ -439,21 +440,6 @@ export function VideoUpload() {
   )
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function uploadToS3(url: string, file: File, contentType: string, onProgress: (pct: number) => void): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('PUT', url)
-    xhr.setRequestHeader('Content-Type', contentType)
-    xhr.upload.onprogress = e => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
-    }
-    xhr.onload = () => xhr.status < 300 ? resolve() : reject(new Error(`S3 error ${xhr.status}`))
-    xhr.onerror = () => reject(new Error('Network error during upload'))
-    xhr.send(file)
-  })
-}
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`

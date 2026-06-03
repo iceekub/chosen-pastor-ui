@@ -75,9 +75,9 @@ auth/push/describe, and `ecs:UpdateService` / `DescribeServices` / `ListTasks` /
     {
       "Sid": "EcrPushAdminUi", "Effect": "Allow",
       "Action": [
-        "ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload",
-        "ecr:UploadLayerPart", "ecr:CompleteLayerUpload",
-        "ecr:PutImage", "ecr:DescribeImages"
+        "ecr:BatchCheckLayerAvailability", "ecr:BatchGetImage",
+        "ecr:InitiateLayerUpload", "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload", "ecr:PutImage", "ecr:DescribeImages"
       ],
       "Resource": "arn:aws:ecr:us-west-2:<ACCOUNT_ID>:repository/ragserv-dev-admin-ui"
     },
@@ -96,10 +96,13 @@ auth/push/describe, and `ecs:UpdateService` / `DescribeServices` / `ListTasks` /
 }
 ```
 
-`ecr:GetAuthorizationToken` cannot be resource-scoped (hence `*`). If you'd
-rather not be precise, the AWS-managed `AmazonEC2ContainerRegistryPowerUser`
-plus an `ecs:UpdateService`/`DescribeServices`/`ListTasks`/`DescribeTasks`
-statement also works.
+`ecr:GetAuthorizationToken` cannot be resource-scoped (hence `*`).
+`ecr:BatchGetImage` is required for the manifest HEAD that `docker push` does
+before pushing — without it, layers upload fine but the final manifest push
+403s. If you'd rather not be precise, the AWS-managed
+`AmazonEC2ContainerRegistryPowerUser` plus an
+`ecs:UpdateService`/`DescribeServices`/`ListTasks`/`DescribeTasks` statement
+also works.
 
 ### What it does, step by step
 

@@ -86,6 +86,26 @@ export async function createVideo(
   })
 }
 
+export async function reissueUploadUrl(
+  videoId: string,
+  contentType?: string,
+): Promise<VideoCreateResponse> {
+  // Retry path: mint a fresh presigned URL for an existing video whose
+  // first upload never completed (network error / expired URL). Re-signs
+  // the SAME originals key, so the PUT overwrites in place — no duplicate
+  // row. ragserv 409s if the video has moved past pending_upload.
+  return ragserv<VideoCreateResponse>(`/videos/${videoId}/presign`, {
+    method: 'POST',
+    body: { ...(contentType ? { content_type: contentType } : {}) },
+  })
+}
+
+export async function deleteVideo(videoId: string): Promise<void> {
+  // Remove an incomplete/failed upload (ragserv allows pending_upload |
+  // error | transcode_failed) and its S3 objects. 204 on success.
+  await ragserv<void>(`/videos/${videoId}`, { method: 'DELETE' })
+}
+
 export async function setVideoRole(
   videoId: string, role?: VideoRole, videoDate?: string,
 ): Promise<Video> {

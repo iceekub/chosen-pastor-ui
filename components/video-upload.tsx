@@ -239,11 +239,16 @@ export function VideoUpload() {
   }
 
   function removeItem(id: string) {
-    setItems(prev => {
-      const item = prev.find(it => it.id === id)
-      if (item?.thumbnailPreview) URL.revokeObjectURL(item.thumbnailPreview)
-      return prev.filter(it => it.id !== id)
-    })
+    const item = items.find(it => it.id === id)
+    if (item?.thumbnailPreview) URL.revokeObjectURL(item.thumbnailPreview)
+    // If a backend row was already created (the first presign succeeded,
+    // even if the S3 upload then failed), delete it so we don't leave an
+    // orphaned pending_upload. Best-effort + fire-and-forget — dropping the
+    // card shouldn't block on the network, and the 48h sweep is the backstop.
+    if (item?.videoId) {
+      fetch(`/api/videos/${item.videoId}`, { method: 'DELETE' }).catch(() => {})
+    }
+    setItems(prev => prev.filter(it => it.id !== id))
   }
 
   function addFiles(files: FileList) {
@@ -267,21 +272,33 @@ export function VideoUpload() {
     const update = (patch: Partial<UploadItem>) => updateItem(item.id, patch)
     try {
       update({ state: 'requesting', error: null })
-      const presignRes = await fetch('/api/upload/presign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: item.title,
-          video_date: item.serviceDate || undefined,
-          content_type: item.file.type || 'video/mp4',
-        }),
-      })
+
+      // Retry vs first attempt: if a row already exists from a prior attempt
+      // (videoId set), re-issue a URL for that SAME row rather than creating
+      // a new video — otherwise each retry would spawn a duplicate
+      // pending_upload row. The endpoint re-signs the row's existing originals
+      // key, so the PUT overwrites in place.
+      const presignRes = item.videoId
+        ? await fetch(`/api/videos/${item.videoId}/presign`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content_type: item.file.type || 'video/mp4' }),
+          })
+        : await fetch('/api/upload/presign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: item.title,
+              video_date: item.serviceDate || undefined,
+              content_type: item.file.type || 'video/mp4',
+            }),
+          })
       if (!presignRes.ok) {
         const err = await presignRes.json().catch(() => ({}))
         throw new Error(err.error || 'Failed to get upload URL')
       }
       const { presigned_upload_url, video_id, role } = await presignRes.json()
-      update({ videoId: video_id, videoRole: role ?? null, state: 'uploading' })
+      update({ videoId: video_id, videoRole: role ?? item.videoRole, state: 'uploading' })
 
       // S3 ObjectCreated event triggers transcode Lambda automatically — no complete call needed
       await uploadToS3(presigned_upload_url, item.file, item.file.type || 'video/mp4', pct => update({ progress: pct }))

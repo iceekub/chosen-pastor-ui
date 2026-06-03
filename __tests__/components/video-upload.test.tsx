@@ -160,3 +160,32 @@ describe('VideoUpload — success state', () => {
     expect(screen.getByText(/drag & drop video files here/i)).toBeInTheDocument()
   })
 })
+
+describe('VideoUpload — retry', () => {
+  it('retry hits the per-video re-presign endpoint, not create (no duplicate row)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ presigned_upload_url: 'https://s3.example.com', video_id: 'abc', role: 'primary' }),
+    })
+    global.fetch = fetchMock
+    mockXHR(false) // S3 PUT fails on every attempt — we only care which endpoint is hit
+
+    render(<VideoUpload />)
+    await userEvent.upload(getFileInput(), makeVideoFile())
+
+    // First attempt: creates the row via /api/upload/presign, then S3 fails.
+    await userEvent.click(screen.getByRole('button', { name: /^upload/i }))
+    await waitFor(() =>
+      expect(screen.getByText(/network error during upload/i)).toBeInTheDocument()
+    )
+    expect(fetchMock).toHaveBeenCalledWith('/api/upload/presign', expect.anything())
+
+    fetchMock.mockClear()
+
+    // Retry: must re-issue a URL for the existing video, NOT create a new one.
+    await userEvent.click(screen.getByRole('button', { name: /^upload/i }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    expect(fetchMock).toHaveBeenCalledWith('/api/videos/abc/presign', expect.anything())
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/upload/presign', expect.anything())
+  })
+})

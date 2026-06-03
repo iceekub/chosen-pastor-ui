@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useNotifications } from '@/lib/notifications'
 import { ThumbnailPicker } from '@/components/thumbnail-picker'
@@ -53,6 +54,7 @@ export function SermonDetailClient({
   weekPrimary,
   staffViewer = false,
 }: Props) {
+  const router = useRouter()
   const { addNotification } = useNotifications()
   const [video, setVideo] = useState(initialVideo)
   const [gardens, setGardens] = useState(initialGardens)
@@ -65,6 +67,14 @@ export function SermonDetailClient({
   const [showTranscript, setShowTranscript] = useState(false)
   const [showManualGenerate, setShowManualGenerate] = useState(false)
   const [showRegenerate, setShowRegenerate] = useState(false)
+
+  // Re-upload state — for a stuck pending_upload row the user navigated away from
+  const [reuploadState, setReuploadState] = useState<'idle' | 'uploading' | 'error'>('idle')
+  const [reuploadProgress, setReuploadProgress] = useState(0)
+  const [reuploadError, setReuploadError] = useState<string | null>(null)
+  const reuploadFileInputRef = useRef<HTMLInputElement>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   // Inline editing — title and date
   const [editingTitle, setEditingTitle] = useState(false)
@@ -95,6 +105,54 @@ export function SermonDetailClient({
       setMetaError(err instanceof Error ? err.message : 'Save failed')
     } finally {
       setMetaSaving(false)
+    }
+  }
+
+  async function handleReupload(file: File) {
+    setReuploadState('uploading')
+    setReuploadError(null)
+    setReuploadProgress(0)
+    try {
+      const presignRes = await fetch(`/api/videos/${video.id}/presign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content_type: file.type || 'video/mp4' }),
+      })
+      if (!presignRes.ok) {
+        const err = await presignRes.json().catch(() => ({}))
+        // 409 not_pending_upload means the original upload actually landed —
+        // the video has already moved into processing. Nothing left to do.
+        if (presignRes.status === 409 && err.code === 'not_pending_upload') {
+          router.refresh()
+          return
+        }
+        throw new Error(err.error || 'Failed to get upload URL')
+      }
+      const { presigned_upload_url } = await presignRes.json()
+      await uploadToS3(presigned_upload_url, file, file.type || 'video/mp4', (pct) =>
+        setReuploadProgress(pct)
+      )
+      router.refresh()
+    } catch (err) {
+      setReuploadState('error')
+      setReuploadError(err instanceof Error ? err.message : 'Upload failed')
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm('Delete this video record? This cannot be undone.')) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/videos/${video.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to delete')
+      }
+      router.push('/sermons')
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Delete failed')
+      setDeleting(false)
     }
   }
 
@@ -135,13 +193,13 @@ export function SermonDetailClient({
   // transcoding phase (MediaConvert) where the row sits for several
   // minutes — without it the page would show a stale processing badge
   // and no thumbnail until the user manually refreshed.
+  const isPendingUpload = video.status === 'pending_upload'
   const videoIsActive =
-    video.status === 'pending_upload'
-    || video.status === 'downloading'
+    video.status === 'downloading'
     || video.status === 'transcoding'
     || video.status === 'uploaded'
     || video.status === 'processing'
-  const isProcessing = videoIsActive  // kept for the existing UI banner condition
+  const isProcessing = videoIsActive
   const isReady = video.status === 'ready'
   const hasError = video.status === 'error'
   const gardensGenerating = gardens.some((g) => g.status === 'pending' || g.status === 'generating')
@@ -375,7 +433,78 @@ export function SermonDetailClient({
         </div>
       )}
 
-      {/* Processing state */}
+      {/* Upload incomplete — file never reached S3 (e.g. navigated away after a failed upload) */}
+      {isPendingUpload && (
+        <div
+          className="surface px-6 py-5 mb-6 anim-fadeUp"
+          style={{ animationDelay: '0.08s', borderColor: 'rgba(139,58,58,0.2)' }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-3 h-3 rounded-full shrink-0" style={{ background: '#8B3A3A' }} />
+            <div>
+              <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-mulish)', color: '#2C1E0F' }}>
+                Upload incomplete
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+                The file never reached storage. Re-upload it to continue processing, or delete this record.
+              </p>
+            </div>
+          </div>
+          <input
+            ref={reuploadFileInputRef}
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) handleReupload(f)
+              e.target.value = ''
+            }}
+          />
+          {reuploadState === 'uploading' && (
+            <div className="mb-3">
+              <div className="flex justify-between text-xs mb-1" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
+                <span>Uploading…</span><span>{reuploadProgress}%</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(200,182,155,0.3)' }}>
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${reuploadProgress}%`, background: '#B8874A' }}
+                />
+              </div>
+            </div>
+          )}
+          {reuploadError && (
+            <p className="text-xs mb-3 rounded px-2 py-1.5" style={{ color: '#8B3A3A', background: 'rgba(139,58,58,0.08)', border: '1px solid rgba(139,58,58,0.2)', fontFamily: 'var(--font-mulish)' }}>
+              {reuploadError}
+            </p>
+          )}
+          {deleteError && (
+            <p className="text-xs mb-3" style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}>{deleteError}</p>
+          )}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => reuploadFileInputRef.current?.click()}
+              disabled={reuploadState === 'uploading'}
+              className="btn-gold px-4 py-2 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {reuploadState === 'uploading' ? 'Uploading…' : 'Upload file'}
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting || reuploadState === 'uploading'}
+              className="text-xs font-semibold px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
+            >
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Processing — something is genuinely happening server-side */}
       {isProcessing && (
         <div
           className="surface px-6 py-5 mb-6 anim-fadeUp"
@@ -795,4 +924,18 @@ function DownloadAttemptsPanel({
       )}
     </div>
   )
+}
+
+function uploadToS3(url: string, file: File, contentType: string, onProgress: (pct: number) => void): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('Content-Type', contentType)
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => xhr.status < 300 ? resolve() : reject(new Error(`S3 error ${xhr.status}`))
+    xhr.onerror = () => reject(new Error('Network error during upload'))
+    xhr.send(file)
+  })
 }

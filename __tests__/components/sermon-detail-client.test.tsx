@@ -4,6 +4,12 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+const mockRouterPush = vi.fn()
+const mockRouterRefresh = vi.fn()
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockRouterPush, refresh: mockRouterRefresh }),
+}))
+
 const mockAddNotification = vi.fn()
 vi.mock('@/lib/notifications', () => ({
   useNotifications: () => ({ addNotification: mockAddNotification }),

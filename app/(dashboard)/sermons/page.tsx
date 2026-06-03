@@ -116,7 +116,11 @@ export default async function SermonsPage() {
           </div>
           {videos.map((video, i) => {
             const s = STATUS[video.status] ?? STATUS.pending_upload
-            const isActive = video.role === 'primary'
+            // Only show Active for the current or a future week — past
+            // primary videos have already run their gardens.
+            const weekSaturday = new Date(`${video.week_anchor_sunday}T00:00:00`)
+            weekSaturday.setDate(weekSaturday.getDate() + 6)
+            const isActive = video.role === 'primary' && weekSaturday >= new Date()
             return (
               <Link
                 key={video.id}

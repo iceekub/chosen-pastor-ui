@@ -15,7 +15,11 @@ vi.mock('@/lib/notifications', () => ({
   useNotifications: () => ({ addNotification: mockAddNotification }),
 }))
 
+const mockUploadToS3 = vi.fn()
+vi.mock('@/lib/upload', () => ({ uploadToS3: (...args: unknown[]) => mockUploadToS3(...args) }))
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { act } from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SermonDetailClient } from '@/components/sermon-detail-client'
 import {
@@ -28,6 +32,8 @@ import {
 const mockFetch = vi.fn()
 beforeEach(() => {
   mockFetch.mockReset()
+  mockUploadToS3.mockReset()
+  mockUploadToS3.mockResolvedValue(undefined)
   vi.stubGlobal('fetch', mockFetch)
 })
 afterEach(() => {
@@ -64,6 +70,53 @@ describe('SermonDetailClient — processing state', () => {
   it('does not show processing banner when status is ready', () => {
     render(<SermonDetailClient initialVideo={makeVideo({ status: 'ready' })} initialGardens={[]} />)
     expect(screen.queryByText('Processing video…')).not.toBeInTheDocument()
+  })
+})
+
+describe('SermonDetailClient — pending_upload state', () => {
+  it('shows Upload incomplete banner when status is pending_upload', () => {
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'pending_upload' })} initialGardens={[]} />)
+    expect(screen.getByText('Upload incomplete')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Re-upload file' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Discard' })).toBeInTheDocument()
+  })
+
+  it('does not show processing banner when status is pending_upload', () => {
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'pending_upload' })} initialGardens={[]} />)
+    expect(screen.queryByText('Processing video…')).not.toBeInTheDocument()
+  })
+
+  it('Discard calls DELETE and navigates to /sermons', async () => {
+    vi.stubGlobal('confirm', () => true)
+    mockFetch.mockResolvedValueOnce({ ok: true })
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'pending_upload' })} initialGardens={[]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }))
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/videos/vid-1', { method: 'DELETE' })
+      expect(mockRouterPush).toHaveBeenCalledWith('/sermons')
+    })
+  })
+
+  it('Re-upload success shows confirmation message', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ presigned_upload_url: 'https://s3.example.com/put', video_id: 'vid-1' }),
+    })
+    render(<SermonDetailClient initialVideo={makeVideo({ status: 'pending_upload' })} initialGardens={[]} />)
+
+    const fileInput = document.querySelector('input[accept="video/*"]') as HTMLInputElement
+    await act(async () => {
+      Object.defineProperty(fileInput, 'files', {
+        value: [new File(['v'], 'sermon.mp4', { type: 'video/mp4' })],
+        configurable: true,
+      })
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(screen.getByText(/Uploaded — processing will begin shortly/i)).toBeInTheDocument()
+    )
   })
 })
 

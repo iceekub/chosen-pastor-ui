@@ -196,13 +196,21 @@ export function SermonDetailClient({
   // minutes — without it the page would show a stale processing badge
   // and no thumbnail until the user manually refreshed.
   const isPendingUpload = video.status === 'pending_upload'
+  // videoIsActive drives polling — includes pending_upload so that after a
+  // successful re-upload the page picks up the transcoding transition.
   const videoIsActive =
     video.status === 'pending_upload'
     || video.status === 'downloading'
     || video.status === 'transcoding'
     || video.status === 'uploaded'
     || video.status === 'processing'
-  const isProcessing = videoIsActive
+  // isProcessing drives the "Processing video…" banner — excludes
+  // pending_upload since nothing is happening server-side until re-uploaded.
+  const isProcessing =
+    video.status === 'downloading'
+    || video.status === 'transcoding'
+    || video.status === 'uploaded'
+    || video.status === 'processing'
   const isReady = video.status === 'ready'
   const hasError = video.status === 'error'
   const gardensGenerating = gardens.some((g) => g.status === 'pending' || g.status === 'generating')

@@ -40,6 +40,42 @@ export function isAutoFrameUrl(url: string | null): boolean {
   return url.startsWith(BASE.replace(/\/$/, ''))
 }
 
+/**
+ * Pick a representative sample of `count` keys from the middle of the
+ * array, evenly spaced, trimming the outermost 15% on each side to avoid
+ * opening/closing frames. Always includes `selectedKey` when provided —
+ * swapping out the nearest sampled key for it so the active selection
+ * is always visible. Returns the full array unchanged when it is already
+ * at or below `count`.
+ */
+export function sampleThumbnailKeys(
+  keys: string[],
+  count = 5,
+  selectedKey?: string | null,
+): string[] {
+  if (keys.length <= count) return keys
+
+  const trim = Math.floor(keys.length * 0.15)
+  const pool = keys.slice(trim, keys.length - trim)
+  const poolSize = pool.length
+
+  const step = (poolSize - 1) / (count - 1)
+  const picked = Array.from({ length: count }, (_, i) => pool[Math.round(i * step)])
+
+  if (selectedKey && keys.includes(selectedKey) && !picked.includes(selectedKey)) {
+    const selIdx = keys.indexOf(selectedKey)
+    let closest = 0
+    let minDist = Infinity
+    for (let i = 0; i < picked.length; i++) {
+      const dist = Math.abs(keys.indexOf(picked[i]) - selIdx)
+      if (dist < minDist) { minDist = dist; closest = i }
+    }
+    picked[closest] = selectedKey
+  }
+
+  return picked
+}
+
 if (!BASE && typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
   // Server-side warn once on cold start. Client-side stays silent —
   // the picker degrades visibly there.

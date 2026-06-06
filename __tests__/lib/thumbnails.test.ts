@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest'
 
-import { isAutoFrameUrl, thumbnailKeyToUrl } from '@/lib/thumbnails'
+import { isAutoFrameUrl, sampleThumbnailKeys, thumbnailKeyToUrl } from '@/lib/thumbnails'
 
 describe('thumbnailKeyToUrl', () => {
   it('joins the configured base URL with the key', () => {
@@ -20,6 +20,44 @@ describe('thumbnailKeyToUrl', () => {
     const url = thumbnailKeyToUrl('/churches/abc/videos/v1/thumb_.0000003.jpg')
     expect(url).not.toContain('//churches')
     expect(url.endsWith('/churches/abc/videos/v1/thumb_.0000003.jpg')).toBe(true)
+  })
+})
+
+describe('sampleThumbnailKeys', () => {
+  const keys = Array.from({ length: 81 }, (_, i) => `thumb_${String(i).padStart(7, '0')}.jpg`)
+
+  it('returns the array unchanged when at or below count', () => {
+    expect(sampleThumbnailKeys(['a', 'b', 'c'], 5)).toEqual(['a', 'b', 'c'])
+    expect(sampleThumbnailKeys(['a', 'b', 'c', 'd', 'e'], 5)).toEqual(['a', 'b', 'c', 'd', 'e'])
+  })
+
+  it('returns exactly count keys for a large array', () => {
+    expect(sampleThumbnailKeys(keys, 5)).toHaveLength(5)
+  })
+
+  it('samples from the middle — none of the 5 are from the outer 15% on either end', () => {
+    const trim = Math.floor(keys.length * 0.15) // 12
+    const sampled = sampleThumbnailKeys(keys, 5)
+    for (const k of sampled) {
+      const idx = keys.indexOf(k)
+      expect(idx).toBeGreaterThanOrEqual(trim)
+      expect(idx).toBeLessThan(keys.length - trim)
+    }
+  })
+
+  it('always includes the selectedKey, replacing the nearest sample', () => {
+    const selectedKey = keys[2] // in the trimmed-off leading 15%
+    const sampled = sampleThumbnailKeys(keys, 5, selectedKey)
+    expect(sampled).toHaveLength(5)
+    expect(sampled).toContain(selectedKey)
+  })
+
+  it('does not duplicate the selectedKey when it is already in the sample', () => {
+    const sampled = sampleThumbnailKeys(keys, 5)
+    const alreadyIn = sampled[2]
+    const result = sampleThumbnailKeys(keys, 5, alreadyIn)
+    expect(result).toEqual(sampled)
+    expect(result.filter((k) => k === alreadyIn)).toHaveLength(1)
   })
 })
 

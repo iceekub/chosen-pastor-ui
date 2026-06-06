@@ -7,7 +7,7 @@ import {
   uploadVideoThumbnailAction,
 } from '@/app/actions/storage'
 import type { Video } from '@/lib/api/types'
-import { isAutoFrameUrl, thumbnailKeyToUrl } from '@/lib/thumbnails'
+import { isAutoFrameUrl, sampleThumbnailKeys, thumbnailKeyToUrl } from '@/lib/thumbnails'
 
 interface Props {
   video: Video
@@ -26,7 +26,11 @@ export function ThumbnailPicker({ video }: Props) {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const candidates = video.thumbnail_keys
+  const selectedKey = video.thumbnail_keys.find(
+    (k) => thumbnailKeyToUrl(k) === pickedUrl,
+  ) ?? null
+
+  const candidates = sampleThumbnailKeys(video.thumbnail_keys, 5, selectedKey)
     .map((key) => ({ key, url: thumbnailKeyToUrl(key) }))
     .filter((c) => c.url)
 

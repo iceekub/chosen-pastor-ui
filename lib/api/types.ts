@@ -157,6 +157,14 @@ export interface VideoDownloadAttempt {
   /** Set on fetch-DEVICE attempts; null for central attempts. */
   device_id: string | null
   fetch_job_id: string | null
+  /**
+   * Which infrastructure ran the attempt. Proxy attempts execute on
+   * the same ECS worker as central ones, so this is the only honest
+   * discriminator. Null only on pre-attribution historical rows.
+   */
+  route: 'device' | 'proxy' | 'central' | null
+  /** File size on success — the proxy route's per-GB bill is made of this. */
+  downloaded_bytes: number | null
   started_at: string
   finished_at: string | null
 }
@@ -257,6 +265,17 @@ export interface DownloadVideoRow {
   churches: { name: string } | null
   video_download_attempts: AttemptWithDevice[]
   fetch_jobs: JobEmbed[]
+}
+
+/** One proxy-route attempt on the Fleet page's proxy stats panel. */
+export interface ProxyAttempt {
+  id: string
+  outcome: 'in_progress' | 'succeeded' | 'failed'
+  kind: DownloadFailureKind | null
+  downloaded_bytes: number | null
+  started_at: string
+  finished_at: string | null
+  video: { id: string; title: string } | null
 }
 
 /** One failed device attempt on the Fleet page's drill-in. */

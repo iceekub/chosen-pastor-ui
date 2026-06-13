@@ -1,9 +1,14 @@
 import { requireAdmin } from '@/lib/dal'
-import { getFetchDevices, getRecentDeviceFailures } from '@/lib/api/fetch'
+import {
+  getFetchDevices,
+  getRecentDeviceFailures,
+  getRecentProxyAttempts,
+} from '@/lib/api/fetch'
 import { FleetList } from '@/components/fleet/fleet-list'
-import type { DeviceFailure, FetchDevice } from '@/lib/api/types'
+import { ProxyStats } from '@/components/fleet/proxy-stats'
+import type { DeviceFailure, FetchDevice, ProxyAttempt } from '@/lib/api/types'
 
-/** How far back the per-device error counts look. */
+/** How far back the per-device error counts + proxy stats look. */
 const ERROR_WINDOW_DAYS = 7
 
 export default async function FleetPage() {
@@ -11,11 +16,13 @@ export default async function FleetPage() {
 
   let devices: FetchDevice[] = []
   let failures: DeviceFailure[] = []
+  let proxyAttempts: ProxyAttempt[] = []
   let loadError: string | null = null
   try {
-    ;[devices, failures] = await Promise.all([
+    ;[devices, failures, proxyAttempts] = await Promise.all([
       getFetchDevices(),
       getRecentDeviceFailures(ERROR_WINDOW_DAYS),
+      getRecentProxyAttempts(ERROR_WINDOW_DAYS),
     ])
   } catch (e) {
     loadError = e instanceof Error ? e.message : String(e)
@@ -47,7 +54,10 @@ export default async function FleetPage() {
         </div>
       )}
 
-      <FleetList devices={devices} failuresByDevice={failuresByDevice} />
+      <div className="space-y-4">
+        <ProxyStats attempts={proxyAttempts} windowDays={ERROR_WINDOW_DAYS} />
+        <FleetList devices={devices} failuresByDevice={failuresByDevice} />
+      </div>
     </div>
   )
 }

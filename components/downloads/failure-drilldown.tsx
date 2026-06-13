@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { timeAgo } from '@/lib/dates'
-import { explainKind } from '@/lib/downloads'
+import { attemptRoute, explainKind } from '@/lib/downloads'
 import type { DerivedDownload } from '@/lib/downloads'
 import type { AttemptWithDevice, DownloadVideoRow } from '@/lib/api/types'
 import { JobActionButton } from '@/components/downloads/job-action-button'
@@ -16,8 +16,10 @@ interface FailureDrilldownProps {
 }
 
 function attemptBox(a: AttemptWithDevice): string {
-  if (a.ecs_task_id) return 'Central server'
-  if (a.device_id) return a.device?.name ?? 'Fetch device'
+  const route = attemptRoute(a)
+  if (route === 'proxy') return 'Residential proxy'
+  if (route === 'central') return 'Central server'
+  if (route === 'device') return a.device?.name ?? 'Fetch device'
   return '—'
 }
 

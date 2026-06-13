@@ -19,14 +19,15 @@ import type {
   DownloadVideoRow,
   FetchDevice,
   FetchJob,
+  ProxyAttempt,
 } from '@/lib/api/types'
 
 // ─── Downloads page reads ───────────────────────────────────────────
 
 const ATTEMPT_EMBED =
   'video_download_attempts(id,attempt_number,outcome,kind,http_status,error_message,' +
-  'ip_family,egress_ip,yt_dlp_version,ecs_task_id,device_id,fetch_job_id,started_at,finished_at,' +
-  'device:device_id(name))'
+  'ip_family,egress_ip,yt_dlp_version,ecs_task_id,device_id,fetch_job_id,route,downloaded_bytes,' +
+  'started_at,finished_at,device:device_id(name))'
 
 const JOB_EMBED =
   'fetch_jobs(id,status,progress,attempt_count,max_devices,bulk_import_item_id,' +
@@ -83,6 +84,23 @@ export async function getRecentDownloadHistory(
 
 export async function getFetchDevices(): Promise<FetchDevice[]> {
   return postgrest<FetchDevice[]>('/fetch_devices?select=*&order=name.asc')
+}
+
+/**
+ * All attempts that ran through the commercial residential proxy
+ * within the window — succeeded and failed — for the Fleet page's
+ * proxy stats (counts, GB transferred, estimated spend).
+ */
+export async function getRecentProxyAttempts(
+  windowDays: number,
+): Promise<ProxyAttempt[]> {
+  return postgrest<ProxyAttempt[]>(
+    `/video_download_attempts?route=eq.proxy` +
+      `&started_at=gte.${encodeURIComponent(sinceISO(windowDays))}` +
+      `&select=id,outcome,kind,downloaded_bytes,started_at,finished_at,` +
+      `video:videos(id,title)` +
+      `&order=started_at.desc&limit=500`,
+  )
 }
 
 /** Failed attempts that ran on a fetch device within the window. */

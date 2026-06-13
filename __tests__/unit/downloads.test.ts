@@ -262,3 +262,66 @@ describe('explainKind', () => {
     expect(explainKind(null)).toBe(KIND_EXPLANATIONS.OTHER)
   })
 })
+
+describe('route attribution (proxy era)', () => {
+  it('explicit route column wins; heuristic covers historical rows', () => {
+    const row = makeDownloadRow({
+      video_download_attempts: [
+        makeAttemptWithDevice({
+          outcome: 'in_progress',
+          finished_at: null,
+          // Proxy attempts run on the ECS worker, so ecs_task_id is
+          // set — only the route column tells the truth.
+          ecs_task_id: 'task-1',
+          route: 'proxy',
+        }),
+      ],
+    })
+    const d = deriveDownloadRow(row, NOW)
+    expect(d.state).toBe('in_progress')
+    expect(d.source).toBe('proxy')
+  })
+
+  it('completed via proxy is attributed to the proxy', () => {
+    const row = makeDownloadRow({
+      status: 'ready',
+      video_download_attempts: [
+        makeAttemptWithDevice({
+          outcome: 'succeeded',
+          ecs_task_id: 'task-1',
+          route: 'proxy',
+          downloaded_bytes: 500_000_000,
+          finished_at: '2026-06-12T11:00:00Z',
+        }),
+      ],
+    })
+    const d = deriveDownloadRow(row, NOW)
+    expect(d.state).toBe('completed')
+    expect(d.source).toBe('proxy')
+  })
+
+  it('failed proxy attempts attribute the failure to the proxy', () => {
+    const row = makeDownloadRow({
+      status: 'error',
+      video_download_attempts: [
+        makeAttemptWithDevice({
+          outcome: 'failed',
+          kind: 'IP_BLOCKED',
+          ecs_task_id: 'task-1',
+          route: 'proxy',
+        }),
+      ],
+    })
+    expect(deriveDownloadRow(row, NOW).source).toBe('proxy')
+  })
+
+  it('null-route historical rows fall back to the device/central heuristic', () => {
+    const central = makeDownloadRow({
+      status: 'ready',
+      video_download_attempts: [
+        makeAttemptWithDevice({ outcome: 'succeeded', ecs_task_id: 'task-1', route: null }),
+      ],
+    })
+    expect(deriveDownloadRow(central, NOW).source).toBe('central')
+  })
+})

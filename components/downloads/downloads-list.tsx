@@ -32,6 +32,7 @@ const STATE_BADGE: Record<string, { label: string; color: string; bg: string }> 
 
 function boxLabel(d: DerivedDownload): string {
   if (d.source === 'central') return 'Central server'
+  if (d.source === 'proxy') return 'Residential proxy'
   if (d.source === 'device') return d.deviceName ?? 'Fetch device'
   return '—'
 }

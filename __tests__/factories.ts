@@ -112,6 +112,8 @@ export function makeDownloadAttempt(
     ecs_task_id: 'task-aaaa1111',
     device_id: null,
     fetch_job_id: null,
+    route: null,
+    downloaded_bytes: null,
     started_at: '2026-05-17T12:00:00Z',
     finished_at: '2026-05-17T12:00:30Z',
     ...overrides,

@@ -35,7 +35,7 @@ export interface DerivedFailure {
 export interface DerivedDownload {
   state: DownloadState
   /** Which route is/was doing the work; null when unknowable. */
-  source: 'device' | 'central' | null
+  source: 'device' | 'central' | 'proxy' | null
   /** Box name — null for staff (RLS) and for central; render admin-only. */
   deviceName: string | null
   /** Human step label for in-progress rows. */
@@ -125,6 +125,19 @@ function failureFromAttempt(attempt: AttemptWithDevice): DerivedFailure {
   }
 }
 
+/** Route of an attempt — the explicit column, falling back to the
+ * pre-attribution heuristic for historical rows. */
+export function attemptRoute(
+  a: AttemptWithDevice,
+): 'device' | 'proxy' | 'central' | null {
+  if (a.route === 'device' || a.route === 'proxy' || a.route === 'central') {
+    return a.route
+  }
+  if (a.device_id) return 'device'
+  if (a.ecs_task_id) return 'central'
+  return null
+}
+
 export function deriveDownloadRow(
   video: DownloadVideoRow,
   now: Date = new Date(),
@@ -179,6 +192,14 @@ export function deriveDownloadRow(
         percent: job.progress?.percent ?? null,
         progressStale:
           updatedAt !== null && now.getTime() - updatedAt > PROGRESS_STALE_MS,
+      }
+    }
+    if (liveAttempt && attemptRoute(liveAttempt) === 'proxy') {
+      return {
+        ...base,
+        state: 'in_progress',
+        source: 'proxy',
+        stepLabel: 'Downloading from YouTube',
       }
     }
     if (liveAttempt?.ecs_task_id) {
@@ -245,7 +266,7 @@ export function deriveDownloadRow(
     return {
       ...base,
       state: 'completed',
-      source: succeeded.ecs_task_id ? 'central' : 'device',
+      source: attemptRoute(succeeded),
       deviceName: succeeded.device?.name ?? null,
       completedAt: succeeded.finished_at ?? video.updated_at,
       laterFailure:
@@ -256,11 +277,7 @@ export function deriveDownloadRow(
     return {
       ...base,
       state: 'failed',
-      source: lastFailed
-        ? lastFailed.ecs_task_id
-          ? 'central'
-          : 'device'
-        : null,
+      source: lastFailed ? attemptRoute(lastFailed) : null,
       failure: lastFailed
         ? failureFromAttempt(lastFailed)
         : {

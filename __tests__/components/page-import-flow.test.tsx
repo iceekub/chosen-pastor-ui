@@ -37,6 +37,7 @@ const DISCOVER_RESULT: PageDiscoverResult = {
     makeVideo({ platform: 'vimeo', external_id: '123', url: 'https://vimeo.com/123', title: null }),
     makeVideo({ external_id: 'bbbbbbbbbbb', url: 'https://www.youtube.com/watch?v=bbbbbbbbbbb', title: 'Old', already_imported: true }),
   ],
+  channels: [],
 }
 
 function discoverResolves(result: PageDiscoverResult = DISCOVER_RESULT) {
@@ -121,9 +122,29 @@ describe('<PageImportFlow />', () => {
   })
 
   it('shows an empty state when no videos are found', async () => {
-    discoverResolves({ page_url: 'https://church.test', found_count: 0, duplicate_count: 0, parse_error_count: 2, videos: [] })
+    discoverResolves({ page_url: 'https://church.test', found_count: 0, duplicate_count: 0, parse_error_count: 2, videos: [], channels: [] })
     await runDiscover()
     await waitFor(() => expect(screen.getByText(/No videos found/i)).toBeInTheDocument())
+  })
+
+  it('surfaces channel links with an Import-channel CTA (the JS-site case)', async () => {
+    discoverResolves({
+      page_url: 'https://church.test/sermons',
+      found_count: 0,
+      duplicate_count: 0,
+      parse_error_count: 0,
+      videos: [],
+      channels: [{ platform: 'vimeo', url: 'https://vimeo.com/therockmontana', title: 'Our Vimeo' }],
+    })
+    await runDiscover()
+    await waitFor(() =>
+      expect(screen.getByText(/Channels found on this page/i)).toBeInTheDocument(),
+    )
+    const link = screen.getByRole('link', { name: /Import channel/i })
+    expect(link).toHaveAttribute(
+      'href',
+      `/sermons/bulk-import?url=${encodeURIComponent('https://vimeo.com/therockmontana')}`,
+    )
   })
 
   it('surfaces a discover error inline', async () => {

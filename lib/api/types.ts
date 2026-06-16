@@ -419,6 +419,13 @@ export interface DiscoveredPageVideo {
   already_imported: boolean
 }
 
+export interface DiscoveredPageChannel {
+  platform: VideoPlatform
+  /** Normalized channel URL — hand to bulk-import to enumerate. */
+  url: string
+  title: string | null
+}
+
 export interface PageDiscoverResult {
   page_url: string
   found_count: number
@@ -426,6 +433,9 @@ export interface PageDiscoverResult {
   duplicate_count: number
   parse_error_count: number
   videos: DiscoveredPageVideo[]
+  /** Channel links found on the page (e.g. the church's Vimeo channel) —
+   * the robust path when individual videos load via JS. */
+  channels: DiscoveredPageChannel[]
 }
 
 export interface QueuedVideoResult {

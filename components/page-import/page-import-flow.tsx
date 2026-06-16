@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import type {
+  DiscoveredPageChannel,
   DiscoveredPageVideo,
   PageDiscoverResult,
   PageQueueResult,
@@ -166,22 +167,6 @@ function ReviewView({
     [result.videos],
   )
 
-  if (result.videos.length === 0) {
-    return (
-      <div
-        className="surface p-6 text-sm"
-        style={{ color: '#5A4530', fontFamily: 'var(--font-mulish)' }}
-      >
-        <p className="font-semibold mb-1">No videos found on that page.</p>
-        <p className="text-xs" style={{ color: '#7A6A58' }}>
-          We look for YouTube and Vimeo links and embeds.
-          {result.parse_error_count > 0 &&
-            ` (${result.parse_error_count} element${result.parse_error_count === 1 ? '' : 's'} couldn't be parsed.)`}
-        </p>
-      </div>
-    )
-  }
-
   const toggle = (url: string) => {
     const next = new Set(selected)
     if (next.has(url)) next.delete(url)
@@ -189,8 +174,34 @@ function ReviewView({
     setSelected(next)
   }
 
+  const hasVideos = result.videos.length > 0
+
   return (
     <div className="space-y-4">
+      {result.channels.length > 0 && <ChannelsFound channels={result.channels} />}
+
+      {!hasVideos && (
+        <div
+          className="surface p-6 text-sm"
+          style={{ color: '#5A4530', fontFamily: 'var(--font-mulish)' }}
+        >
+          <p className="font-semibold mb-1">
+            {result.channels.length > 0
+              ? 'No individual videos on the page.'
+              : 'No videos found on that page.'}
+          </p>
+          <p className="text-xs" style={{ color: '#7A6A58' }}>
+            {result.channels.length > 0
+              ? 'Import a channel above to pull in all its videos.'
+              : 'We look for YouTube and Vimeo links and embeds.'}
+            {result.parse_error_count > 0 &&
+              ` (${result.parse_error_count} element${result.parse_error_count === 1 ? '' : 's'} couldn't be parsed.)`}
+          </p>
+        </div>
+      )}
+
+      {hasVideos && (
+        <>
       <div
         className="surface p-4 flex items-center justify-between text-sm"
         style={{ fontFamily: 'var(--font-mulish)', color: '#5A4530' }}
@@ -254,6 +265,41 @@ function ReviewView({
           {queuing ? 'Queuing…' : `Queue ${selected.size} video${selected.size === 1 ? '' : 's'}`}
         </button>
       </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function ChannelsFound({ channels }: { channels: DiscoveredPageChannel[] }) {
+  return (
+    <div
+      className="surface p-4 space-y-2"
+      style={{ fontFamily: 'var(--font-mulish)', color: '#5A4530' }}
+    >
+      <p className="text-sm font-semibold">Channels found on this page</p>
+      <p className="text-xs" style={{ color: '#7A6A58' }}>
+        Many church sites load individual videos dynamically — importing the whole
+        channel is the reliable way to pull every sermon.
+      </p>
+      <ul className="space-y-1.5 pt-1">
+        {channels.map(c => (
+          <li key={c.url} className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2 min-w-0">
+              <PlatformBadge platform={c.platform} />
+              <span className="text-sm truncate" style={{ color: '#2C1E0F' }}>
+                {c.title || c.url}
+              </span>
+            </span>
+            <Link
+              href={`/sermons/bulk-import?url=${encodeURIComponent(c.url)}`}
+              className="btn-gold px-3 py-1.5 text-xs font-semibold whitespace-nowrap"
+            >
+              Import channel →
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

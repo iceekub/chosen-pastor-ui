@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { PasswordInput } from '@/components/password-input'
+import { SixSeedsMark } from '@/components/six-seeds-mark'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
@@ -72,135 +73,128 @@ function AcceptInviteForm() {
     router.replace('/dashboard')
   }
 
-  if (error && !email) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center relative overflow-hidden grain"
-        style={{ background: 'linear-gradient(160deg, #F2E8D8 0%, #E8D5BA 40%, #DEC8A8 100%)' }}
-      >
-        <div className="relative" style={{ width: 'min(384px, calc(100vw - 2rem))' }}>
-          <div className="flex flex-col items-center mb-8">
-            <ChoseIcon />
-            <h1 className="text-3xl text-center leading-tight mt-4" style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}>
-              Invalid Invite
-            </h1>
-          </div>
-          <div
-            className="rounded-2xl px-7 py-7 text-center"
-            style={{
-              background: 'rgba(253,250,245,0.88)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(225,210,190,0.6)',
-              boxShadow: '0 8px 40px rgba(100,60,20,0.12)',
-            }}
-          >
-            <p className="text-sm" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>{error}</p>
-          </div>
-          <Footer />
-        </div>
+  const pageShell = (children: React.ReactNode) => (
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: '#062d25' }}
+    >
+      {/* Blobs */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+        <div className="absolute" style={{ top: '-20%', left: '-15%', width: '70vw', height: '70vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(8, 66, 54, 0.9) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute" style={{ top: '10%', right: '-10%', width: '55vw', height: '55vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(79, 113, 71, 0.5) 0%, transparent 70%)', filter: 'blur(50px)' }} />
+        <div className="absolute" style={{ bottom: '-25%', right: '-5%', width: '50vw', height: '50vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(181, 210, 173, 0.18) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute" style={{ bottom: '-10%', left: '5%', width: '45vw', height: '45vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(180, 146, 108, 0.15) 0%, transparent 70%)', filter: 'blur(50px)' }} />
+        <div className="absolute inset-0" style={{ backdropFilter: 'blur(80px)', pointerEvents: 'none' }} />
       </div>
+      <div className="relative anim-scaleIn" style={{ animationDelay: '0.05s', width: 'min(384px, calc(100vw - 2rem))', zIndex: 10 }}>
+        {children}
+      </div>
+    </div>
+  )
+
+  if (error && !email) {
+    return pageShell(
+      <>
+        <div className="flex justify-center items-center gap-3 mb-2 anim-fadeUp" style={{ animationDelay: '0.1s' }}>
+          <SixSeedsMark size={32} />
+          <span style={{ fontFamily: 'var(--font-bellota)', fontSize: '2.25rem', fontWeight: 700, color: '#FEECD3', letterSpacing: '0.06em', lineHeight: 1, textTransform: 'uppercase' }}>
+            Six Seeds
+          </span>
+        </div>
+        <p className="text-center mb-8 anim-fadeUp" style={{ animationDelay: '0.14s', fontFamily: 'var(--font-mulish)', fontSize: '1rem', fontWeight: 600, letterSpacing: '0.18em', color: '#B5D2AD' }}>
+          CHURCH PORTAL
+        </p>
+        <div
+          className="rounded-2xl px-7 py-7 text-center anim-fadeUp"
+          style={{ background: 'rgba(255, 255, 255, 0.04)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 8px 40px rgba(0, 0, 0, 0.3)', animationDelay: '0.18s' }}
+        >
+          <p className="text-sm font-semibold mb-2" style={{ color: '#FEECD3', fontFamily: 'var(--font-mulish)' }}>Invalid Invite</p>
+          <p className="text-sm" style={{ color: 'rgba(181, 210, 173, 0.7)', fontFamily: 'var(--font-mulish)' }}>{error}</p>
+        </div>
+        <Footer />
+      </>
     )
   }
 
-  return (
-    <div
-      className="min-h-screen flex items-center justify-center relative overflow-hidden grain"
-      style={{ background: 'linear-gradient(160deg, #F2E8D8 0%, #E8D5BA 40%, #DEC8A8 100%)' }}
-    >
-      {/* Atmospheric blobs */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: '-15%', left: '-10%',
-          width: '60vw', height: '60vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(184,135,74,0.15) 0%, transparent 70%)',
-          filter: 'blur(40px)',
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          bottom: '-20%', right: '-10%',
-          width: '50vw', height: '50vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(158,100,50,0.1) 0%, transparent 70%)',
-          filter: 'blur(50px)',
-        }}
-      />
-
-      <div className="relative anim-scaleIn" style={{ animationDelay: '0.05s', width: 'min(384px, calc(100vw - 2rem))' }}>
-        <div className="flex flex-col items-center mb-8 anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-          <ChoseIcon />
-          <h1 className="text-3xl text-center leading-tight mt-4" style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}>
-            You&apos;re invited
-          </h1>
-          <p className="text-sm mt-1.5 text-center" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)' }}>
-            {email ? <>Welcome, {email}. Set a password to get started.</> : 'Loading…'}
-          </p>
-        </div>
-
-        <div
-          className="rounded-2xl px-7 py-7 anim-fadeUp"
-          style={{
-            background: 'rgba(253,250,245,0.88)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(225,210,190,0.6)',
-            boxShadow: '0 8px 40px rgba(100,60,20,0.12)',
-            animationDelay: '0.18s',
-          }}
-        >
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label
-                className="block text-xs font-semibold mb-1.5"
-                style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)', letterSpacing: '0.07em', textTransform: 'uppercase' }}
-              >
-                Password
-              </label>
-              <PasswordInput
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                placeholder="Min. 8 characters"
-              />
-            </div>
-            <div>
-              <label
-                className="block text-xs font-semibold mb-1.5"
-                style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)', letterSpacing: '0.07em', textTransform: 'uppercase' }}
-              >
-                Confirm password
-              </label>
-              <PasswordInput
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                minLength={8}
-                placeholder="••••••••"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(200,80,60,0.08)', border: '1px solid rgba(200,80,60,0.2)', color: '#A03020', fontFamily: 'var(--font-mulish)' }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={pending || !email}
-              className="btn-gold w-full py-3 text-sm flex items-center justify-center gap-2 mt-1"
-            >
-              {pending ? 'Setting password…' : <><span>Set password & continue</span><span>→</span></>}
-            </button>
-          </form>
-        </div>
-
-        <Footer />
+  return pageShell(
+    <>
+      {/* Logo + wordmark */}
+      <div className="flex justify-center items-center gap-3 mb-2 anim-fadeUp" style={{ animationDelay: '0.1s' }}>
+        <SixSeedsMark size={32} />
+        <span style={{ fontFamily: 'var(--font-bellota)', fontSize: '2.25rem', fontWeight: 700, color: '#FEECD3', letterSpacing: '0.06em', lineHeight: 1, textTransform: 'uppercase' }}>
+          Six Seeds
+        </span>
       </div>
-    </div>
+
+      <p className="text-center mb-8 anim-fadeUp" style={{ animationDelay: '0.14s', fontFamily: 'var(--font-mulish)', fontSize: '1rem', fontWeight: 600, letterSpacing: '0.18em', color: '#B5D2AD' }}>
+        CHURCH PORTAL
+      </p>
+
+      {/* Form card */}
+      <div
+        className="rounded-2xl px-7 py-7 anim-fadeUp"
+        style={{ background: 'rgba(255, 255, 255, 0.04)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 8px 40px rgba(0, 0, 0, 0.3)', animationDelay: '0.18s' }}
+      >
+        <p className="text-sm mb-4" style={{ color: 'rgba(181, 210, 173, 0.7)', fontFamily: 'var(--font-mulish)' }}>
+          {email ? <>Welcome, {email}. Set a password to get started.</> : 'Loading…'}
+        </p>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <label
+              className="block text-xs font-semibold mb-1.5"
+              style={{ color: 'rgba(254, 236, 211, 0.7)', fontFamily: 'var(--font-mulish)', letterSpacing: '0.07em', textTransform: 'uppercase' }}
+            >
+              Password
+            </label>
+            <PasswordInput
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              placeholder="Min. 8 characters"
+              className="input-dark"
+            />
+          </div>
+          <div>
+            <label
+              className="block text-xs font-semibold mb-1.5"
+              style={{ color: 'rgba(254, 236, 211, 0.7)', fontFamily: 'var(--font-mulish)', letterSpacing: '0.07em', textTransform: 'uppercase' }}
+            >
+              Confirm password
+            </label>
+            <PasswordInput
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+              minLength={8}
+              placeholder="••••••••"
+              className="input-dark"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(200, 80, 60, 0.12)', border: '1px solid rgba(200, 80, 60, 0.25)', color: '#F4A090', fontFamily: 'var(--font-mulish)' }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={pending || !email}
+            className="btn-seed w-full py-4 mt-1 group"
+          >
+            <span>{pending ? 'Setting password…' : 'Set password & continue'}</span>
+            {!pending && (
+              <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" style={{ color: '#B4926C' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            )}
+          </button>
+        </form>
+      </div>
+
+      <Footer />
+    </>
   )
 }
 
@@ -213,7 +207,7 @@ export default function AcceptInvitePage() {
       fallback={
         <div
           className="min-h-screen"
-          style={{ background: 'linear-gradient(160deg, #F2E8D8 0%, #E8D5BA 40%, #DEC8A8 100%)' }}
+          style={{ background: '#062d25' }}
         />
       }
     >
@@ -222,28 +216,14 @@ export default function AcceptInvitePage() {
   )
 }
 
-function ChoseIcon() {
-  return (
-    <div
-      className="w-16 h-16 rounded-2xl flex items-center justify-center"
-      style={{
-        background: 'linear-gradient(135deg, #B8874A 0%, #8E6228 100%)',
-        boxShadow: '0 8px 24px rgba(184,135,74,0.35)',
-      }}
-    >
-      <span className="text-xl font-bold tracking-wide" style={{ color: '#FDFAF5', fontFamily: 'var(--font-mulish)' }}>
-        C
-      </span>
-    </div>
-  )
-}
-
 function Footer() {
   return (
-    <div className="mt-8 flex flex-col items-center gap-1 anim-fadeIn" style={{ animationDelay: '0.35s' }}>
-      <span className="text-xs font-bold" style={{ color: 'rgba(80,55,30,0.35)', fontFamily: 'var(--font-mulish)', letterSpacing: '0.2em' }}>CHOSEN</span>
-      <p className="text-xs" style={{ color: 'rgba(80,55,30,0.35)', fontFamily: 'var(--font-mulish)' }}>
-        Need help? <a href="mailto:hello@chosenapp.com" style={{ textDecoration: 'underline' }}>Contact us</a>
+    <div className="mt-10 flex justify-center anim-fadeIn" style={{ animationDelay: '0.35s' }}>
+      <p className="text-sm" style={{ color: 'rgba(181, 210, 173, 0.5)', fontFamily: 'var(--font-mulish)' }}>
+        Need help?{' '}
+        <a href="https://sixseeds.org/inquire" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(254, 236, 211, 0.6)', textDecoration: 'underline', cursor: 'pointer' }}>
+          Contact us
+        </a>
       </p>
     </div>
   )

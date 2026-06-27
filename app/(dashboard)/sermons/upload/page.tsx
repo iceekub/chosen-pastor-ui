@@ -40,9 +40,13 @@ export default async function UploadPage() {
         className="text-xs mt-6 text-center"
         style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}
       >
-        Importing a backlog from YouTube?{' '}
+        Importing a backlog?{' '}
         <Link href="/sermons/bulk-import" className="underline">
-          Bulk import from channel →
+          Bulk import from a YouTube channel →
+        </Link>
+        <br />
+        <Link href="/sermons/import-from-page" className="underline">
+          Import from a web page (YouTube or Vimeo) →
         </Link>
       </p>
     </div>

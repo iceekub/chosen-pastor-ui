@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 // Surface-level check — full URL parsing lives server-side in
-// services.channel_url.normalize_channel_url. The form-level regex
-// catches obvious typos before we burn a round-trip.
+// services.channel_url.normalize_channel_url (which also accepts Vimeo
+// channels and rejects a bare Vimeo video id). The form-level regex
+// just catches obvious typos before we burn a round-trip.
 const ACCEPTABLE_CHANNEL_RE =
-  /^(?:@[A-Za-z0-9._-]+|https?:\/\/(?:www\.|m\.)?youtube\.com\/(?:@|c\/|channel\/|user\/)|youtube\.com\/(?:@|c\/|channel\/|user\/))/i
+  /^(?:@[A-Za-z0-9._-]+|(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/(?:@|c\/|channel\/|user\/)|(?:https?:\/\/)?(?:www\.)?vimeo\.com\/[^/\s])/i
 
 type FormState = 'idle' | 'submitting' | 'error'
 
@@ -17,9 +18,9 @@ type FormState = 'idle' | 'submitting' | 'error'
  * the user lands on /sermons/bulk-import/{id} where phase 2 (review)
  * takes over.
  */
-export function BulkImportStartForm() {
+export function BulkImportStartForm({ initialUrl = '' }: { initialUrl?: string }) {
   const router = useRouter()
-  const [channelUrl, setChannelUrl] = useState('')
+  const [channelUrl, setChannelUrl] = useState(initialUrl)
   const [requestedCount, setRequestedCount] = useState(25)
   const [pacingSeconds, setPacingSeconds] = useState(60)
   const [threshold, setThreshold] = useState(3)
@@ -65,13 +66,13 @@ export function BulkImportStartForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <FieldLabel>YouTube channel URL</FieldLabel>
+        <FieldLabel>Channel URL (YouTube or Vimeo)</FieldLabel>
         <input
           type="text"
           value={channelUrl}
           onChange={e => setChannelUrl(e.target.value)}
           disabled={busy}
-          placeholder="https://www.youtube.com/@SBCFamilyOC or @SBCFamilyOC"
+          placeholder="youtube.com/@church, @church, or vimeo.com/church"
           className="input-warm w-full"
           autoComplete="off"
           required
@@ -81,8 +82,7 @@ export function BulkImportStartForm() {
             className="text-xs mt-1"
             style={{ color: '#8B3A3A', fontFamily: 'var(--font-mulish)' }}
           >
-            Paste a channel URL, a /videos or /streams link, or a bare
-            @handle.
+            Paste a YouTube channel (URL or @handle) or a Vimeo channel URL.
           </p>
         )}
         <p

@@ -9,8 +9,15 @@ import { BulkImportStartForm } from '@/components/bulk-import/start-form'
  * navigates to /sermons/bulk-import/{id} where the review (phase 2)
  * and progress (phase 3) screens take over.
  */
-export default async function BulkImportLandingPage() {
+export default async function BulkImportLandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ url?: string }>
+}) {
   await verifySession()
+  // Prefilled when arriving from the web-page importer's "Import channel →"
+  // link (e.g. a church's Vimeo channel surfaced from their site).
+  const { url } = await searchParams
 
   return (
     <div className="px-8 py-9 max-w-2xl mx-auto">
@@ -20,20 +27,21 @@ export default async function BulkImportLandingPage() {
           className="text-4xl leading-tight"
           style={{ fontFamily: 'var(--font-playfair)', color: '#2C1E0F', fontStyle: 'italic' }}
         >
-          Bulk import from YouTube.
+          Bulk import from a channel.
         </h1>
         <p
           className="text-sm mt-1"
           style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}
         >
-          Point us at a channel and we&apos;ll find the most recent weeks&apos; services
-          — one per week, longest version recommended. Review the picks, then
-          we&apos;ll download them in the background with conservative pacing.
+          Point us at a YouTube or Vimeo channel and we&apos;ll find the most
+          recent weeks&apos; services — one per week, longest version
+          recommended. Review the picks, then we&apos;ll download them in the
+          background with conservative pacing.
         </p>
       </div>
 
       <div className="surface p-6 anim-fadeUp" style={{ animationDelay: '0.1s' }}>
-        <BulkImportStartForm />
+        <BulkImportStartForm initialUrl={url} />
       </div>
 
       <p

@@ -16,25 +16,35 @@ beforeEach(() => {
 })
 
 describe('<BulkImportStartForm />', () => {
+  it('accepts a Vimeo channel URL and prefills from initialUrl', () => {
+    render(<BulkImportStartForm initialUrl="https://vimeo.com/therockmontana" />)
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe(
+      'https://vimeo.com/therockmontana',
+    )
+    expect(
+      screen.getByRole('button', { name: /scan channel/i }),
+    ).not.toBeDisabled()
+  })
+
   it('disables submit until a plausible channel URL is entered', () => {
     render(<BulkImportStartForm />)
     const submit = screen.getByRole('button', { name: /scan channel/i })
     expect(submit).toBeDisabled()
 
-    fireEvent.change(screen.getByPlaceholderText(/SBCFamilyOC/), {
+    fireEvent.change(screen.getByRole('textbox'), {
       target: { value: 'gibberish' },
     })
     expect(submit).toBeDisabled()
     expect(
-      screen.getByText(/Paste a channel URL/i),
+      screen.getByText(/Paste a YouTube channel/i),
     ).toBeInTheDocument()
 
-    fireEvent.change(screen.getByPlaceholderText(/SBCFamilyOC/), {
+    fireEvent.change(screen.getByRole('textbox'), {
       target: { value: '@SBCFamilyOC' },
     })
     expect(submit).not.toBeDisabled()
 
-    fireEvent.change(screen.getByPlaceholderText(/SBCFamilyOC/), {
+    fireEvent.change(screen.getByRole('textbox'), {
       target: { value: 'https://www.youtube.com/@Example/videos' },
     })
     expect(submit).not.toBeDisabled()
@@ -47,7 +57,7 @@ describe('<BulkImportStartForm />', () => {
     })
 
     render(<BulkImportStartForm />)
-    fireEvent.change(screen.getByPlaceholderText(/SBCFamilyOC/), {
+    fireEvent.change(screen.getByRole('textbox'), {
       target: { value: '@FirstChurch' },
     })
     // Tweak the "Weeks back" knob (the first spinbutton in the row)
@@ -82,7 +92,7 @@ describe('<BulkImportStartForm />', () => {
     })
 
     render(<BulkImportStartForm />)
-    fireEvent.change(screen.getByPlaceholderText(/SBCFamilyOC/), {
+    fireEvent.change(screen.getByRole('textbox'), {
       target: { value: '@Bogus' },
     })
     fireEvent.click(screen.getByRole('button', { name: /scan channel/i }))
@@ -100,7 +110,7 @@ describe('<BulkImportStartForm />', () => {
     })
 
     render(<BulkImportStartForm />)
-    fireEvent.change(screen.getByPlaceholderText(/SBCFamilyOC/), {
+    fireEvent.change(screen.getByRole('textbox'), {
       target: { value: '@Auto' },
     })
     fireEvent.click(

@@ -400,6 +400,58 @@ export interface BulkImportCreatePayload {
   force?: boolean
 }
 
+// ─── Web-page video import ──────────────────────────────────────────
+//
+// Mirrors ragserv's /page-imports endpoints. Stateless: discover scrapes
+// a page and returns the videos found; queue creates + dispatches the
+// selected ones through the fetch fleet. Progress is tracked on the
+// Downloads dashboard, not here.
+
+export type VideoPlatform = 'youtube' | 'vimeo'
+
+export interface DiscoveredPageVideo {
+  platform: VideoPlatform
+  external_id: string
+  /** Canonical URL to queue (what yt-dlp downloads). */
+  url: string
+  /** Anchor text when the video came from a link; null for embeds. */
+  title: string | null
+  already_imported: boolean
+}
+
+export interface DiscoveredPageChannel {
+  platform: VideoPlatform
+  /** Normalized channel URL — hand to bulk-import to enumerate. */
+  url: string
+  title: string | null
+}
+
+export interface PageDiscoverResult {
+  page_url: string
+  found_count: number
+  /** Of found_count, how many are already imported for this church. */
+  duplicate_count: number
+  parse_error_count: number
+  videos: DiscoveredPageVideo[]
+  /** Channel links found on the page (e.g. the church's Vimeo channel) —
+   * the robust path when individual videos load via JS. */
+  channels: DiscoveredPageChannel[] | undefined
+}
+
+export interface QueuedVideoResult {
+  url: string
+  status: 'queued' | 'skipped_duplicate' | 'invalid'
+  video_id: string | null
+  route: string | null
+}
+
+export interface PageQueueResult {
+  queued_count: number
+  skipped_duplicate_count: number
+  invalid_count: number
+  results: QueuedVideoResult[]
+}
+
 // ─── Gardens ────────────────────────────────────────────────────────────────
 
 export type GardenStatus =

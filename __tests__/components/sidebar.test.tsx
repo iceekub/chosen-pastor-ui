@@ -31,4 +31,16 @@ describe('Sidebar — RBAC', () => {
     expect(screen.getByRole('link', { name: /add a church/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /churches/i })).toBeInTheDocument()
   })
+
+  it('Downloads is staff-visible; Fleet is super-admin only', () => {
+    mockUsePathname.mockReturnValue('/dashboard')
+    const { unmount } = render(<Sidebar {...pastorProps} />)
+    expect(screen.getByRole('link', { name: /downloads/i })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /fleet/i })).not.toBeInTheDocument()
+    unmount()
+
+    render(<Sidebar {...adminProps} />)
+    expect(screen.getByRole('link', { name: /downloads/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /fleet/i })).toBeInTheDocument()
+  })
 })

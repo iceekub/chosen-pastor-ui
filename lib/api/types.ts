@@ -134,6 +134,11 @@ export type DownloadFailureKind =
   | 'DISK_FULL'
   | 'OTHER'
   | 'WORKER_RESTARTED'
+  // Fetch-fleet kinds (downloads running on residential Raspberry Pis):
+  | 'DEVICE_LOST'
+  | 'CANCELLED'
+  | 'TIMEOUT'
+  | 'AGENT_RESTART'
 
 export interface VideoDownloadAttempt {
   id: string
@@ -147,9 +152,165 @@ export interface VideoDownloadAttempt {
   ip_family: 'ipv4' | 'ipv6' | null
   egress_ip: string | null
   yt_dlp_version: string | null
+  /** Set on CENTRAL (Fargate) attempts; null for device attempts. */
   ecs_task_id: string | null
+  /** Set on fetch-DEVICE attempts; null for central attempts. */
+  device_id: string | null
+  fetch_job_id: string | null
+  /**
+   * Which infrastructure ran the attempt. Proxy attempts execute on
+   * the same ECS worker as central ones, so this is the only honest
+   * discriminator. Null only on pre-attribution historical rows.
+   */
+  route: 'device' | 'proxy' | 'central' | null
+  /** File size on success — the proxy route's per-GB bill is made of this. */
+  downloaded_bytes: number | null
   started_at: string
   finished_at: string | null
+}
+
+// ─── Fetch fleet (residential Raspberry Pi downloaders) ────────────────────
+//
+// YouTube blocks AWS IPs, so downloads run on Pis at partners' homes.
+// `fetch_jobs` is the queue (staff-readable for their church via RLS);
+// `fetch_devices` is the global fleet (super_admin-only via RLS — embeds
+// of device names silently return null for staff, which is what keeps
+// box names admin-only in the UI).
+
+export type FetchJobKind = 'youtube_video' | 'channel_list' | 'url_fetch'
+
+export type FetchJobStatus =
+  | 'pending'
+  | 'claimed'
+  | 'downloading'
+  | 'uploading'
+  | 'done'
+  | 'failed'
+  | 'cancelled'
+
+/** Latest progress ping from the device agent; null until the first ping. */
+export interface FetchJobProgress {
+  phase: 'fetching' | 'merging' | 'uploading'
+  percent: number | null
+  downloaded_bytes: number | null
+  total_bytes: number | null
+  updated_at: string
+}
+
+export interface FetchJob {
+  id: string
+  church_id: string
+  kind: FetchJobKind
+  url: string
+  video_id: string | null
+  bulk_import_item_id: string | null
+  status: FetchJobStatus
+  priority: number
+  payload: Record<string, unknown> | null
+  claimed_by_device_id: string | null
+  lease_expires_at: string | null
+  claimed_at: string | null
+  attempt_count: number
+  attempted_device_ids: string[]
+  max_devices: number
+  attempt_log: Record<string, unknown>[]
+  progress: FetchJobProgress | null
+  result: Record<string, unknown> | null
+  /** DownloadFailureKind constant; DB stores free text — treat unknown values as OTHER. */
+  error_kind: string | null
+  error_message: string | null
+  created_at: string
+  updated_at: string
+  finished_at: string | null
+}
+
+// Embed shapes for the Downloads dashboard's PostgREST spine queries
+// (see lib/api/fetch.ts). Defined here so client components, the pure
+// derivation helper (lib/downloads.ts), and test factories can import
+// them without touching the server-only data module.
+
+/** Attempt with the (admin-only) device name embedded. */
+export interface AttemptWithDevice extends VideoDownloadAttempt {
+  device: { name: string } | null
+}
+
+/** The slice of fetch_jobs the Downloads page embeds per video. */
+export type JobEmbed = Pick<
+  FetchJob,
+  | 'id'
+  | 'status'
+  | 'progress'
+  | 'attempt_count'
+  | 'max_devices'
+  | 'bulk_import_item_id'
+  | 'error_kind'
+  | 'error_message'
+  | 'claimed_at'
+  | 'created_at'
+  | 'finished_at'
+> & {
+  claimed_device: { name: string } | null
+  bulk_item: { job_id: string } | null
+}
+
+/** One video row on the Downloads page, with everything embedded. */
+export interface DownloadVideoRow {
+  id: string
+  title: string
+  church_id: string
+  status: VideoStatus
+  error_message: string | null
+  created_at: string
+  updated_at: string | null
+  churches: { name: string } | null | undefined
+  video_download_attempts: AttemptWithDevice[]
+  fetch_jobs: JobEmbed[]
+}
+
+/** One proxy-route attempt on the Fleet page's proxy stats panel. */
+export interface ProxyAttempt {
+  id: string
+  outcome: 'in_progress' | 'succeeded' | 'failed'
+  kind: DownloadFailureKind | null
+  downloaded_bytes: number | null
+  started_at: string
+  finished_at: string | null
+  video: { id: string; title: string } | null
+}
+
+/** One failed device attempt on the Fleet page's drill-in. */
+export interface DeviceFailure {
+  id: string
+  device_id: string
+  kind: DownloadFailureKind | null
+  http_status: number | null
+  error_message: string | null
+  egress_ip: string | null
+  started_at: string
+  finished_at: string | null
+  video: { id: string; title: string } | null
+}
+
+export type FetchDeviceStatus = 'active' | 'cooling' | 'offline' | 'disabled'
+
+export interface FetchDevice {
+  id: string
+  name: string
+  token_prefix: string
+  enabled: boolean
+  /** Display status maintained server-side; `enabled === false` should force "Disabled" in the UI. */
+  status: FetchDeviceStatus
+  cooldown_until: string | null
+  last_seen_at: string | null
+  last_job_finished_at: string | null
+  consecutive_block_failures: number
+  agent_version: string | null
+  ytdlp_version: string | null
+  last_ip: string | null
+  disk_free_gb: number | null
+  notes: string | null
+  created_at: string
+  updated_at: string | null
 }
 
 // ─── Bulk YouTube channel import ────────────────────────────────────

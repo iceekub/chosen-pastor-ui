@@ -13,12 +13,13 @@
  * 2026-05-02 = Saturday
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   formatGardenDateLong,
   formatGardenDateShort,
   gardenDayName,
   thisWeeksMondayISO,
+  timeAgo,
   toISODate,
   isMondayISO,
   weekAnchorSundayISO,
@@ -121,5 +122,26 @@ describe('weekAnchorSundayISO', () => {
   it('returns the Sunday of the same week for a mid-week date', () => {
     expect(weekAnchorSundayISO('2026-04-29')).toBe('2026-04-26') // Wednesday
     expect(weekAnchorSundayISO('2026-05-02')).toBe('2026-04-26') // Saturday
+  })
+})
+
+describe('timeAgo', () => {
+  it('covers the granularity ladder', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-06-12T12:00:00Z'))
+    try {
+      expect(timeAgo('2026-06-12T11:59:40Z')).toBe('just now')
+      expect(timeAgo('2026-06-12T11:56:00Z')).toBe('4m ago')
+      expect(timeAgo('2026-06-12T09:00:00Z')).toBe('3h ago')
+      expect(timeAgo('2026-06-10T12:00:00Z')).toBe('2d ago')
+      // Beyond a week: short absolute date.
+      expect(timeAgo('2026-05-01T12:00:00Z')).toMatch(/May 1/)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('is defensive about garbage input', () => {
+    expect(timeAgo('not-a-date')).toBe('—')
   })
 })

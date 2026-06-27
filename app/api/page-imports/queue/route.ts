@@ -18,9 +18,19 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => ({}))
   const videoUrls = (body as { video_urls?: unknown }).video_urls
-  if (!Array.isArray(videoUrls) || videoUrls.length === 0) {
+  if (
+    !Array.isArray(videoUrls) ||
+    videoUrls.length === 0 ||
+    !videoUrls.every((u) => typeof u === 'string')
+  ) {
     return NextResponse.json(
-      { error: 'video_urls must be a non-empty array' },
+      { error: 'video_urls must be a non-empty array of strings' },
+      { status: 400 },
+    )
+  }
+  if (videoUrls.length > 200) {
+    return NextResponse.json(
+      { error: 'Cannot queue more than 200 videos at once' },
       { status: 400 },
     )
   }

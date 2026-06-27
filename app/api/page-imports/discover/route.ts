@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => ({}))
   const pageUrl = (body as { page_url?: string }).page_url
-  if (!pageUrl) {
-    return NextResponse.json({ error: 'page_url is required' }, { status: 400 })
+  if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) {
+    return NextResponse.json({ error: 'page_url must be an http(s) URL' }, { status: 400 })
   }
 
   try {

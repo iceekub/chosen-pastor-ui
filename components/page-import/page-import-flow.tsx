@@ -175,10 +175,11 @@ function ReviewView({
   }
 
   const hasVideos = result.videos.length > 0
+  const channels = result.channels ?? []
 
   return (
     <div className="space-y-4">
-      {result.channels.length > 0 && <ChannelsFound channels={result.channels} />}
+      {channels.length > 0 && <ChannelsFound channels={channels} />}
 
       {!hasVideos && (
         <div
@@ -186,12 +187,12 @@ function ReviewView({
           style={{ color: '#5A4530', fontFamily: 'var(--font-mulish)' }}
         >
           <p className="font-semibold mb-1">
-            {result.channels.length > 0
+            {channels.length > 0
               ? 'No individual videos on the page.'
               : 'No videos found on that page.'}
           </p>
           <p className="text-xs" style={{ color: '#7A6A58' }}>
-            {result.channels.length > 0
+            {channels.length > 0
               ? 'Import a channel above to pull in all its videos.'
               : 'We look for YouTube and Vimeo links and embeds.'}
             {result.parse_error_count > 0 &&

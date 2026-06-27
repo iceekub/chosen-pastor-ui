@@ -435,7 +435,7 @@ export interface PageDiscoverResult {
   videos: DiscoveredPageVideo[]
   /** Channel links found on the page (e.g. the church's Vimeo channel) —
    * the robust path when individual videos load via JS. */
-  channels: DiscoveredPageChannel[]
+  channels: DiscoveredPageChannel[] | undefined
 }
 
 export interface QueuedVideoResult {

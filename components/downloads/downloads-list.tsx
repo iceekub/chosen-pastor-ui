@@ -15,6 +15,8 @@ interface DownloadsListProps {
   isAdmin: boolean
   /** Super_admin browsing without an emulated church — show church names. */
   showChurch: boolean
+  /** Server render time — used for progressStale to avoid browser clock skew. */
+  renderedAt: Date
 }
 
 interface Derived {
@@ -37,7 +39,7 @@ function boxLabel(d: DerivedDownload): string {
   return '—'
 }
 
-export function DownloadsList({ rows, isAdmin, showChurch }: DownloadsListProps) {
+export function DownloadsList({ rows, isAdmin, showChurch, renderedAt }: DownloadsListProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const toggle = (id: string) =>
     setExpanded((prev) => {
@@ -49,7 +51,7 @@ export function DownloadsList({ rows, isAdmin, showChurch }: DownloadsListProps)
 
   const derived: Derived[] = rows.map((video) => ({
     video,
-    d: deriveDownloadRow(video),
+    d: deriveDownloadRow(video, renderedAt),
   }))
   const activeRows = derived.filter(
     ({ d }) => d.state === 'queued' || d.state === 'in_progress',

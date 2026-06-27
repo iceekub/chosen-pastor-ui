@@ -262,7 +262,7 @@ export interface DownloadVideoRow {
   error_message: string | null
   created_at: string
   updated_at: string | null
-  churches: { name: string } | null
+  churches: { name: string } | null | undefined
   video_download_attempts: AttemptWithDevice[]
   fetch_jobs: JobEmbed[]
 }

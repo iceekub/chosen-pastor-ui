@@ -10,7 +10,6 @@ const NAV = [
   { href: '/sermons',   label: 'Services',   icon: VideoIcon },
   { href: '/garden',    label: 'Garden',    icon: GardenIcon },
   { href: '/downloads', label: 'Downloads', icon: DownloadIcon },
-  { href: '/account-deletions', label: 'Deletions', icon: TrashIcon },
   { href: '/settings',  label: 'Settings',  icon: SettingsIcon },
 ]
 
@@ -18,6 +17,7 @@ const ADMIN_NAV = [
   { href: '/admin', label: 'Add a Church', icon: AdminIcon },
   { href: '/admin/churches', label: 'Churches', icon: PeopleIcon },
   { href: '/fleet', label: 'Fleet', icon: ChipIcon },
+  { href: '/account-deletions', label: 'Deletions', icon: TrashIcon },
 ]
 
 interface SidebarProps {

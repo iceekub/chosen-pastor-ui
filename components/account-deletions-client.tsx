@@ -52,7 +52,7 @@ export function AccountDeletionsClient({
   initialRequests: DeletionRequest[]
 }) {
   const [requests, setRequests] = useState<DeletionRequest[]>(initialRequests)
-  const [busyId, setBusyId] = useState<string | null>(null)
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
 
   async function act(req: DeletionRequest, action: 'approve' | 'reject') {
@@ -62,7 +62,7 @@ export function AccountDeletionsClient({
         : `Reject the deletion request for ${req.email}?`
     if (!window.confirm(confirmMsg)) return
 
-    setBusyId(req.id)
+    setBusyIds((s) => new Set(s).add(req.id))
     setError(null)
     try {
       const res = await fetch(`/api/deletion-requests/${req.id}/process`, {
@@ -79,7 +79,7 @@ export function AccountDeletionsClient({
     } catch {
       setError('Network error — please try again.')
     } finally {
-      setBusyId(null)
+      setBusyIds((s) => { const n = new Set(s); n.delete(req.id); return n })
     }
   }
 
@@ -159,7 +159,7 @@ export function AccountDeletionsClient({
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    disabled={busyId === req.id}
+                    disabled={busyIds.has(req.id)}
                     onClick={() => act(req, 'reject')}
                     className="text-sm font-semibold rounded-xl px-4 py-2 transition-colors disabled:opacity-50"
                     style={{
@@ -173,12 +173,12 @@ export function AccountDeletionsClient({
                   </button>
                   <button
                     type="button"
-                    disabled={busyId === req.id}
+                    disabled={busyIds.has(req.id)}
                     onClick={() => act(req, 'approve')}
                     className="text-sm font-semibold rounded-xl px-4 py-2 transition-colors disabled:opacity-50"
                     style={{ color: '#FDFAF5', fontFamily: 'var(--font-mulish)', background: '#8B3A3A' }}
                   >
-                    {busyId === req.id ? 'Working…' : 'Approve & delete'}
+                    {busyIds.has(req.id) ? 'Working…' : 'Approve & delete'}
                   </button>
                 </div>
               </div>

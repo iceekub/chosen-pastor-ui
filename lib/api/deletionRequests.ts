@@ -23,10 +23,9 @@ export async function listDeletionRequests(): Promise<DeletionRequest[]> {
 export async function processDeletionRequest(
   id: string,
   action: 'approve' | 'reject',
-  notes?: string,
 ): Promise<DeletionRequest> {
   return edgeFunction<DeletionRequest>('account-deletion-process', {
     method: 'POST',
-    body: { request_id: id, action, notes },
+    body: { request_id: id, action },
   })
 }

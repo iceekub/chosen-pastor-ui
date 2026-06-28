@@ -1,9 +1,9 @@
 /**
  * Route handler: POST /api/deletion-requests/[id]/process
- * Proxies a staff approve/reject to the `account-deletion-process` Edge
+ * Proxies a super_admin approve/reject to the `account-deletion-process` Edge
  * Function (which holds the service role and does the actual account
- * deletion). Forwards the session bearer; the Edge Function enforces the
- * staff role + church scope and returns structured 4xx/409 codes.
+ * deletion). Restricted to super_admin at this layer; the Edge Function
+ * additionally enforces church scope and returns structured 4xx/409 codes.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -17,12 +17,12 @@ export async function POST(
 ) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (session.user.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const { id } = await params
-  const body = (await request.json().catch(() => ({}))) as {
-    action?: string
-    notes?: string
-  }
+  const body = (await request.json().catch(() => ({}))) as { action?: string }
   if (body.action !== 'approve' && body.action !== 'reject') {
     return NextResponse.json(
       { error: 'action must be "approve" or "reject"' },
@@ -31,7 +31,7 @@ export async function POST(
   }
 
   try {
-    const updated = await processDeletionRequest(id, body.action, body.notes)
+    const updated = await processDeletionRequest(id, body.action)
     return NextResponse.json(updated)
   } catch (err) {
     // Forward the Edge Function's JSON body + status verbatim so the client

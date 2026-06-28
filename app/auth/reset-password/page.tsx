@@ -148,6 +148,10 @@ export default function ResetPasswordPage() {
           </p>
         </div>
       </div>
+      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
+        <a href="https://sixseeds.org/privacy" target="_blank" rel="noopener noreferrer" className="text-xs" style={{ color: 'rgba(181, 210, 173, 0.35)', fontFamily: 'var(--font-mulish)' }}>Privacy Policy</a>
+        <a href="https://sixseeds.org/terms" target="_blank" rel="noopener noreferrer" className="text-xs" style={{ color: 'rgba(181, 210, 173, 0.35)', fontFamily: 'var(--font-mulish)' }}>Terms</a>
+      </div>
     </div>
   )
 }

@@ -89,6 +89,10 @@ function AcceptInviteForm() {
       <div className="relative anim-scaleIn" style={{ animationDelay: '0.05s', width: 'min(384px, calc(100vw - 2rem))', zIndex: 10 }}>
         {children}
       </div>
+      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
+        <a href="https://sixseeds.org/privacy" target="_blank" rel="noopener noreferrer" className="text-xs" style={{ color: 'rgba(181, 210, 173, 0.35)', fontFamily: 'var(--font-mulish)' }}>Privacy Policy</a>
+        <a href="https://sixseeds.org/terms" target="_blank" rel="noopener noreferrer" className="text-xs" style={{ color: 'rgba(181, 210, 173, 0.35)', fontFamily: 'var(--font-mulish)' }}>Terms</a>
+      </div>
     </div>
   )
 

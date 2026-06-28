@@ -295,6 +295,12 @@ export function SettingsForm({ user, church, bibleVersions, team, pastors }: Pro
         )}
       </div>
 
+      {/* Legal */}
+      <div className="flex gap-5 px-1 anim-fadeUp" style={{ animationDelay: '0.32s' }}>
+        <a href="https://sixseeds.org/privacy" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)', textDecoration: 'underline' }}>Privacy Policy</a>
+        <a href="https://sixseeds.org/terms" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold" style={{ color: '#8A7060', fontFamily: 'var(--font-mulish)', textDecoration: 'underline' }}>Terms</a>
+      </div>
+
     </div>
   )
 }

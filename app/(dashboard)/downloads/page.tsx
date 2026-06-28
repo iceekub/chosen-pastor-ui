@@ -51,6 +51,7 @@ export default async function DownloadsPage() {
         rows={[...active, ...history]}
         isAdmin={isAdmin}
         showChurch={isAdmin && !churchId}
+        renderedAt={new Date()}
       />
     </div>
   )

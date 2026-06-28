@@ -14,6 +14,42 @@ export interface SessionUser {
   church_name: string | null
 }
 
+// ─── Account deletion requests ──────────────────────────────────────────────
+
+/** Mirrors the CHECK on `deletion_requests.status` (20260620000001). */
+export type DeletionRequestStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'completed'
+  | 'failed'
+
+export type DeletionRequestSource = 'web' | 'in_app'
+
+/**
+ * An account & data deletion request (Google Play / App Store compliance).
+ * Created by the `account-deletion-request` Edge Function; resolved by staff
+ * via `account-deletion-process`. `matched_profile` is the parishioner the
+ * email resolved to (PostgREST embed on profile_id) — null when the email
+ * matched no account.
+ */
+export interface DeletionRequest {
+  id: string
+  email: string
+  profile_id: string | null
+  church_id: string | null
+  reason: string | null
+  source: DeletionRequestSource
+  status: DeletionRequestStatus
+  notes: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  completed_at: string | null
+  created_at: string
+  updated_at: string | null
+  matched_profile?: { name: string; role: UserRole } | null
+}
+
 // ─── Videos (sermons) ───────────────────────────────────────────────────────
 
 /**
@@ -262,7 +298,7 @@ export interface DownloadVideoRow {
   error_message: string | null
   created_at: string
   updated_at: string | null
-  churches: { name: string } | null
+  churches: { name: string } | null | undefined
   video_download_attempts: AttemptWithDevice[]
   fetch_jobs: JobEmbed[]
 }

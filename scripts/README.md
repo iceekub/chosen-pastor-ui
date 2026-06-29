@@ -47,16 +47,17 @@ Override only to change one:
 |---|---|---|
 | `AWS_PROFILE` | `ragserv` | Your AWS profile is named differently |
 | `BUILDX_BUILDER` | `desktop-linux` | Your buildx builder is named differently |
-| `NEXT_PUBLIC_RAGSERV_URL` | `https://api.chosenapp.com` | Point the build at the new API domain (see below) |
+| `NEXT_PUBLIC_RAGSERV_URL` | `https://api.sixseeds.org` | Override only to fall back to the legacy domain (see below) |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://mtuimpykacljpmxkarky.supabase.co` | ~never |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | publishable anon key | ~never |
 | `NEXT_PUBLIC_AWS_THUMBNAILS_BUCKET_URL` | `https://ragserv-dev-thumbnails.s3.us-west-2.amazonaws.com` | ~never |
 | `AWS_REGION` / `CLUSTER` / `SERVICE` / `ECR_REPO` | `us-west-2` / `ragserv-dev` / `ragserv-dev-admin-ui` / `ragserv-dev-admin-ui` | ~never |
 
-> During the `chosenapp.com → sixseeds.org` migration, to ship a build that
-> talks to the new API domain:
+> The default is now `api.sixseeds.org`. During the `chosenapp.com →
+> sixseeds.org` cutover both hostnames hit the same ALB; to pin a build back
+> to the legacy domain before it's retired:
 > ```bash
-> NEXT_PUBLIC_RAGSERV_URL=https://api.sixseeds.org ./scripts/deploy-admin.sh
+> NEXT_PUBLIC_RAGSERV_URL=https://api.chosenapp.com ./scripts/deploy-admin.sh
 > ```
 
 ### AWS permissions (least privilege)

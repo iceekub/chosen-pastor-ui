@@ -9,7 +9,7 @@ export default async function AdminPage() {
       <div className="mb-6 anim-fadeUp">
         <h1 className="page-title">Add a Church</h1>
         <p className="text-sm mt-1" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-          Chosen team only — provision a new church on the platform.
+          Six Seeds team only — provision a new church on the platform.
         </p>
       </div>
 

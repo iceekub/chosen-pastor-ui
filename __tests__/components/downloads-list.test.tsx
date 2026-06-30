@@ -42,6 +42,8 @@ const completedRow = makeDownloadRow({
   ],
 })
 
+const renderedAt = new Date()
+
 const failedRow = makeDownloadRow({
   id: 'v-failed',
   title: 'Blocked Sermon',
@@ -67,6 +69,7 @@ describe('<DownloadsList />', () => {
         rows={[inProgressRow, completedRow, failedRow]}
         isAdmin={false}
         showChurch={false}
+        renderedAt={renderedAt}
       />,
     )
     expect(screen.getByText('Active Sermon')).toBeInTheDocument()
@@ -81,6 +84,7 @@ describe('<DownloadsList />', () => {
         rows={[inProgressRow, failedRow]}
         isAdmin={false}
         showChurch={false}
+        renderedAt={renderedAt}
       />,
     )
     expect(screen.queryByText('Box')).not.toBeInTheDocument()
@@ -93,6 +97,7 @@ describe('<DownloadsList />', () => {
         rows={[inProgressRow, completedRow]}
         isAdmin={true}
         showChurch={false}
+        renderedAt={renderedAt}
       />,
     )
     expect(screen.getAllByText('Box').length).toBeGreaterThan(0)
@@ -102,17 +107,17 @@ describe('<DownloadsList />', () => {
 
   it('church names render only in the global super_admin view', () => {
     const { rerender } = render(
-      <DownloadsList rows={[inProgressRow]} isAdmin={true} showChurch={true} />,
+      <DownloadsList rows={[inProgressRow]} isAdmin={true} showChurch={true} renderedAt={renderedAt} />,
     )
     expect(screen.getByText('Demo Church')).toBeInTheDocument()
     rerender(
-      <DownloadsList rows={[inProgressRow]} isAdmin={true} showChurch={false} />,
+      <DownloadsList rows={[inProgressRow]} isAdmin={true} showChurch={false} renderedAt={renderedAt} />,
     )
     expect(screen.queryByText('Demo Church')).not.toBeInTheDocument()
   })
 
   it('expanding a failed row reveals the explanation + raw error output', () => {
-    render(<DownloadsList rows={[failedRow]} isAdmin={false} showChurch={false} />)
+    render(<DownloadsList rows={[failedRow]} isAdmin={false} showChurch={false} renderedAt={renderedAt} />)
     expect(screen.queryByText(/bot detection/i)).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /Blocked Sermon/ }))
@@ -125,14 +130,14 @@ describe('<DownloadsList />', () => {
   })
 
   it('admin drill-in shows the per-attempt box + egress columns', () => {
-    render(<DownloadsList rows={[failedRow]} isAdmin={true} showChurch={false} />)
+    render(<DownloadsList rows={[failedRow]} isAdmin={true} showChurch={false} renderedAt={renderedAt} />)
     fireEvent.click(screen.getByRole('button', { name: /Blocked Sermon/ }))
     expect(screen.getByText('Egress IP')).toBeInTheDocument()
     expect(screen.getByText('fetcher-02')).toBeInTheDocument()
   })
 
   it('renders empty states per section', () => {
-    render(<DownloadsList rows={[]} isAdmin={false} showChurch={false} />)
+    render(<DownloadsList rows={[]} isAdmin={false} showChurch={false} renderedAt={renderedAt} />)
     expect(screen.getByText(/Nothing downloading right now/)).toBeInTheDocument()
     expect(screen.getByText(/No downloads finished in this window/)).toBeInTheDocument()
     expect(screen.getByText(/No failures in this window/)).toBeInTheDocument()

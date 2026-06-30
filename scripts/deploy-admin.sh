@@ -16,8 +16,9 @@ set -euo pipefail
 # The four NEXT_PUBLIC_* values are baked into the client bundle at build
 # time (see Dockerfile). They are NOT secret — public URLs + the Supabase
 # publishable anon key — so they default to the production values below and
-# can be overridden via the environment, e.g. to point at the new domain:
-#   NEXT_PUBLIC_RAGSERV_URL=https://api.sixseeds.org ./scripts/deploy-admin.sh
+# can be overridden via the environment, e.g. to fall back to the legacy
+# domain during the chosenapp.com → sixseeds.org cutover:
+#   NEXT_PUBLIC_RAGSERV_URL=https://api.chosenapp.com ./scripts/deploy-admin.sh
 # ===========================================================================
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
@@ -37,7 +38,7 @@ export AWS_PROFILE
 # --- NEXT_PUBLIC_* build args (public; overridable via env) -----------------
 NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://mtuimpykacljpmxkarky.supabase.co}"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-sb_publishable_F8iHELEo-vuK_sTekPXA1w_rEk4tgWZ}"
-NEXT_PUBLIC_RAGSERV_URL="${NEXT_PUBLIC_RAGSERV_URL:-https://api.chosenapp.com}"
+NEXT_PUBLIC_RAGSERV_URL="${NEXT_PUBLIC_RAGSERV_URL:-https://api.sixseeds.org}"
 NEXT_PUBLIC_AWS_THUMBNAILS_BUCKET_URL="${NEXT_PUBLIC_AWS_THUMBNAILS_BUCKET_URL:-https://ragserv-dev-thumbnails.s3.us-west-2.amazonaws.com}"
 
 info()  { echo "==> $1"; }

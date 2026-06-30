@@ -5,6 +5,7 @@
 
 import type {
   AttemptWithDevice,
+  DeletionRequest,
   DownloadVideoRow,
   FetchDevice,
   Garden,
@@ -190,6 +191,28 @@ export function makeFetchDevice(overrides: Partial<FetchDevice> = {}): FetchDevi
     notes: null,
     created_at: '2026-06-01T00:00:00Z',
     updated_at: null,
+    ...overrides,
+  }
+}
+
+export function makeDeletionRequest(
+  overrides: Partial<DeletionRequest> = {},
+): DeletionRequest {
+  return {
+    id: 'dr1',
+    email: 'member@example.com',
+    profile_id: 'p1',
+    church_id: 'c1',
+    reason: null,
+    source: 'web',
+    status: 'pending',
+    notes: null,
+    reviewed_by: null,
+    reviewed_at: null,
+    completed_at: null,
+    created_at: '2026-06-19T12:00:00Z',
+    updated_at: null,
+    matched_profile: { name: 'Pat Member', role: 'parishioner' },
     ...overrides,
   }
 }

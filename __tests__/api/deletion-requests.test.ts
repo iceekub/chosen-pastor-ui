@@ -17,7 +17,12 @@ const mockProcess = vi.mocked(processDeletionRequest)
 const validSession = {
   accessToken: 'access-token-test',
   refreshToken: 'refresh-token-test',
-  user: { id: '1', name: 'Test', email: 't@t', role: 'staff' as const, church_id: 'c1', church_name: 'Demo' },
+  user: { id: '1', name: 'Test', email: 't@t', role: 'super_admin' as const, church_id: 'c1', church_name: 'Demo' },
+}
+
+const staffSession = {
+  ...validSession,
+  user: { ...validSession.user, role: 'staff' as const },
 }
 
 function makePost(id: string, body?: object) {
@@ -42,6 +47,14 @@ describe('POST /api/deletion-requests/[id]/process', () => {
     expect(mockProcess).not.toHaveBeenCalled()
   })
 
+  it('returns 403 when the caller is not super_admin', async () => {
+    mockGetSession.mockResolvedValue(staffSession)
+    const { req, ctx } = makePost('dr-1', { action: 'approve' })
+    const res = await POST(req, ctx)
+    expect(res.status).toBe(403)
+    expect(mockProcess).not.toHaveBeenCalled()
+  })
+
   it('rejects a missing/invalid action with 400 before hitting the backend', async () => {
     mockGetSession.mockResolvedValue(validSession)
     const { req, ctx } = makePost('dr-1', { action: 'bogus' })
@@ -58,18 +71,18 @@ describe('POST /api/deletion-requests/[id]/process', () => {
     const { req, ctx } = makePost('dr-1', { action: 'approve' })
     const res = await POST(req, ctx)
     expect(res.status).toBe(200)
-    expect(mockProcess).toHaveBeenCalledWith('dr-1', 'approve', undefined)
+    expect(mockProcess).toHaveBeenCalledWith('dr-1', 'approve')
     const body = await res.json()
     expect(body.status).toBe('completed')
   })
 
-  it('forwards a reject with notes', async () => {
+  it('forwards a reject', async () => {
     mockGetSession.mockResolvedValue(validSession)
     mockProcess.mockResolvedValue(makeDeletionRequest({ id: 'dr-1', status: 'rejected' }))
 
-    const { req, ctx } = makePost('dr-1', { action: 'reject', notes: 'not the account owner' })
+    const { req, ctx } = makePost('dr-1', { action: 'reject' })
     await POST(req, ctx)
-    expect(mockProcess).toHaveBeenCalledWith('dr-1', 'reject', 'not the account owner')
+    expect(mockProcess).toHaveBeenCalledWith('dr-1', 'reject')
   })
 
   it('forwards the edge function status + structured code (e.g. already_processed)', async () => {

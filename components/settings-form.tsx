@@ -115,7 +115,7 @@ function LockedField({ label, value }: { label: string; value: string | null | u
         </p>
       </div>
       <p className="text-xs mt-1" style={{ color: '#C5B49A', fontFamily: 'var(--font-mulish)' }}>
-        Contact Chosen to update.
+        Contact Six Seeds to update.
       </p>
     </div>
   )
@@ -237,7 +237,7 @@ export function SettingsForm({ user, church, bibleVersions, team, pastors }: Pro
       <div className="surface px-6 py-6 anim-fadeUp" style={{ animationDelay: '0.16s' }}>
         {sectionLabel('Church Assets')}
         <p className="text-xs mb-5" style={{ color: '#A09080', fontFamily: 'var(--font-mulish)' }}>
-          Shown in the Chosen app on your church&apos;s profile and home screens.
+          Shown in the Six Seeds app on your church&apos;s profile and home screens.
         </p>
         <div className="space-y-5">
           {/* Logo row */}

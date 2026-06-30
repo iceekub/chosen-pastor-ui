@@ -43,7 +43,7 @@ export default async function FleetPage() {
           Fleet.
         </h1>
         <p className="text-sm mt-1" style={{ color: '#7A6A58', fontFamily: 'var(--font-mulish)' }}>
-          Raspberry Pi download devices at partner homes — Chosen team only. Error counts cover
+          Raspberry Pi download devices at partner homes — Six Seeds team only. Error counts cover
           the last {ERROR_WINDOW_DAYS} days; reload for current status.
         </p>
       </div>
